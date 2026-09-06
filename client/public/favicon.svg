@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="goldGradFav" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE885" />
+      <stop offset="40%" stop-color="#D4AF37" />
+      <stop offset="80%" stop-color="#AA7C11" />
+      <stop offset="100%" stop-color="#F3C64D" />
+    </linearGradient>
+    <linearGradient id="navyGradFav" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F2D59" />
+      <stop offset="100%" stop-color="#040D1A" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Rounded Shield Badge -->
+  <rect x="3" y="3" width="94" height="94" rx="24" fill="url(#navyGradFav)" stroke="url(#goldGradFav)" stroke-width="4"/>
+  <rect x="8" y="8" width="84" height="84" rx="19" fill="none" stroke="url(#goldGradFav)" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>
+
+  <!-- SSR Bold Monogram -->
+  <text x="50" y="57" font-family="system-ui, -apple-system, 'Outfit', 'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="34" fill="url(#goldGradFav)" text-anchor="middle" letter-spacing="1">SSR</text>
+  
+  <!-- Gold Stars Accent -->
+  <text x="50" y="76" font-family="sans-serif" font-size="10" fill="#FFE885" text-anchor="middle">✦ ✦ ✦</text>
+</svg>
