@@ -58,6 +58,15 @@ const AdminLayout = () => {
     },
   ];
 
+  // Bottom bar items — shorter labels for mobile
+  const bottomNavItems = [
+    { name: 'Dashboard', shortName: 'Dash', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Employees', shortName: 'Staff', path: '/admin/employees', icon: Users },
+    { name: 'Tasks', shortName: 'Tasks', path: '/admin/tasks', icon: ClipboardList },
+    { name: 'Earnings', shortName: 'Money', path: '/admin/earnings', icon: TrendingUp },
+    { name: 'Inquiries', shortName: 'Inbox', path: '/admin/inquiries', icon: Bell },
+  ];
+
   const isActive = (path) => {
     return location.pathname === path || (path !== '/admin/dashboard' && location.pathname.startsWith(path));
   };
@@ -77,12 +86,22 @@ const AdminLayout = () => {
           </div>
         </div>
 
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg bg-white/10 text-white"
-        >
-          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Logout button on mobile header */}
+          <button
+            onClick={handleLogout}
+            title="Logout"
+            className="p-2 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-lg bg-white/10 text-white"
+          >
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Sidebar for Desktop & Mobile Drawer */}
@@ -183,10 +202,18 @@ const AdminLayout = () => {
         </div>
       </aside>
 
+      {/* Overlay when mobile sidebar is open */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         
-        {/* Top Navbar */}
+        {/* Top Navbar (Desktop only) */}
         <header className="bg-white border-b border-slate-200 px-6 py-3.5 hidden md:flex items-center justify-between sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="font-semibold text-slate-900">SSRC Central Admin</span>
@@ -209,12 +236,46 @@ const AdminLayout = () => {
           </div>
         </header>
 
-        {/* Page Inner Container */}
-        <div className="p-4 sm:p-6 lg:p-8">
+        {/* Page Inner Container — extra bottom padding on mobile for bottom bar */}
+        <div className="p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
           <Outlet />
         </div>
 
       </main>
+
+      {/* ── Mobile Sticky Bottom Nav Bar (Admin) ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#081C36]/98 backdrop-blur-lg border-t-2 border-amber-500/40 shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
+        <div className="flex items-stretch h-16">
+          {bottomNavItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-[9px] font-bold uppercase tracking-wide transition-all duration-200 relative ${
+                  active ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                {/* Active top indicator */}
+                {active && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full" />
+                )}
+                {/* Active background pill */}
+                {active && (
+                  <span className="absolute inset-x-1 inset-y-1 rounded-xl bg-amber-500/10 border border-amber-400/20" />
+                )}
+                <Icon
+                  className={`w-5 h-5 relative z-10 transition-transform duration-200 ${
+                    active ? 'scale-110 text-amber-400' : 'text-slate-500'
+                  }`}
+                />
+                <span className="relative z-10">{item.shortName}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
 
     </div>
   );

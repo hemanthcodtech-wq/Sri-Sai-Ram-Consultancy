@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from '../components/public/Navbar';
 import Footer from '../components/public/Footer';
 import FloatingContact from '../components/public/FloatingContact';
+import PublicBottomNav from '../components/public/PublicBottomNav';
 
 import HomePage from '../pages/public/HomePage';
 import ServicesPage from '../pages/public/ServicesPage';
@@ -30,6 +31,7 @@ const PublicLayout = ({ children }) => {
       <main className="flex-1">{children}</main>
       <FloatingContact />
       <Footer />
+      <PublicBottomNav />
     </div>
   );
 };
