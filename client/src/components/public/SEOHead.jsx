@@ -27,26 +27,46 @@ const SEOHead = ({ title, description, keywords, ogImage }) => {
     setMetaTag('meta[name="description"]', 'name', 'description', defaultDesc);
     setMetaTag('meta[name="keywords"]', 'name', 'keywords', defaultKeywords);
 
-    // 3. Social OpenGraph Tags
+    // 3. Absolute URL resolution for social share image
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://srisairamconsultancy.com';
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : 'https://srisairamconsultancy.com';
+    
+    let resolvedImage = ogImage || '/logo.png';
+    if (!resolvedImage.startsWith('http')) {
+      resolvedImage = `${origin}${resolvedImage.startsWith('/') ? '' : '/'}${resolvedImage}`;
+    }
+
+    // 4. Social OpenGraph Tags
     setMetaTag('meta[property="og:title"]', 'property', 'og:title', fullTitle);
     setMetaTag('meta[property="og:description"]', 'property', 'og:description', defaultDesc);
-    setMetaTag('meta[property="og:image"]', 'property', 'og:image', ogImage || '/logo.png');
+    setMetaTag('meta[property="og:image"]', 'property', 'og:image', resolvedImage);
+    setMetaTag('meta[property="og:image:secure_url"]', 'property', 'og:image:secure_url', resolvedImage);
+    setMetaTag('meta[property="og:image:type"]', 'property', 'og:image:type', 'image/png');
+    setMetaTag('meta[property="og:image:alt"]', 'property', 'og:image:alt', 'Sri Sai Ram Consultancy Logo');
+    setMetaTag('meta[property="og:url"]', 'property', 'og:url', currentUrl);
 
-    // 4. Twitter Card Tags
+    // 5. Twitter Card Tags
+    setMetaTag('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
     setMetaTag('meta[name="twitter:title"]', 'name', 'twitter:title', fullTitle);
     setMetaTag('meta[name="twitter:description"]', 'name', 'twitter:description', defaultDesc);
+    setMetaTag('meta[name="twitter:image"]', 'name', 'twitter:image', resolvedImage);
+    setMetaTag('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', 'Sri Sai Ram Consultancy Logo');
 
-    // 5. Ensure favicon is set in top tab
-    let faviconLink = document.querySelector('link[rel="icon"]');
-    if (!faviconLink) {
-      faviconLink = document.createElement('link');
-      faviconLink.rel = 'icon';
-      faviconLink.type = 'image/svg+xml';
-      faviconLink.href = '/favicon.svg';
-      document.head.appendChild(faviconLink);
-    } else {
-      faviconLink.href = '/favicon.svg';
-    }
+    // 6. Ensure browser tab favicon icons are set to SSR emblem favicon
+    const updateIconLink = (rel, type, href) => {
+      let link = document.querySelector(`link[rel="${rel}"]`);
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = rel;
+        if (type) link.type = type;
+        document.head.appendChild(link);
+      }
+      link.href = `${href}?v=7`;
+    };
+
+    updateIconLink('icon', 'image/x-icon', '/favicon.ico');
+    updateIconLink('shortcut icon', 'image/x-icon', '/favicon.ico');
+    updateIconLink('apple-touch-icon', 'image/png', '/apple-touch-icon.png');
 
     // Scroll to top on route change
     window.scrollTo(0, 0);
