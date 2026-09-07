@@ -1,14 +1,24 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { 
+  Phone, 
+  MessageCircle, 
+  CheckCircle2, 
+  ArrowRight,
+  ShieldCheck,
+  Users,
+  HeartHandshake,
+  Star
+} from 'lucide-react';
 import SEOHead from '../../components/public/SEOHead';
 import Typewriter from '../../components/public/Typewriter';
-import heroStaff from '../../assets/hero_staff.jpg';
+import bannerBg from '../../assets/banner_bg_clean.png';
 import driverIcon from '../../assets/icon_driver.png';
 import captainIcon from '../../assets/icon_captain.png';
 import helperIcon from '../../assets/icon_helper.png';
 
 const HomePage = () => {
   const phoneRaw = import.meta.env.VITE_COMPANY_PHONE_RAW || '9505151527';
+  const whatsappRaw = import.meta.env.VITE_COMPANY_WHATSAPP || '919505151527';
 
   return (
     <>
@@ -18,220 +28,284 @@ const HomePage = () => {
       />
 
       {/* ═══════════════════════════════════════════
-          1. HERO BANNER — Responsive Coded Banner with Typewriter
+          1. HERO BANNER — Panoramic Width with Reactive Typewriter
           ═══════════════════════════════════════════ */}
       <section className="relative bg-[#FFFDF9] overflow-hidden border-b border-[#F0E5D5]">
-        <div className="max-w-7xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 py-0 sm:py-3 md:py-4">
-          <div className="relative overflow-hidden sm:rounded-2xl md:rounded-3xl bg-gradient-to-r from-[#F7FAFD] via-[#FCFDFE] to-[#F3F7FC] border-0 sm:border border-slate-100 shadow-sm sm:shadow-md">
+        <div className="w-full max-w-[1440px] mx-auto px-1.5 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-3">
+          <div className="relative overflow-hidden sm:rounded-2xl md:rounded-3xl border-0 sm:border border-[#F0E0C8] shadow-sm sm:shadow-md bg-white aspect-[2.1/1] sm:aspect-[2.25/1] w-full">
             
-            {/* Dynamic Gold Light Accents */}
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl pointer-events-none" />
+            {/* Background Image (Original Mockup with 4 Staff & Gold Ribbons) */}
+            <img
+              src={bannerBg}
+              alt="Sri Sai Ram Consultancy - Professional Staffing"
+              className="absolute inset-0 w-full h-full object-cover object-[center_right] sm:object-right z-0 pointer-events-none"
+            />
 
-            <div className="relative flex flex-row items-stretch min-h-[220px] sm:min-h-[300px] md:min-h-[380px] lg:min-h-[440px]">
+            {/* Subtle Gradient Backing on Left for Crisp Typography */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FFFDF9]/95 via-[#FFFDF9]/70 to-transparent sm:from-[#FFFDF9]/90 sm:via-[#FFFDF9]/40 sm:to-transparent z-1 pointer-events-none max-w-[85%] sm:max-w-[54%]" />
 
-              {/* ── Left Column: Text & Typewriter CTA ── */}
-              <div className="w-[50%] sm:w-[48%] md:w-[46%] pl-3.5 pr-1.5 sm:pl-8 sm:pr-4 md:pl-12 py-3.5 sm:py-6 md:py-10 flex flex-col justify-center z-10">
-                
-                {/* Tagline */}
-                <p className="text-[8px] sm:text-[11px] md:text-xs font-extrabold uppercase tracking-wider text-[#081C36]/80 mb-1 sm:mb-2 leading-tight">
-                  TRUSTED PEOPLE FOR<br className="sm:hidden" /> A BETTER TOMORROW
-                </p>
+            {/* Banner Foreground Content */}
+            <div className="relative z-10 flex flex-col justify-center h-full pl-3.5 sm:pl-7 md:pl-11 lg:pl-16 pr-1 py-1 sm:py-3 max-w-[58%] sm:max-w-[52%] md:max-w-[48%]">
+              
+              {/* Tagline */}
+              <p className="text-[7.5px] sm:text-xs md:text-sm font-black uppercase tracking-wider text-[#081C36]/85 mb-0.5 sm:mb-1.5 md:mb-2 leading-tight">
+                TRUSTED PEOPLE FOR A BETTER TOMORROW
+              </p>
 
-                {/* Main Heading with Typewriter */}
-                <h1 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black leading-[1.08] mb-1.5 sm:mb-3">
-                  <span className="text-[#081C36] block">Your Needs</span>
-                  <span className="block min-h-[1.2em]">
-                    <Typewriter
-                      phrases={['Our People', 'Expert Drivers', 'Elite Captains', 'Verified Helpers']}
-                      className="text-[#C8960C]"
-                    />
-                  </span>
-                </h1>
+              {/* Main Heading with Typewriter */}
+              <h1 className="text-lg sm:text-3xl md:text-5xl lg:text-6xl font-black leading-[1.08] mb-1 sm:mb-2 md:mb-3">
+                <span className="text-[#081C36] block">Your Needs</span>
+                <span className="block min-h-[1.2em]">
+                  <Typewriter
+                    phrases={['Our People', 'Expert Drivers', 'Elite Captains', 'Verified Helpers']}
+                    className="text-[#C8960C]"
+                  />
+                </span>
+              </h1>
 
-                {/* Subtitle */}
-                <p className="text-slate-600 text-[8.5px] sm:text-xs md:text-sm lg:text-base font-medium leading-snug sm:leading-relaxed max-w-[190px] sm:max-w-sm mb-2.5 sm:mb-5">
-                  Reliable Drivers, Captains &amp; Helpers for Your Personal and Professional Needs.
-                </p>
+              {/* Subtitle */}
+              <p className="text-slate-600 text-[8px] sm:text-xs md:text-sm lg:text-base font-medium leading-tight sm:leading-relaxed max-w-[180px] sm:max-w-sm md:max-w-md lg:max-w-lg mb-1.5 sm:mb-3 md:mb-5">
+                Reliable Drivers, Captains &amp; Helpers for Your Personal and Professional Needs.
+              </p>
 
-                {/* Get Started Pill Button */}
-                <div className="flex items-center">
-                  <a
-                    href={`tel:${phoneRaw}`}
-                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:px-6 sm:py-2.5 rounded-full bg-gradient-to-r from-[#D98E04] to-[#C8960C] hover:from-[#EAA00A] hover:to-[#D98E04] text-white font-bold text-[10px] sm:text-xs md:text-sm shadow-md shadow-amber-400/25 transition-all duration-300 hover:scale-[1.03] active:scale-95 whitespace-nowrap"
-                  >
-                    Get Started <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </a>
-                </div>
-
-                {/* Carousel Indicators (1 Navy, 2 Grey) */}
-                <div className="flex items-center gap-1 sm:gap-1.5 mt-2.5 sm:mt-5">
-                  <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#081C36]" />
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-300" />
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-300" />
-                </div>
+              {/* Get Started Pill Button */}
+              <div className="flex items-center">
+                <a
+                  href={`tel:${phoneRaw}`}
+                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-5 sm:py-2.5 md:px-7 md:py-3 rounded-full bg-gradient-to-r from-[#D98E04] to-[#C8960C] hover:from-[#EAA00A] hover:to-[#D98E04] text-white font-black text-[8.5px] sm:text-xs md:text-sm lg:text-base shadow-md shadow-amber-400/25 transition-all duration-300 hover:scale-[1.03] active:scale-95 whitespace-nowrap"
+                >
+                  Get Started <ArrowRight className="w-2.5 h-2.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                </a>
               </div>
 
-              {/* ── Right Column: Hero Staff Photo with Golden Sweeping Ribbon Cut ── */}
-              <div className="w-[50%] sm:w-[52%] md:w-[54%] relative overflow-hidden flex items-end justify-end">
-                
-                {/* Top-Right Golden Ribbon */}
-                <div
-                  className="absolute top-0 right-0 w-36 sm:w-72 h-36 sm:h-72 bg-gradient-to-bl from-amber-400/40 via-amber-200/25 to-transparent pointer-events-none z-10"
-                  style={{ clipPath: 'polygon(100% 0, 0 0, 100% 100%)' }}
-                />
-
-                {/* Diagonal Gold Ribbon separator on left of photo */}
-                <div
-                  className="absolute inset-y-0 left-0 w-10 sm:w-20 z-10 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(to bottom right, #F7FAFD 40%, rgba(200, 150, 12, 0.7) 45%, rgba(250, 220, 140, 0.9) 48%, transparent 54%)'
-                  }}
-                />
-
-                {/* Staff Photo */}
-                <img
-                  src={heroStaff}
-                  alt="Sri Sai Ram Consultancy Staffing Team"
-                  className="w-full h-full object-cover object-top relative z-0"
-                />
-
-                {/* Bottom Diagonal Ribbon Sweep */}
-                <div
-                  className="absolute -bottom-3 -right-6 w-[120%] h-14 sm:h-20 md:h-24 z-20 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(174deg, transparent 25%, rgba(200, 150, 12, 0.95) 28%, #FFFFFF 42%)',
-                    transform: 'rotate(-3deg)'
-                  }}
-                />
-
-                {/* "Your Dreams... Our Guidance..." Script */}
-                <div className="absolute bottom-1 right-2 sm:bottom-2 sm:right-5 z-30 text-right pointer-events-none">
-                  <span
-                    className="font-bold text-[#081C36] leading-none block drop-shadow-sm"
-                    style={{
-                      fontFamily: "'Caveat', 'Dancing Script', cursive",
-                      fontSize: 'clamp(0.85rem, 2.5vw, 1.4rem)'
-                    }}
-                  >
-                    Your Dreams...<br />Our Guidance...
-                  </span>
-                </div>
-
+              {/* Carousel Indicators (1 Navy, 2 Grey) */}
+              <div className="flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-3 md:mt-4">
+                <span className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-full bg-[#081C36]" />
+                <span className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-slate-300" />
+                <span className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-slate-300" />
               </div>
 
             </div>
+
           </div>
         </div>
       </section>
 
 
       {/* ═══════════════════════════════════════════
-          2. OUR SERVICES (Drivers, Captains, Helpers)
+          2. OUR SERVICES (Drivers, Captains, Helpers) — Rich Cards with Icons
           ═══════════════════════════════════════════ */}
-      <section className="py-5 sm:py-8 bg-white">
-        <div className="max-w-5xl mx-auto px-3.5 sm:px-6">
+      <section className="py-10 sm:py-14 bg-white border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          {/* Header */}
-          <div className="flex items-center justify-between mb-3.5 sm:mb-5">
-            <h2 className="text-lg sm:text-2xl font-black text-[#081C36] tracking-tight">
-              Our Services
-            </h2>
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8 sm:mb-10">
+            <div>
+              <span className="text-xs font-black uppercase tracking-widest text-[#C8960C] block mb-1">
+                Verified Staffing Solutions
+              </span>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#081C36] tracking-tight">
+                Our Services
+              </h2>
+            </div>
             <Link
               to="/services"
-              className="text-xs sm:text-sm font-bold text-[#081C36] hover:text-[#C8960C] flex items-center gap-1 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-[#081C36] hover:text-[#C8960C] transition-colors"
             >
-              View All <ArrowRight className="w-3.5 h-3.5" />
+              <span>Explore All Categories</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
           {/* 3 Services Cards Grid */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
 
-            {/* 1. DRIVERS */}
-            <div className="bg-white rounded-2xl p-2.5 sm:p-5 border border-slate-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] text-center flex flex-col items-center justify-between hover:shadow-md transition-all group">
-              
-              <div className="mb-2 sm:mb-3 flex items-center justify-center">
-                <img
-                  src={driverIcon}
-                  alt="Drivers"
-                  className="w-14 h-14 sm:w-20 sm:h-20 object-contain transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
+            {/* 1. PROFESSIONAL DRIVERS */}
+            <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-lg border border-slate-200 hover:border-[#C8960C] hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between group h-full">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-50/60 p-1 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+                    <img src={driverIcon} alt="Professional Drivers" className="w-full h-full object-contain" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1 rounded-full">
+                    Most Popular
+                  </span>
+                </div>
 
-              <div className="mb-2 sm:mb-3">
-                <h3 className="text-xs sm:text-base font-black text-[#081C36] mb-0.5">
-                  Drivers
-                </h3>
-                <p className="text-[8.5px] sm:text-xs text-slate-500 font-medium leading-tight">
-                  Safe &amp; Reliable<br />Drivers
+                <div>
+                  <h3 className="text-2xl font-black text-[#081C36] group-hover:text-[#C8960C] transition-colors">
+                    Professional Driver
+                  </h3>
+                  <p className="text-xs text-[#C8960C] font-extrabold uppercase tracking-wider mt-0.5">
+                    Steers with Responsibility
+                  </p>
+                </div>
+
+                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                  Carefully vetted drivers with extensive experience handling hatchbacks, luxury sedans, and SUVs. Ideal for city commutes, airport drops, and outstation tasks.
                 </p>
+
+                <ul className="space-y-2 pt-2 text-xs text-slate-700 font-medium">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Valid Commercial / Transport License</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Thorough Police Verification &amp; KYC</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Full-Day, Night Duty &amp; Monthly Contracts</span>
+                  </li>
+                </ul>
               </div>
 
-              <Link
-                to="/services"
-                className="inline-flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-[#FEF7E6] hover:bg-[#FDECC8] text-[#B27500] font-bold text-[9px] sm:text-xs transition-colors w-full justify-center"
-              >
-                Know More <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              </Link>
+              <div className="pt-6 mt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
+                <a
+                  href={`tel:${phoneRaw}`}
+                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#081C36] hover:bg-[#0c294e] text-white font-black text-xs shadow-md transition-all hover:scale-105"
+                >
+                  <Phone className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Call Now</span>
+                </a>
+                <a
+                  href={`https://wa.me/${whatsappRaw}?text=${encodeURIComponent('Hello! I want to hire a Driver via Sri Sai Ram Consultancy.')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs shadow-md transition-all hover:scale-105"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
             </div>
 
-            {/* 2. CAPTAINS */}
-            <div className="bg-white rounded-2xl p-2.5 sm:p-5 border border-slate-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] text-center flex flex-col items-center justify-between hover:shadow-md transition-all group">
-              
-              <div className="mb-2 sm:mb-3 flex items-center justify-center">
-                <img
-                  src={captainIcon}
-                  alt="Captains"
-                  className="w-14 h-14 sm:w-20 sm:h-20 object-contain transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
+            {/* 2. DEDICATED HELPERS */}
+            <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-lg border border-slate-200 hover:border-emerald-500 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between group h-full">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-50/60 p-1 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+                    <img src={helperIcon} alt="Dedicated Helpers" className="w-full h-full object-contain" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full">
+                    Verified Manpower
+                  </span>
+                </div>
 
-              <div className="mb-2 sm:mb-3">
-                <h3 className="text-xs sm:text-base font-black text-[#081C36] mb-0.5">
-                  Captains
-                </h3>
-                <p className="text-[8.5px] sm:text-xs text-slate-500 font-medium leading-tight">
-                  Experienced<br />Professionals
+                <div>
+                  <h3 className="text-2xl font-black text-[#081C36] group-hover:text-emerald-700 transition-colors">
+                    Dedicated Helper
+                  </h3>
+                  <p className="text-xs text-emerald-700 font-extrabold uppercase tracking-wider mt-0.5">
+                    Supports with Dedication
+                  </p>
+                </div>
+
+                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                  Trained, energetic manpower for warehouse freight loading/unloading, household relocation packing, event setups, and logistics tasks.
                 </p>
+
+                <ul className="space-y-2 pt-2 text-xs text-slate-700 font-medium">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Heavy Goods &amp; Fragile Handling Trained</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Reliable &amp; Verified ID Documents</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Shift-Based &amp; Daily Wage Deployments</span>
+                  </li>
+                </ul>
               </div>
 
-              <Link
-                to="/services"
-                className="inline-flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-[#FEF7E6] hover:bg-[#FDECC8] text-[#B27500] font-bold text-[9px] sm:text-xs transition-colors w-full justify-center"
-              >
-                Know More <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              </Link>
+              <div className="pt-6 mt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
+                <a
+                  href={`tel:${phoneRaw}`}
+                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#081C36] hover:bg-emerald-950 text-white font-black text-xs shadow-md transition-all hover:scale-105"
+                >
+                  <Phone className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Call Now</span>
+                </a>
+                <a
+                  href={`https://wa.me/${whatsappRaw}?text=${encodeURIComponent('Hello! I want to hire a Helper via Sri Sai Ram Consultancy.')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs shadow-md transition-all hover:scale-105"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
             </div>
 
-            {/* 3. HELPERS */}
-            <div className="bg-white rounded-2xl p-2.5 sm:p-5 border border-slate-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] text-center flex flex-col items-center justify-between hover:shadow-md transition-all group">
-              
-              <div className="mb-2 sm:mb-3 flex items-center justify-center">
-                <img
-                  src={helperIcon}
-                  alt="Helpers"
-                  className="w-14 h-14 sm:w-20 sm:h-20 object-contain transition-transform duration-300 group-hover:scale-105"
-                />
+            {/* 3. CAPTAIN CHAUFFEURS */}
+            <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-lg border-2 border-amber-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between relative group h-full">
+              <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-[#D98E04] to-[#C8960C] text-white font-black text-[10px] uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md">
+                VIP Choice
               </div>
 
-              <div className="mb-2 sm:mb-3">
-                <h3 className="text-xs sm:text-base font-black text-[#081C36] mb-0.5">
-                  Helpers
-                </h3>
-                <p className="text-[8.5px] sm:text-xs text-slate-500 font-medium leading-tight">
-                  Home &amp; Office<br />Support
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-50 p-1 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+                    <img src={captainIcon} alt="Captain Chauffeurs" className="w-full h-full object-contain" />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-2xl font-black text-[#081C36] group-hover:text-[#C8960C] transition-colors">
+                    Captain Chauffeur
+                  </h3>
+                  <p className="text-xs text-[#C8960C] font-extrabold uppercase tracking-wider mt-0.5">
+                    Leads with Confidence
+                  </p>
+                </div>
+
+                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                  Premium executive chauffeurs for corporate executives, celebrities, long-distance luxury tours, and VIP motorcades. Punctual, uniformed, and discreet.
                 </p>
+
+                <ul className="space-y-2 pt-2 text-xs text-slate-700 font-medium">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>8+ Years Luxury Fleet Experience</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>VIP Protocol &amp; Route Navigation Master</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Bilingual, Professional Attire Guaranteed</span>
+                  </li>
+                </ul>
               </div>
 
-              <Link
-                to="/services"
-                className="inline-flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-[#FEF7E6] hover:bg-[#FDECC8] text-[#B27500] font-bold text-[9px] sm:text-xs transition-colors w-full justify-center"
-              >
-                Know More <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              </Link>
+              <div className="pt-6 mt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
+                <a
+                  href={`tel:${phoneRaw}`}
+                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-[#D98E04] to-[#C8960C] hover:from-[#EAA00A] hover:to-[#D98E04] text-white font-black text-xs shadow-md transition-all hover:scale-105"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Call Now</span>
+                </a>
+                <a
+                  href={`https://wa.me/${whatsappRaw}?text=${encodeURIComponent('Hello! I want to hire an Executive Captain via Sri Sai Ram Consultancy.')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs shadow-md transition-all hover:scale-105"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
             </div>
 
           </div>
+
         </div>
       </section>
 
