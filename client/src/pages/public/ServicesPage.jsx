@@ -87,16 +87,17 @@ const ServicesPage = () => {
       />
 
       {/* Hero Header */}
-      <section className="bg-gradient-to-r from-[#081C36] via-[#0B2545] to-[#081C36] text-white py-14 border-b-2 border-amber-500/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="bg-[#FFFDF8] text-[#081C36] py-12 sm:py-14 border-b-2 border-[#C8960C] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-[#C8960C]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <ScrollReveal direction="down" duration={700}>
-            <span className="inline-block px-3.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 text-xs font-bold uppercase tracking-widest mb-3">
+            <span className="inline-block px-3.5 py-1 rounded-full bg-amber-100 text-[#7C5200] border border-amber-300 text-xs font-bold uppercase tracking-widest mb-3">
               ✦ Certified Staffing Solutions ✦
             </span>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#081C36] tracking-tight">
               Our Staffing Services
             </h1>
-            <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto mt-3">
+            <p className="text-slate-500 text-sm sm:text-base max-w-2xl mx-auto mt-3">
               Specialized recruitment and on-demand staffing designed for highest safety, punctuality, and complete peace of mind.
             </p>
           </ScrollReveal>
@@ -104,7 +105,7 @@ const ServicesPage = () => {
       </section>
 
       {/* Services List */}
-      <section className="py-16 bg-slate-50">
+      <section className="py-16 bg-[#FFF8F0]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           {services.map((service, index) => {
@@ -113,7 +114,7 @@ const ServicesPage = () => {
               <ScrollReveal key={service.id} direction="up" delay={index * 150} duration={700}>
                 <div
                   id={service.id}
-                  className="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border border-slate-200/80 hover:border-amber-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 ease-out group"
+                  className="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border border-[#F0E0C8] hover:border-[#C8960C] hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 ease-out group"
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
@@ -124,10 +125,10 @@ const ServicesPage = () => {
                           <Icon className={`w-9 h-9 ${service.iconColor}`} />
                         </div>
                         <div>
-                          <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block">
+                          <span className="text-xs font-bold text-[#C8960C] uppercase tracking-widest block">
                             {service.tagline}
                           </span>
-                          <h2 className="text-2xl sm:text-3xl font-black text-[#0B2545] tracking-tight mt-0.5">
+                          <h2 className="text-2xl sm:text-3xl font-black text-[#081C36] tracking-tight mt-0.5">
                             {service.title}
                           </h2>
                         </div>
@@ -144,23 +145,23 @@ const ServicesPage = () => {
                         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           {service.highlights.map((h, i) => (
                             <li key={i} className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                              <CheckCircle2 className="w-4 h-4 text-[#C8960C] shrink-0 mt-0.5" />
                               <span>{h}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
 
-                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
-                        <span className="font-bold text-[#0B2545]">Ideal For: </span>
+                      <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-100 text-xs text-slate-700">
+                        <span className="font-bold text-[#081C36]">Ideal For: </span>
                         {service.idealFor}
                       </div>
                     </div>
 
                     {/* Right Column: Quick Action Box without price */}
-                    <div className="lg:col-span-4 bg-[#081C36] rounded-2xl p-6 text-white border-2 border-amber-400/40 flex flex-col justify-between space-y-6">
+                    <div className="lg:col-span-4 bg-[#081C36] rounded-2xl p-6 text-white border-2 border-[#C8960C]/50 flex flex-col justify-between space-y-6">
                       <div>
-                        <div className="text-amber-400 text-xs font-bold uppercase tracking-wider">
+                        <div className="text-[#C8960C] text-xs font-bold uppercase tracking-wider">
                           Direct Assistance Desk
                         </div>
                         <div className="text-xl font-black text-white mt-1">
@@ -175,7 +176,7 @@ const ServicesPage = () => {
                       <div className="space-y-3">
                         <a
                           href={`tel:${phoneRaw}`}
-                          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-extrabold text-sm shadow-md transition-all hover:scale-[1.02]"
+                          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#C8960C] to-[#E8A900] hover:from-[#E8A900] hover:to-[#C8960C] text-white font-extrabold text-sm shadow-md transition-all hover:scale-[1.02]"
                         >
                           <Phone className="w-4 h-4" />
                           <span>Call Now to Hire</span>
@@ -199,8 +200,8 @@ const ServicesPage = () => {
                         </Link>
                       </div>
 
-                      <div className="pt-3 border-t border-white/10 text-[11px] text-slate-300 text-center">
-                        ✓ Instant Dispatch • Verified Documents
+                        <div className="pt-3 border-t border-white/10 text-[11px] text-[#C8960C] font-bold text-center">
+                          ✓ Instant Dispatch • Verified Documents
                       </div>
 
                     </div>

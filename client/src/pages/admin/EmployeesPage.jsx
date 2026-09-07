@@ -362,9 +362,9 @@ const EmployeesPage = () => {
                     <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                       <Link
                         to={`/admin/employees/${emp._id}`}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#0B2545] hover:bg-[#081C36] text-amber-400 text-xs font-bold transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-[#C8960C] to-[#E8A900] hover:from-[#B88500] hover:to-[#D49E00] text-slate-950 text-xs font-black shadow-xs transition-all"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        <ExternalLink className="w-3.5 h-3.5 stroke-[2.5]" />
                         <span>Biodata Sheet</span>
                       </Link>
 

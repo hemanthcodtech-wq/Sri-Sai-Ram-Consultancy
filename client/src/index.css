@@ -3,11 +3,13 @@
 @layer base {
   :root {
     --brand-navy: #081C36;
-    --brand-navy-light: #0D3B66;
-    --brand-gold: #D4AF37;
-    --brand-gold-light: #F59E0B;
-    --brand-gold-glow: #FBBF24;
-    --brand-emerald: #10B981;
+    --brand-navy-mid: #0D3B66;
+    --brand-gold: #C8960C;
+    --brand-gold-light: #E8A900;
+    --brand-gold-pale: #F5C842;
+    --brand-cream: #FFFDF8;
+    --brand-cream-border: #F0E0C8;
+    --brand-white: #FFFFFF;
   }
 
   html {
@@ -16,81 +18,138 @@
   }
 
   body {
-    background-color: #F8FAFC;
-    color: #0F172A;
+    background-color: #FFFDF8;
+    color: #0B1E36;
     overflow-x: hidden;
   }
 }
 
-/* Custom Utilities and Theme Classes */
+/* ── Gradient Text ────────────────────────────── */
 .gold-gradient-text {
-  background: linear-gradient(135deg, #FFE885 0%, #D4AF37 50%, #AA7C11 100%);
+  background: linear-gradient(135deg, #F5C842 0%, #C8960C 50%, #9A6F00 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
+/* ── Background Helpers ───────────────────────── */
 .gold-gradient-bg {
-  background: linear-gradient(135deg, #FCD34D 0%, #D4AF37 50%, #B45309 100%);
+  background: linear-gradient(135deg, #F5C842 0%, #C8960C 50%, #9A6F00 100%);
 }
 
 .navy-gradient-bg {
-  background: linear-gradient(135deg, #0B2545 0%, #081C36 50%, #040D1A 100%);
+  background: linear-gradient(135deg, #0B2545 0%, #081C36 60%, #040D1A 100%);
 }
 
+/* ── Card Utilities ───────────────────────────── */
 .glass-card-navy {
-  background: rgba(11, 37, 69, 0.85);
+  background: rgba(8, 28, 54, 0.92);
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  border: 1px solid rgba(200, 150, 12, 0.30);
 }
 
 .glass-card-light {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(240, 224, 200, 0.9);
 }
 
+/* ── Glow / Shadow ───────────────────────────── */
 .gold-glow {
-  box-shadow: 0 10px 25px -5px rgba(212, 175, 55, 0.3), 0 8px 10px -6px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 10px 30px -6px rgba(200, 150, 12, 0.35), 0 4px 12px -4px rgba(200, 150, 12, 0.2);
 }
 
 .gold-border-glow {
-  border-color: #D4AF37;
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.25);
+  border-color: #C8960C;
+  box-shadow: 0 0 18px rgba(200, 150, 12, 0.25);
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ── Button Presets ──────────────────────────── */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 50px;
+  background: #C8960C;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.875rem;
+  box-shadow: 0 6px 18px -4px rgba(200, 150, 12, 0.40);
+  transition: all 0.25s ease;
+  text-decoration: none;
 }
-::-webkit-scrollbar-track {
+.btn-gold:hover {
+  background: #E8A900;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 24px -4px rgba(200, 150, 12, 0.50);
+}
+
+.btn-navy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 50px;
   background: #081C36;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: all 0.25s ease;
+  text-decoration: none;
 }
-::-webkit-scrollbar-thumb {
-  background: #D4AF37;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #F59E0B;
+.btn-navy:hover {
+  background: #0D3B66;
+  transform: translateY(-2px);
 }
 
-/* Animation keyframes */
+/* ── Section Backgrounds ─────────────────────── */
+.section-cream { background-color: #FFFDF8; }
+.section-white { background-color: #ffffff; }
+.section-navy  { background: linear-gradient(135deg, #0B2545, #081C36); }
+
+/* ── Service Icon Circle ─────────────────────── */
+.service-icon-circle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #EBF0F8;
+  border: 2px solid #D0DCF0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  transition: all 0.3s ease;
+}
+.service-icon-circle:hover {
+  background: #081C36;
+  border-color: #081C36;
+}
+.service-icon-circle:hover svg {
+  color: white;
+}
+
+/* ── Custom Scrollbar ────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F5F0E8; }
+::-webkit-scrollbar-thumb { background: #C8960C; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #E8A900; }
+
+/* ── Animations ──────────────────────────────── */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200,150,12,0.4); }
+  70%       { box-shadow: 0 0 0 10px rgba(200,150,12,0); }
 }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-pulse-glow {
-  animation: pulseGlow 3s ease-in-out infinite;
-}
+.animate-float       { animation: float 4s ease-in-out infinite; }
+.animate-pulse-gold  { animation: pulseGold 2s ease-in-out infinite; }
+.animate-fade-in-up  { animation: fadeInUp 0.5s ease-out both; }

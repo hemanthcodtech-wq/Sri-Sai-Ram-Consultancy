@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
+import logoImg from '../../assets/logo.png';
 
 const DashboardPage = () => {
   const [stats, setStats] = useState(null);
@@ -123,10 +124,10 @@ const DashboardPage = () => {
               <button
                 key={t.id}
                 onClick={() => setTimeRange(t.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                   timeRange === t.id
-                    ? 'bg-[#0B2545] text-amber-400 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'bg-gradient-to-r from-[#C8960C] to-[#E8A900] text-white shadow-sm font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-[#F5EFE6]'
                 }`}
               >
                 {t.label}
@@ -135,21 +136,21 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* QUICK MANAGEMENT ACTION HUB (PROMINENT ACTION STRIP) */}
-        <div className="bg-gradient-to-r from-[#0B2545] via-[#081C36] to-[#0B2545] rounded-3xl p-6 text-white border-2 border-amber-400/50 shadow-xl space-y-4">
+        {/* QUICK MANAGEMENT ACTION HUB (LIGHT LUXURY MATCHING HOME) */}
+        <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FFF8EB] to-[#FFFDF8] rounded-3xl p-5 sm:p-6 text-slate-800 border-2 border-[#EAD5AE] shadow-md space-y-4">
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#EEDCC0] pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-400/40 flex items-center justify-center font-black text-sm">
-                SSR
+              <div className="h-11 px-2.5 py-1 rounded-xl bg-white border border-[#E0D0B8] shadow-xs flex items-center justify-center shrink-0">
+                <img src={logoImg} alt="Sri Sai Ram Consultancy" className="h-8 w-auto max-w-[150px] object-contain" />
               </div>
               <div>
-                <h3 className="font-extrabold text-white text-base">Quick Operations Hub</h3>
-                <p className="text-xs text-slate-300">Fast shortcuts for staff onboarding, task logging, and inquiry responses.</p>
+                <h3 className="font-extrabold text-[#081C36] text-base">Quick Operations Hub</h3>
+                <p className="text-xs text-slate-500">Fast shortcuts for staff onboarding, task logging, and inquiry responses.</p>
               </div>
             </div>
 
-            <span className="text-[11px] text-amber-300 font-bold bg-amber-500/15 px-3 py-1 rounded-full border border-amber-400/30">
+            <span className="text-[11px] text-[#A66E00] font-black bg-amber-50 px-3 py-1 rounded-full border border-amber-300 shadow-xs">
               ⚡ Instant Actions Available
             </span>
           </div>
@@ -159,36 +160,36 @@ const DashboardPage = () => {
             {/* Quick Action 1: Add Employee */}
             <button
               onClick={() => setIsAddEmpModalOpen(true)}
-              className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-extrabold text-xs shadow-md transition-transform hover:scale-[1.02] flex items-center justify-center gap-2"
+              className="p-3.5 rounded-2xl bg-gradient-to-r from-[#C8960C] via-[#E5AB00] to-[#C8960C] hover:from-[#B88500] hover:to-[#D49E00] text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
             >
-              <UserPlus className="w-4 h-4 text-slate-950" />
+              <UserPlus className="w-4 h-4 text-slate-950 stroke-[2.5]" />
               <span>+ Onboard Employee</span>
             </button>
 
             {/* Quick Action 2: Log Task */}
             <Link
               to="/admin/tasks"
-              className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-transform hover:scale-[1.02] flex items-center justify-center gap-2 text-center"
+              className="p-3.5 rounded-2xl bg-white hover:bg-[#FDF9EE] text-[#081C36] font-bold text-xs border border-[#E0D0B8] hover:border-[#C8960C] shadow-xs transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-center"
             >
-              <ClipboardList className="w-4 h-4 text-amber-400" />
+              <ClipboardList className="w-4 h-4 text-[#C8960C]" />
               <span>+ Log New Task</span>
             </Link>
 
             {/* Quick Action 3: Website Inquiries */}
             <Link
               to="/admin/inquiries"
-              className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-transform hover:scale-[1.02] flex items-center justify-center gap-2 text-center"
+              className="p-3.5 rounded-2xl bg-white hover:bg-[#FDF9EE] text-[#081C36] font-bold text-xs border border-[#E0D0B8] hover:border-[#C8960C] shadow-xs transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-center"
             >
-              <Users className="w-4 h-4 text-amber-400" />
+              <Users className="w-4 h-4 text-[#C8960C]" />
               <span>📥 View Inquiries</span>
             </Link>
 
             {/* Quick Action 4: Employee Biodata List */}
             <Link
               to="/admin/employees"
-              className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-transform hover:scale-[1.02] flex items-center justify-center gap-2 text-center"
+              className="p-3.5 rounded-2xl bg-white hover:bg-[#FDF9EE] text-[#081C36] font-bold text-xs border border-[#E0D0B8] hover:border-[#C8960C] shadow-xs transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-center"
             >
-              <Users className="w-4 h-4 text-amber-400" />
+              <Users className="w-4 h-4 text-[#C8960C]" />
               <span>📋 Employee Biodata</span>
             </Link>
 
@@ -198,7 +199,7 @@ const DashboardPage = () => {
 
         {loading ? (
           <div className="p-16 flex flex-col items-center justify-center gap-3">
-            <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-10 h-10 border-4 border-[#C8960C] border-t-transparent rounded-full animate-spin" />
             <p className="text-sm font-semibold text-slate-600">Calculating Live Operations Data...</p>
           </div>
         ) : (
@@ -207,17 +208,17 @@ const DashboardPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               
               {/* Total Revenue */}
-              <div className="bg-gradient-to-br from-[#0B2545] to-[#081C36] rounded-3xl p-6 text-white shadow-lg border border-amber-500/30 relative overflow-hidden">
+              <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FFF9EE] to-[#FFF5DC] rounded-3xl p-6 text-slate-900 shadow-sm border-2 border-[#E6CD98] relative overflow-hidden">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Total Revenue</span>
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <span className="text-xs font-black text-[#A66E00] uppercase tracking-wider">Total Revenue</span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-[#C8960C] flex items-center justify-center font-bold">
                     <TrendingUp className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-white mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-[#081C36] mt-3">
                   {formatCurrency(stats?.summary?.totalRevenue)}
                 </div>
-                <div className="text-[11px] text-slate-300 mt-1 flex items-center gap-1.5">
+                <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 font-medium">
                   <span>From {stats?.summary?.totalTripsCount || 0} logged tasks</span>
                 </div>
               </div>

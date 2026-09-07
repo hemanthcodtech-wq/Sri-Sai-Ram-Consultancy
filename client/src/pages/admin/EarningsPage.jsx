@@ -143,17 +143,17 @@ const EarningsPage = () => {
             {/* Financial Overview Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               
-              <div className="bg-gradient-to-br from-[#0B2545] to-[#081C36] rounded-3xl p-6 text-white shadow-xl border border-amber-400/40">
+              <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FFF9EE] to-[#FFF5DC] rounded-3xl p-6 text-slate-900 shadow-sm border-2 border-[#E6CD98]">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Gross Business Revenue</span>
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <span className="text-xs font-black text-[#A66E00] uppercase tracking-wider">Gross Business Revenue</span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-[#C8960C] flex items-center justify-center font-bold">
                     <TrendingUp className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-black text-white mt-3">
+                <div className="text-3xl font-black text-[#081C36] mt-3">
                   {formatCurrency(stats?.summary?.totalRevenue)}
                 </div>
-                <p className="text-xs text-slate-300 mt-1">Total value of all completed tasks</p>
+                <p className="text-xs text-slate-500 mt-1 font-medium">Total value of all completed tasks</p>
               </div>
 
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
@@ -213,8 +213,8 @@ const EarningsPage = () => {
                       onClick={() => setCategoryFilter(cat)}
                       className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
                         categoryFilter === cat
-                          ? 'bg-[#0B2545] text-amber-400 shadow-sm'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          ? 'bg-gradient-to-r from-[#C8960C] to-[#E8A900] text-white shadow-sm font-black'
+                          : 'bg-[#F5EFE6] text-slate-600 hover:bg-[#EDE3D3]'
                       }`}
                     >
                       {cat}

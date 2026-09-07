@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Phone, MessageCircle, Menu, X, ShieldCheck } from 'lucide-react';
+import { Phone, MessageCircle, Menu, X, Bell } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 
 const Navbar = () => {
@@ -13,17 +13,15 @@ const Navbar = () => {
   const whatsappRaw = import.meta.env.VITE_COMPANY_WHATSAPP || '919505151527';
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Services', path: '/services' },
-    { name: 'About Us', path: '/about' },
+    { name: 'Home',       path: '/' },
+    { name: 'Services',   path: '/services' },
+    { name: 'About Us',   path: '/about' },
     { name: 'Contact Us', path: '/contact' },
   ];
 
@@ -34,107 +32,120 @@ const Navbar = () => {
   };
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${
-      isScrolled
-        ? 'bg-[#081C36]/95 backdrop-blur-md shadow-lg shadow-black/20 py-2 border-b border-amber-500/20'
-        : 'bg-[#0B2545] py-3.5 border-b border-amber-500/30'
-    }`}>
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? 'bg-white/98 backdrop-blur-md shadow-md border-b border-[#F0E0C8] py-2'
+          : 'bg-[#FFFDF8] py-3 border-b border-[#F0E0C8]'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          
-          {/* Text-Only Logo Brand (No Icon, No Verified Tag) */}
-          <Link to="/" className="flex items-center group">
-            <div className="h-12 sm:h-14 px-4 py-2 rounded-2xl bg-white shadow-xl border-2 border-amber-400/90 flex items-center justify-center transition-transform duration-300 group-hover:scale-[1.03] shrink-0">
-              <img src={`${logoImg}?v=4`} alt="Sri Sai Ram Consultancy" className="h-9 sm:h-11 w-auto max-w-[240px] sm:max-w-[320px] object-contain" />
-            </div>
+        <div className="flex items-center justify-between gap-3">
+
+          {/* ── Logo (Prominent branding) ── */}
+          <Link to="/" className="flex items-center group shrink-0 py-0.5">
+            <img
+              src={`${logoImg}?v=5`}
+              alt="Sri Sai Ram Consultancy"
+              className="h-14 sm:h-16 md:h-20 lg:h-22 w-auto max-w-[210px] sm:max-w-[280px] md:max-w-[340px] lg:max-w-[380px] object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+            />
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+          {/* ── Desktop Nav Links ── */}
+          <nav className="hidden md:flex items-center gap-0.5 lg:gap-1 flex-1 justify-center">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
-                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 relative ${
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 relative ${
                   isActive(link.path)
-                    ? 'text-amber-400 font-semibold bg-white/10'
-                    : 'text-slate-200 hover:text-amber-300 hover:bg-white/5'
+                    ? 'text-[#C8960C] font-bold'
+                    : 'text-[#333] hover:text-[#C8960C]'
                 }`}
               >
                 {link.name}
                 {isActive(link.path) && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full" />
+                  <span className="absolute bottom-0.5 left-3 right-3 h-[2px] bg-[#C8960C] rounded-full" />
                 )}
               </Link>
             ))}
           </nav>
 
-          {/* Header Action Buttons (Call Now & WhatsApp) */}
-          <div className="hidden lg:flex items-center gap-3">
+          {/* ── Desktop CTA Buttons ── */}
+          <div className="hidden lg:flex items-center gap-2.5 shrink-0">
             <a
               href={`tel:${phoneRaw}`}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 transition-colors"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-[#081C36] bg-[#F5F0E8] hover:bg-[#EDE5D5] border border-[#E0D0B8] transition-colors"
             >
-              <Phone className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
-              <span>{phoneDisplay}</span>
+              <Phone className="w-3.5 h-3.5 text-[#C8960C]" />
+              {phoneDisplay}
             </a>
-
             <a
               href={`https://wa.me/${whatsappRaw}?text=${encodeURIComponent('Hello Sri Sai Ram Consultancy! I need Driver/Helper/Captain staffing service.')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-md shadow-amber-500/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#C8960C] to-[#E8A900] hover:from-[#E8A900] hover:to-[#C8960C] shadow-md shadow-amber-400/30 transition-all hover:scale-[1.02]"
             >
-              <MessageCircle className="w-4 h-4 text-slate-950" />
-              <span>WhatsApp Now</span>
+              <MessageCircle className="w-3.5 h-3.5" />
+              WhatsApp Now
             </a>
           </div>
 
-          {/* Mobile Menu Toggle Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6 text-amber-400" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* ── Mobile: Bell + Hamburger ── */}
+          <div className="md:hidden flex items-center gap-1.5">
+            <a
+              href={`tel:${phoneRaw}`}
+              className="p-2 rounded-xl text-[#081C36] hover:bg-slate-100 transition-colors"
+              aria-label="Notifications / Call"
+            >
+              <Bell className="w-5 h-5" />
+            </a>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-xl text-[#081C36] hover:bg-slate-100 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6 text-[#C8960C]" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* ── Mobile Drawer Menu ── */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#081C36] border-b border-amber-500/30 px-4 pt-3 pb-6 space-y-2 animate-fadeIn">
+        <div className="md:hidden bg-white border-t border-[#F0E0C8] px-4 pt-3 pb-6 space-y-1 shadow-lg">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               to={link.path}
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-4 py-2.5 rounded-lg text-base font-medium transition-colors ${
+              className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
                 isActive(link.path)
-                  ? 'bg-amber-500/20 text-amber-400 font-semibold border-l-4 border-amber-400'
-                  : 'text-slate-200 hover:bg-white/5 hover:text-white'
+                  ? 'bg-amber-50 text-[#C8960C] font-bold border-l-4 border-[#C8960C]'
+                  : 'text-[#333] hover:bg-[#F5F0E8] hover:text-[#C8960C]'
               }`}
             >
               {link.name}
             </Link>
           ))}
 
-          <div className="pt-3 border-t border-white/10 flex flex-col gap-2.5">
+          <div className="pt-3 border-t border-[#F0E0C8] flex flex-col gap-2.5">
             <a
               href={`tel:${phoneRaw}`}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white bg-blue-600/40 border border-blue-400/40"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-[#081C36] bg-[#F5F0E8] border border-[#E0D0B8]"
             >
-              <Phone className="w-4 h-4 text-amber-400" />
-              <span>Call Helpline: {phoneDisplay}</span>
+              <Phone className="w-4 h-4 text-[#C8960C]" />
+              Call: {phoneDisplay}
             </a>
             <a
               href={`https://wa.me/${whatsappRaw}?text=${encodeURIComponent('Hello Sri Sai Ram Consultancy! I need staffing service.')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-500 shadow-md shadow-amber-500/25"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-[#C8960C] to-[#E8A900] shadow-md"
             >
               <MessageCircle className="w-4 h-4" />
-              <span>Chat on WhatsApp</span>
+              Chat on WhatsApp
             </a>
           </div>
         </div>

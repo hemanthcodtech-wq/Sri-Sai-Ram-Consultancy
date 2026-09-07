@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const Typewriter = ({ phrases = [], speed = 100, deleteSpeed = 50, pause = 1800 }) => {
+const Typewriter = ({ phrases = [], speed = 90, deleteSpeed = 45, pause = 1800, className = '' }) => {
   const [displayText, setDisplayText] = useState('');
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -29,9 +29,9 @@ const Typewriter = ({ phrases = [], speed = 100, deleteSpeed = 50, pause = 1800 
   }, [displayText, phraseIndex, isDeleting, phrases, speed, deleteSpeed, pause]);
 
   return (
-    <span className="inline-block text-[#D97706] font-black transition-all">
+    <span className={`inline-block font-black transition-all ${className || 'text-[#C8960C]'}`}>
       {displayText}
-      <span className="animate-pulse text-[#E59800] ml-0.5">|</span>
+      <span className="animate-pulse text-[#C8960C] ml-0.5">|</span>
     </span>
   );
 };
