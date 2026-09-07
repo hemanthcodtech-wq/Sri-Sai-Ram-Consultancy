@@ -31,7 +31,7 @@ const SEOHead = ({ title, description, keywords, ogImage }) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://srisairamconsultancy.com';
     const currentUrl = typeof window !== 'undefined' ? window.location.href : 'https://srisairamconsultancy.com';
     
-    let resolvedImage = ogImage || '/logo.png';
+    let resolvedImage = ogImage || '/og-image.png';
     if (!resolvedImage.startsWith('http')) {
       resolvedImage = `${origin}${resolvedImage.startsWith('/') ? '' : '/'}${resolvedImage}`;
     }
@@ -42,15 +42,17 @@ const SEOHead = ({ title, description, keywords, ogImage }) => {
     setMetaTag('meta[property="og:image"]', 'property', 'og:image', resolvedImage);
     setMetaTag('meta[property="og:image:secure_url"]', 'property', 'og:image:secure_url', resolvedImage);
     setMetaTag('meta[property="og:image:type"]', 'property', 'og:image:type', 'image/png');
-    setMetaTag('meta[property="og:image:alt"]', 'property', 'og:image:alt', 'Sri Sai Ram Consultancy Logo');
+    setMetaTag('meta[property="og:image:width"]', 'property', 'og:image:width', '600');
+    setMetaTag('meta[property="og:image:height"]', 'property', 'og:image:height', '600');
+    setMetaTag('meta[property="og:image:alt"]', 'property', 'og:image:alt', 'Sri Sai Ram Consultancy SSR Logo');
     setMetaTag('meta[property="og:url"]', 'property', 'og:url', currentUrl);
 
     // 5. Twitter Card Tags
-    setMetaTag('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
+    setMetaTag('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary');
     setMetaTag('meta[name="twitter:title"]', 'name', 'twitter:title', fullTitle);
     setMetaTag('meta[name="twitter:description"]', 'name', 'twitter:description', defaultDesc);
     setMetaTag('meta[name="twitter:image"]', 'name', 'twitter:image', resolvedImage);
-    setMetaTag('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', 'Sri Sai Ram Consultancy Logo');
+    setMetaTag('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', 'Sri Sai Ram Consultancy SSR Logo');
 
     // 6. Ensure browser tab favicon icons are set to SSR emblem favicon
     const updateIconLink = (rel, type, href) => {
