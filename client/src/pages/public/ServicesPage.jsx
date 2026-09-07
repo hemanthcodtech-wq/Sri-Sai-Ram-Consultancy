@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import SEOHead from '../../components/public/SEOHead';
 import ScrollReveal from '../../components/public/ScrollReveal';
-import TrustBadgeBar from '../../components/public/TrustBadgeBar';
 import ComparisonTable from '../../components/public/ComparisonTable';
 
 // 3D Visual Assets
@@ -188,8 +187,6 @@ const ServicesPage = () => {
           </div>
         </div>
       </section>
-
-      <TrustBadgeBar />
 
       {/* ═══════════════════════════════════════════
           ACTIVE SERVICE DEEP DIVE SHOWCASE (Rapido / Porter Style)

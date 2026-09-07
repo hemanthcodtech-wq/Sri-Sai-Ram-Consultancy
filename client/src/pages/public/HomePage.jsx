@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Phone, 
@@ -21,7 +20,6 @@ import {
 } from 'lucide-react';
 import SEOHead from '../../components/public/SEOHead';
 import Typewriter from '../../components/public/Typewriter';
-import TrustBadgeBar from '../../components/public/TrustBadgeBar';
 import ComparisonTable from '../../components/public/ComparisonTable';
 import ScrollReveal from '../../components/public/ScrollReveal';
 
@@ -31,13 +29,10 @@ import visualDriver from '../../assets/visual_driver.jpg';
 import visualHelper from '../../assets/visual_helper.jpg';
 import visualCaptain from '../../assets/visual_captain.jpg';
 import visualSafety from '../../assets/visual_safety.jpg';
-import visualProcess from '../../assets/visual_process.jpg';
 
 const HomePage = () => {
   const phoneRaw = import.meta.env.VITE_COMPANY_PHONE_RAW || '9505151527';
   const whatsappRaw = import.meta.env.VITE_COMPANY_WHATSAPP || '919505151527';
-
-  const [activeStep, setActiveStep] = useState(0);
 
   const steps = [
     {
@@ -68,68 +63,62 @@ const HomePage = () => {
       />
 
       {/* ═══════════════════════════════════════════
-          1. HERO BANNER — Panoramic Width with Reactive Typewriter & Floating Badges
+          1. HERO BANNER — Exact Reference Typography & Clean Layout
           ═══════════════════════════════════════════ */}
       <section className="relative bg-[#FFFDF9] overflow-hidden border-b border-[#F0E5D5]">
-        <div className="w-full max-w-[1440px] mx-auto px-1.5 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3">
-          <div className="relative overflow-hidden sm:rounded-2xl md:rounded-3xl border-0 sm:border border-[#F0E0C8] shadow-sm sm:shadow-md bg-white aspect-[2.1/1] sm:aspect-[2.25/1] w-full">
+        <div className="w-full max-w-[1440px] mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6">
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[#F0E0C8] shadow-lg sm:shadow-xl bg-white min-h-[380px] sm:min-h-[460px] md:min-h-[520px] lg:min-h-[560px] flex items-center">
             
-            {/* Background Image */}
+            {/* Background Image / Team Graphic */}
             <img
               src={bannerBg}
               alt="Sri Sai Ram Consultancy - Professional Staffing"
-              className="absolute inset-0 w-full h-full object-cover object-[center_right] sm:object-right z-0 pointer-events-none"
+              className="absolute inset-0 w-full h-full object-cover object-[80%_center] sm:object-right z-0 pointer-events-none"
             />
 
-            {/* Subtle Gradient Backing for Crisp Typography */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#FFFDF9]/95 via-[#FFFDF9]/75 to-transparent sm:from-[#FFFDF9]/90 sm:via-[#FFFDF9]/45 sm:to-transparent z-1 pointer-events-none max-w-[85%] sm:max-w-[55%]" />
+            {/* Crisp Gradient Backing to preserve clear text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-transparent sm:from-white/95 sm:via-white/70 sm:to-transparent z-[1] pointer-events-none w-full sm:max-w-[62%]" />
 
-            {/* Banner Foreground Content */}
-            <div className="relative z-10 flex flex-col justify-center h-full pl-3.5 sm:pl-7 md:pl-11 lg:pl-16 pr-1 py-1 sm:py-3 max-w-[58%] sm:max-w-[52%] md:max-w-[48%]">
+            {/* Banner Foreground Content — Pixel Perfect to Reference */}
+            <div className="relative z-10 flex flex-col justify-center h-full pl-5 sm:pl-10 md:pl-14 lg:pl-16 pr-3 py-8 sm:py-12 max-w-[90%] sm:max-w-[58%] md:max-w-[52%] space-y-3 sm:space-y-4 md:space-y-5">
               
               {/* Tagline */}
-              <div className="inline-flex items-center gap-1.5 mb-1 sm:mb-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <p className="text-[7.5px] sm:text-xs md:text-sm font-black uppercase tracking-wider text-[#081C36]/85 leading-tight">
-                  TRUSTED PEOPLE FOR A BETTER TOMORROW
-                </p>
-              </div>
+              <p className="text-[11px] sm:text-xs md:text-sm font-extrabold uppercase tracking-[0.18em] text-[#0A2540] leading-snug">
+                TRUSTED PEOPLE FOR<br className="sm:hidden" /> A BETTER TOMORROW
+              </p>
 
               {/* Main Heading with Typewriter */}
-              <h1 className="text-lg sm:text-3xl md:text-5xl lg:text-6xl font-black leading-[1.08] mb-1 sm:mb-2 md:mb-3">
-                <span className="text-[#081C36] block">Your Needs</span>
+              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight">
+                <span className="text-[#0A2540] block">Your Needs</span>
                 <span className="block min-h-[1.2em]">
                   <Typewriter
                     phrases={['Our People', 'Expert Drivers', 'Elite Captains', 'Verified Helpers']}
-                    className="text-[#C8960C]"
+                    className="text-[#C88A1A]"
                   />
                 </span>
               </h1>
 
               {/* Subtitle */}
-              <p className="text-slate-600 text-[8px] sm:text-xs md:text-sm lg:text-base font-medium leading-tight sm:leading-relaxed max-w-[190px] sm:max-w-sm md:max-w-md lg:max-w-lg mb-2 sm:mb-3 md:mb-5">
-                Reliable Drivers, Captains &amp; Helpers for Personal, Commercial and VIP Corporate Needs in Hyderabad.
+              <p className="text-slate-600 font-medium text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed max-w-[280px] sm:max-w-md md:max-w-lg">
+                Reliable Drivers, Captains &amp; Helpers for Your Personal and Professional Needs.
               </p>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 sm:gap-3">
+              {/* Get Started Button */}
+              <div className="pt-2 sm:pt-3">
                 <a
                   href={`tel:${phoneRaw}`}
-                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-5 sm:py-2.5 md:px-7 md:py-3 rounded-full bg-gradient-to-r from-[#D98E04] to-[#C8960C] hover:from-[#EAA00A] hover:to-[#D98E04] text-white font-black text-[8.5px] sm:text-xs md:text-sm lg:text-base shadow-md shadow-amber-400/25 transition-all duration-300 hover:scale-[1.03] active:scale-95 whitespace-nowrap"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full bg-gradient-to-r from-[#D98E04] to-[#C88A1A] hover:from-[#EAA00A] hover:to-[#D98E04] text-white font-black text-sm sm:text-base md:text-lg shadow-lg shadow-amber-500/25 transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap"
                 >
-                  <Phone className="w-2.5 h-2.5 sm:w-4 sm:h-4" />
-                  <span>Call 9505151527</span>
+                  <span>Get Started</span>
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
                 </a>
+              </div>
 
-                <a
-                  href={`https://wa.me/${whatsappRaw}?text=Hello%20SSRC,%20I%20need%20staffing%20assistance.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs md:text-sm shadow-md transition-all hover:scale-[1.03] active:scale-95 whitespace-nowrap"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>WhatsApp</span>
-                </a>
+              {/* Pagination Dots */}
+              <div className="flex items-center gap-2 pt-2 sm:pt-3">
+                <span className="w-3 h-3 rounded-full bg-[#0A2540]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
               </div>
 
             </div>
@@ -137,9 +126,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
-      {/* Trust Ticker Bar */}
-      <TrustBadgeBar />
 
       {/* ═══════════════════════════════════════════
           2. 3D VISUAL SERVICE CATEGORIES (Porter / Rapido Style)
@@ -386,101 +372,66 @@ const HomePage = () => {
       </section>
 
       {/* ═══════════════════════════════════════════
-          3. HOW IT WORKS (Visual 3-Step Rapid Workflow)
+          3. HOW IT WORKS (3-Step Rapid Workflow)
           ═══════════════════════════════════════════ */}
       <section className="py-14 sm:py-20 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            {/* Left 3D Visual Graphic */}
-            <div className="lg:col-span-6">
-              <ScrollReveal direction="right" duration={700}>
-                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-300/60 bg-white group">
-                  <img
-                    src={visualProcess}
-                    alt="SSRC 3-Step Rapid Staffing Process"
-                    className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute top-4 left-4 bg-[#081C36]/90 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs font-black px-3.5 py-1.5 rounded-full shadow-lg">
-                    ⚡ 15-Minute Fast Matching
+          <ScrollReveal direction="down" duration={650}>
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-[#7C5200] border border-amber-300 text-xs font-black uppercase tracking-wider mb-2">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                Effortless Booking
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#081C36] tracking-tight">
+                How Sri Sai Ram Consultancy Works
+              </h2>
+              <p className="text-slate-600 text-sm sm:text-base mt-2">
+                From inquiry to verified personnel at your doorstep in 3 seamless steps.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch max-w-6xl mx-auto">
+            {steps.map((step, idx) => (
+              <ScrollReveal key={idx} direction="up" delay={idx * 150} duration={600} className="h-full">
+                <div
+                  className="p-6 rounded-2xl border-2 bg-slate-50/80 border-slate-200 hover:border-[#C8960C] hover:bg-amber-50/40 hover:shadow-lg transition-all h-full flex flex-col justify-between group"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="w-12 h-12 rounded-xl bg-[#081C36] text-amber-400 font-black text-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        {step.num}
+                      </div>
+                      <span className="text-[11px] font-bold bg-amber-200/80 text-amber-950 px-3 py-1 rounded-full border border-amber-300">
+                        {step.badge}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-[#081C36] text-lg mb-2">
+                        {step.title}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        {step.desc}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </ScrollReveal>
-            </div>
-
-            {/* Right Steps Flow */}
-            <div className="lg:col-span-6 space-y-6">
-              <ScrollReveal direction="left" duration={650}>
-                <div>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-[#7C5200] border border-amber-300 text-xs font-black uppercase tracking-wider mb-2">
-                    <Clock className="w-3.5 h-3.5 text-amber-600" />
-                    Effortless Booking
-                  </span>
-                  <h2 className="text-3xl sm:text-4xl font-black text-[#081C36] tracking-tight">
-                    How Sri Sai Ram Consultancy Works
-                  </h2>
-                  <p className="text-slate-600 text-sm mt-2">
-                    From inquiry to verified personnel at your doorstep in 3 seamless steps.
-                  </p>
-                </div>
-              </ScrollReveal>
-
-              <div className="space-y-4">
-                {steps.map((step, idx) => (
-                  <ScrollReveal key={idx} direction="left" delay={idx * 120} duration={600}>
-                    <div
-                      onClick={() => setActiveStep(idx)}
-                      className={`p-5 rounded-2xl border-2 transition-all cursor-pointer ${
-                        activeStep === idx
-                          ? 'bg-amber-50/70 border-[#C8960C] shadow-md'
-                          : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
-                            activeStep === idx
-                              ? 'bg-[#081C36] text-amber-400 shadow-md'
-                              : 'bg-slate-200 text-slate-700'
-                          }`}
-                        >
-                          {step.num}
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="font-extrabold text-[#081C36] text-base">
-                              {step.title}
-                            </h4>
-                            <span className="text-[10px] font-bold bg-amber-200/80 text-amber-950 px-2.5 py-0.5 rounded-full">
-                              {step.badge}
-                            </span>
-                          </div>
-                          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                            {step.desc}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </ScrollReveal>
-                ))}
-              </div>
-
-              <ScrollReveal direction="up" delay={360} duration={600}>
-                <div className="pt-2 flex items-center gap-3">
-                  <a
-                    href={`tel:${phoneRaw}`}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
-                  >
-                    <Phone className="w-4 h-4 text-slate-950" />
-                    <span>Call to Book Now</span>
-                  </a>
-                </div>
-              </ScrollReveal>
-
-            </div>
-
+            ))}
           </div>
+
+          <ScrollReveal direction="up" delay={360} duration={600}>
+            <div className="mt-10 flex items-center justify-center gap-3">
+              <a
+                href={`tel:${phoneRaw}`}
+                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm sm:text-base shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
+              >
+                <Phone className="w-4 h-4 text-slate-950" />
+                <span>Call to Book Now</span>
+              </a>
+            </div>
+          </ScrollReveal>
 
         </div>
       </section>

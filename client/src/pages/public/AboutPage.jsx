@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import SEOHead from '../../components/public/SEOHead';
 import ScrollReveal from '../../components/public/ScrollReveal';
-import TrustBadgeBar from '../../components/public/TrustBadgeBar';
 
 // 3D Trust & Security Verified Badge Asset
 import visualSafety from '../../assets/visual_safety.jpg';
@@ -87,8 +86,6 @@ const AboutPage = () => {
           </p>
         </div>
       </section>
-
-      <TrustBadgeBar />
 
       {/* ═══════════════════════════════════════════
           MAIN STORY & 3D VERIFIED TRUST SHOWCASE
