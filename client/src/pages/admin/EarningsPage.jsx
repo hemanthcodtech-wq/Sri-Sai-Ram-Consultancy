@@ -141,58 +141,76 @@ const EarningsPage = () => {
         ) : (
           <>
             {/* Financial Overview Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
               
-              <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FFF9EE] to-[#FFF5DC] rounded-3xl p-6 text-slate-900 shadow-sm border-2 border-[#E6CD98]">
+              {/* 1. Total Amount Received Card */}
+              <div className="bg-gradient-to-br from-emerald-50 via-emerald-100/40 to-teal-50 rounded-3xl p-5 sm:p-6 text-slate-900 shadow-sm border-2 border-emerald-300">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-[#A66E00] uppercase tracking-wider">Gross Business Revenue</span>
+                  <span className="text-[11px] sm:text-xs font-black text-emerald-800 uppercase tracking-wider">Amount Received</span>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-emerald-950 mt-3">
+                  {formatCurrency(stats?.summary?.paidRevenue)}
+                </div>
+                <p className="text-[11px] sm:text-xs text-emerald-700 mt-1 font-semibold">Total Collections (Paid &amp; Partial)</p>
+              </div>
+
+              {/* 2. Gross Business Revenue */}
+              <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FFF9EE] to-[#FFF5DC] rounded-3xl p-5 sm:p-6 text-slate-900 shadow-sm border-2 border-[#E6CD98]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] sm:text-xs font-black text-[#A66E00] uppercase tracking-wider">Gross Billed</span>
                   <div className="w-8 h-8 rounded-lg bg-amber-100 text-[#C8960C] flex items-center justify-center font-bold">
                     <TrendingUp className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-black text-[#081C36] mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-[#081C36] mt-3">
                   {formatCurrency(stats?.summary?.totalRevenue)}
                 </div>
-                <p className="text-xs text-slate-500 mt-1 font-medium">Total value of all completed tasks</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-1 font-medium">Total value of all tasks</p>
               </div>
 
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+              {/* 3. Staff Payouts */}
+              <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Staff Payout Disbursements</span>
+                  <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Staff Payouts</span>
                   <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                     <Users className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-black text-slate-900 mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-3">
                   {formatCurrency(stats?.summary?.totalPayout)}
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Disbursed to Drivers, Helpers & Captains</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-1">Disbursed to Staff</p>
               </div>
 
-              <div className="bg-white rounded-3xl p-6 shadow-sm border-2 border-emerald-500/40">
+              {/* 4. Net Profit */}
+              <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border-2 border-emerald-500/40">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Net Company Profit</span>
+                  <span className="text-[11px] sm:text-xs font-bold text-emerald-700 uppercase tracking-wider">Agency Profit</span>
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
                     <DollarSign className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-black text-emerald-600 mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-emerald-600 mt-3">
                   {formatCurrency(stats?.summary?.totalCommission)}
                 </div>
-                <p className="text-xs text-emerald-800 font-semibold mt-1">SSRC agency commission margin</p>
+                <p className="text-[11px] sm:text-xs text-emerald-800 font-semibold mt-1">SSRC agency margin</p>
               </div>
 
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+              {/* 5. Pending Uncollected Dues */}
+              <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Uncollected Client Dues</span>
+                  <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Uncollected Dues</span>
                   <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
                     <Clock className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-black text-amber-600 mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-amber-600 mt-3">
                   {formatCurrency(stats?.summary?.pendingRevenue)}
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Outstanding pending invoices</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-1">Outstanding pending balance</p>
               </div>
 
             </div>
@@ -202,7 +220,7 @@ const EarningsPage = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <h3 className="text-xl font-extrabold text-slate-900">Fleet Financial Matrix</h3>
-                  <p className="text-xs text-slate-500">Revenue, payout share, and net profit margins across categories.</p>
+                  <p className="text-xs text-slate-500">Revenue, amount received, payout share, and net profit margins across categories.</p>
                 </div>
                 
                 {/* Filter Pills */}
@@ -254,8 +272,12 @@ const EarningsPage = () => {
 
                       <div className="space-y-2 pt-2 border-t border-slate-200 text-xs">
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Gross Revenue:</span>
+                          <span className="text-slate-500">Gross Billed:</span>
                           <span className="font-bold text-slate-900">{formatCurrency(cat.revenue)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Amount Received:</span>
+                          <span className="font-bold text-emerald-700">{formatCurrency(cat.paidRevenue || cat.revenue)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-slate-500">Staff Payouts:</span>
@@ -277,7 +299,7 @@ const EarningsPage = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-extrabold text-slate-900">Staff Financial Earnings Ledger</h3>
-                  <p className="text-xs text-slate-500">Breakdown of earnings and task volume per employee.</p>
+                  <p className="text-xs text-slate-500">Breakdown of earnings, amount received, and task volume per employee.</p>
                 </div>
                 <div className="text-xs text-slate-500 font-semibold">
                   Showing {filteredEmployees.length} personnel records
@@ -288,10 +310,11 @@ const EarningsPage = () => {
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-50 text-slate-600 uppercase font-bold border-y border-slate-200">
-                      <th className="py-3 px-4">Employee ID & Name</th>
+                      <th className="py-3 px-4">Employee ID &amp; Name</th>
                       <th className="py-3 px-4">Category</th>
                       <th className="py-3 px-4">Tasks Handled</th>
                       <th className="py-3 px-4">Generated Revenue</th>
+                      <th className="py-3 px-4">Amount Received</th>
                       <th className="py-3 px-4">Staff Payout</th>
                       <th className="py-3 px-4 text-right">Action</th>
                     </tr>
@@ -299,7 +322,7 @@ const EarningsPage = () => {
                   <tbody className="divide-y divide-slate-100">
                     {filteredEmployees.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="py-8 text-center text-slate-400">
+                        <td colSpan="7" className="py-8 text-center text-slate-400">
                           No financial ledger entries match this criteria.
                         </td>
                       </tr>
@@ -331,9 +354,12 @@ const EarningsPage = () => {
                             {emp.tripsCount} tasks
                           </td>
                           <td className="py-3 px-4 font-extrabold text-slate-900">
-                            {formatCurrency(emp.earnings * 1.25)}
+                            {formatCurrency(emp.revenueGenerated || emp.earnings * 1.25)}
                           </td>
-                          <td className="py-3 px-4 font-extrabold text-emerald-600">
+                          <td className="py-3 px-4 font-extrabold text-emerald-700">
+                            {formatCurrency(emp.amountCollected !== undefined ? emp.amountCollected : (emp.revenueGenerated || 0))}
+                          </td>
+                          <td className="py-3 px-4 font-extrabold text-blue-700">
                             {formatCurrency(emp.earnings)}
                           </td>
                           <td className="py-3 px-4 text-right">

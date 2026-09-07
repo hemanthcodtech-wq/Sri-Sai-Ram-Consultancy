@@ -12,6 +12,19 @@ const tripSchema = new mongoose.Schema(
       required: true,
       default: Date.now,
     },
+    startDate: {
+      type: Date,
+      default: Date.now,
+    },
+    endDate: {
+      type: Date,
+      default: Date.now,
+    },
+    totalDays: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
     clientName: {
       type: String,
       required: true,
@@ -97,17 +110,26 @@ const tripSchema = new mongoose.Schema(
 );
 
 // Auto-generate tripNumber and calculate commission
-tripSchema.pre('save', async function (next) {
+tripSchema.pre('save', async function () {
   if (!this.tripNumber) {
     const count = await mongoose.model('Trip').countDocuments();
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     this.tripNumber = `TRP-${dateStr}-${String(count + 1).padStart(4, '0')}`;
   }
+  if (!this.startDate) {
+    this.startDate = this.tripDate || new Date();
+  }
+  if (!this.endDate) {
+    this.endDate = this.startDate;
+  }
+  if (!this.totalDays || this.totalDays < 1) {
+    const diffMs = new Date(this.endDate) - new Date(this.startDate);
+    this.totalDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
+  }
   // Commission = Trip Amount - Employee Payout
   if (this.tripAmount && this.employeePayout) {
     this.commissionAmount = Math.max(0, this.tripAmount - this.employeePayout);
   }
-  next();
 });
 
 module.exports = mongoose.model('Trip', tripSchema);

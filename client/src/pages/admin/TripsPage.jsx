@@ -19,7 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  CreditCard
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
@@ -53,14 +54,61 @@ const TripsPage = () => {
     pickupLocation: '',
     dropLocation: '',
     category: 'Driver',
+    startDate: new Date().toISOString().slice(0, 10),
+    endDate: new Date().toISOString().slice(0, 10),
+    totalDays: 1,
     tripDate: new Date().toISOString().slice(0, 10),
-    tripAmount: 1200,
-    employeePayout: 800,
-    paymentStatus: 'Paid',
-    tripStatus: 'Completed',
-    tripType: 'Full-Day',
+    tripAmount: '',
+    employeePayout: '',
+    paymentStatus: '',
+    paidAmount: '',
+    tripStatus: '',
+    tripType: '',
     remarks: '',
   });
+
+  const calculateDays = (start, end) => {
+    if (!start || !end) return 1;
+    const s = new Date(start);
+    const e = new Date(end);
+    if (isNaN(s.getTime()) || isNaN(e.getTime())) return 1;
+    const utc1 = Date.UTC(s.getFullYear(), s.getMonth(), s.getDate());
+    const utc2 = Date.UTC(e.getFullYear(), e.getMonth(), e.getDate());
+    const diffDays = Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24)) + 1;
+    return Math.max(1, diffDays);
+  };
+
+  const handleStartDateChange = (val) => {
+    const sDate = val;
+    let eDate = formData.endDate || sDate;
+    if (new Date(eDate) < new Date(sDate)) {
+      eDate = sDate;
+    }
+    const days = calculateDays(sDate, eDate);
+    setFormData((prev) => ({
+      ...prev,
+      startDate: sDate,
+      endDate: eDate,
+      tripDate: sDate,
+      totalDays: days,
+    }));
+  };
+
+  const handleEndDateChange = (val) => {
+    const eDate = val;
+    let sDate = formData.startDate || eDate;
+    if (new Date(eDate) < new Date(sDate)) {
+      sDate = eDate;
+    }
+    const days = calculateDays(sDate, eDate);
+    setFormData((prev) => ({
+      ...prev,
+      startDate: sDate,
+      endDate: eDate,
+      tripDate: sDate,
+      totalDays: days,
+    }));
+  };
 
   const fetchTrips = async () => {
     setLoading(true);
@@ -112,6 +160,16 @@ const TripsPage = () => {
   const handleOpenModal = (trip = null) => {
     if (trip) {
       setEditingTrip(trip);
+      const sDate = trip.startDate
+        ? new Date(trip.startDate).toISOString().slice(0, 10)
+        : trip.tripDate
+        ? new Date(trip.tripDate).toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10);
+      const eDate = trip.endDate
+        ? new Date(trip.endDate).toISOString().slice(0, 10)
+        : sDate;
+      const days = trip.totalDays || Math.max(1, Math.round((new Date(eDate) - new Date(sDate)) / (1000 * 60 * 60 * 24)) + 1);
+
       setFormData({
         assignedEmployee: trip.assignedEmployee?._id || trip.assignedEmployee || '',
         clientName: trip.clientName || '',
@@ -119,29 +177,38 @@ const TripsPage = () => {
         pickupLocation: trip.pickupLocation || '',
         dropLocation: trip.dropLocation || '',
         category: trip.category || 'Driver',
-        tripDate: trip.tripDate ? new Date(trip.tripDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
-        tripAmount: trip.tripAmount || 1200,
-        employeePayout: trip.employeePayout || 800,
-        paymentStatus: trip.paymentStatus || 'Paid',
-        tripStatus: trip.tripStatus || 'Completed',
-        tripType: trip.tripType || 'Full-Day',
+        startDate: sDate,
+        endDate: eDate,
+        totalDays: days,
+        tripDate: sDate,
+        tripAmount: trip.tripAmount !== undefined && trip.tripAmount !== null ? trip.tripAmount : '',
+        employeePayout: trip.employeePayout !== undefined && trip.employeePayout !== null ? trip.employeePayout : '',
+        paymentStatus: trip.paymentStatus || '',
+        paidAmount: trip.paidAmount !== undefined && trip.paidAmount !== null ? trip.paidAmount : '',
+        tripStatus: trip.tripStatus || '',
+        tripType: trip.tripType || '',
         remarks: trip.remarks || '',
       });
     } else {
       setEditingTrip(null);
+      const today = new Date().toISOString().slice(0, 10);
       setFormData({
-        assignedEmployee: employees[0]?._id || '',
+        assignedEmployee: '',
         clientName: '',
         clientPhone: '',
         pickupLocation: '',
         dropLocation: '',
-        category: employees[0]?.category || 'Driver',
-        tripDate: new Date().toISOString().slice(0, 10),
-        tripAmount: 1200,
-        employeePayout: 800,
-        paymentStatus: 'Paid',
-        tripStatus: 'Completed',
-        tripType: 'Full-Day',
+        category: 'Driver',
+        startDate: today,
+        endDate: today,
+        totalDays: 1,
+        tripDate: today,
+        tripAmount: '',
+        employeePayout: '',
+        paymentStatus: '',
+        paidAmount: '',
+        tripStatus: '',
+        tripType: '',
         remarks: '',
       });
     }
@@ -155,11 +222,26 @@ const TripsPage = () => {
       return;
     }
 
+    const payload = {
+      ...formData,
+      tripAmount: formData.tripAmount === '' ? 0 : Number(formData.tripAmount),
+      employeePayout: formData.employeePayout === '' ? 0 : Number(formData.employeePayout),
+      paidAmount:
+        formData.paymentStatus === 'Paid'
+          ? (formData.tripAmount === '' ? 0 : Number(formData.tripAmount))
+          : formData.paymentStatus === 'Partial'
+          ? (formData.paidAmount === '' ? 0 : Number(formData.paidAmount))
+          : 0,
+      paymentStatus: formData.paymentStatus || 'Pending',
+      tripStatus: formData.tripStatus || 'Scheduled',
+      tripType: formData.tripType || 'Full-Day',
+    };
+
     try {
       if (editingTrip) {
-        await api.put(`/trips/${editingTrip._id}`, formData);
+        await api.put(`/trips/${editingTrip._id}`, payload);
       } else {
-        await api.post('/trips', formData);
+        await api.post('/trips', payload);
       }
       setIsModalOpen(false);
       fetchTrips();
@@ -364,13 +446,12 @@ const TripsPage = () => {
                 <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200">
                   <tr>
                     <th className="py-3.5 px-4">Task #</th>
-                    <th className="py-3.5 px-4">Date</th>
+                    <th className="py-3.5 px-4">Duration & Dates</th>
                     <th className="py-3.5 px-4">Client & Contact</th>
                     <th className="py-3.5 px-4">Assigned Employee</th>
                     <th className="py-3.5 px-4">Route</th>
                     <th className="py-3.5 px-4">Task Fee</th>
                     <th className="py-3.5 px-4">Staff Payout</th>
-                    <th className="py-3.5 px-4">Margin</th>
                     <th className="py-3.5 px-4">Payment</th>
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
@@ -378,10 +459,28 @@ const TripsPage = () => {
                 <tbody className="divide-y divide-slate-100">
                   {currentTrips.map((task) => {
                     const empInfo = getEmployeeInfo(task);
+                    const sDateObj = task.startDate ? new Date(task.startDate) : new Date(task.tripDate);
+                    const eDateObj = task.endDate ? new Date(task.endDate) : sDateObj;
+                    const isMultiDay = sDateObj.toDateString() !== eDateObj.toDateString();
+
                     return (
                       <tr key={task._id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3.5 px-4 font-mono font-bold text-slate-900 whitespace-nowrap">{task.tripNumber}</td>
-                        <td className="py-3.5 px-4 whitespace-nowrap">{new Date(task.tripDate).toLocaleDateString('en-IN')}</td>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>
+                              {sDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                              {isMultiDay && (
+                                <> – {eDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</>
+                              )}
+                            </span>
+                          </div>
+                          <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-200">
+                            <Clock className="w-3 h-3 text-amber-600" />
+                            {task.totalDays ? (task.totalDays === 1 ? '1 Day Duty' : `${task.totalDays} Days Duty`) : '1 Day Duty'}
+                          </span>
+                        </td>
                         <td className="py-3.5 px-4">
                           <div className="font-bold text-slate-900">{task.clientName}</div>
                           <div className="text-[11px] text-slate-400">{task.clientPhone}</div>
@@ -420,13 +519,23 @@ const TripsPage = () => {
                         </td>
                         <td className="py-3.5 px-4 font-black text-slate-900">₹{task.tripAmount}</td>
                         <td className="py-3.5 px-4 font-bold text-slate-700">₹{task.employeePayout}</td>
-                        <td className="py-3.5 px-4 font-bold text-emerald-600">₹{task.commissionAmount}</td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-3.5 px-4 whitespace-nowrap">
                           <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${
-                            task.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            task.paymentStatus === 'Paid'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : task.paymentStatus === 'Partial'
+                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                              : 'bg-amber-100 text-amber-800'
                           }`}>
-                            {task.paymentStatus}
+                            {task.paymentStatus || 'Pending'}
                           </span>
+                          {task.paymentStatus === 'Partial' && (
+                            <div className="text-[10px] font-bold text-slate-500 mt-1">
+                              Paid: <span className="text-emerald-600">₹{task.paidAmount || 0}</span>
+                              <span className="text-slate-300 mx-1">|</span>
+                              Bal: <span className="text-rose-600">₹{Math.max(0, (task.tripAmount || 0) - (task.paidAmount || 0))}</span>
+                            </div>
+                          )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
@@ -454,7 +563,7 @@ const TripsPage = () => {
             </div>
 
             {/* Table Pagination Footer */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="px-6 py-4 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                 <span>
                   Showing <strong className="text-slate-900 font-bold">{trips.length > 0 ? indexOfFirstItem + 1 : 0}</strong> to{' '}
@@ -467,12 +576,11 @@ const TripsPage = () => {
                   <select
                     value={itemsPerPage}
                     onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                    className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                    className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500"
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
-                    <option value={15}>15</option>
-                    <option value={25}>25</option>
+                    <option value={20}>20</option>
                     <option value={50}>50</option>
                   </select>
                 </div>
@@ -488,7 +596,7 @@ const TripsPage = () => {
                   <ChevronsLeft className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="Previous Page"
@@ -496,12 +604,12 @@ const TripsPage = () => {
                   <ChevronLeft className="w-4 h-4" />
                 </button>
 
-                <div className="px-3 py-1 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg">
-                  Page {currentPage} of {totalPages}
-                </div>
+                <span className="px-3 py-1 text-xs font-bold text-slate-700 bg-slate-100 rounded-lg">
+                  {currentPage} / {totalPages}
+                </span>
 
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="Next Page"
@@ -524,30 +632,32 @@ const TripsPage = () => {
 
       </div>
 
-      {/* Log / Edit Task Modal */}
+      {/* Add / Edit Task Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-6">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150">
+          <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] shadow-2xl border border-slate-200/80 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
             
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="bg-white px-6 sm:px-8 pt-6 pb-4 border-b border-slate-100 flex items-start justify-between gap-4 shrink-0 z-10">
               <div>
-                <h3 className="text-xl font-black text-slate-900">
-                  {editingTrip ? `Edit Task Record: ${editingTrip.tripNumber}` : 'Log New Task Dispatch'}
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  {editingTrip ? `Edit Task: ${editingTrip.tripNumber}` : 'Log New Task Record'}
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Assign staff member, configure billing amount, and route details.
+                <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                  Assign staff, route, task duration (From & To dates), and payment info.
                 </p>
               </div>
 
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all shrink-0 active:scale-95 cursor-pointer"
+                title="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveTrip} className="space-y-4">
+            <form onSubmit={handleSaveTrip} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-4">
               
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Assign Employee *</label>
@@ -555,7 +665,7 @@ const TripsPage = () => {
                   required
                   value={formData.assignedEmployee}
                   onChange={(e) => handleEmployeeSelect(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold focus:outline-none focus:border-amber-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold focus:outline-none focus:border-amber-500 bg-white"
                 >
                   <option value="">-- Choose Employee --</option>
                   {employees.map((emp) => (
@@ -617,26 +727,71 @@ const TripsPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Task Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.tripDate}
-                    onChange={(e) => setFormData({ ...formData, tripDate: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
-                  />
-                </div>
+              {/* Task Dates (From & To) and No. of Days Row */}
+              <div className="bg-amber-50/50 rounded-2xl p-4 border border-amber-200/70 space-y-3">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-amber-600" />
+                  Task Duration & Date Schedule
+                </span>
 
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Task Start Date (From) *</label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.startDate}
+                      onChange={(e) => handleStartDateChange(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Task End Date (To) *</label>
+                    <input
+                      type="date"
+                      required
+                      min={formData.startDate}
+                      value={formData.endDate}
+                      onChange={(e) => handleEndDateChange(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">No. of Days of Task *</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        value={formData.totalDays && formData.totalDays > 0 ? formData.totalDays : 1}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setFormData((prev) => ({ ...prev, totalDays: val >= 1 ? val : 1 }));
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-black text-amber-900 focus:outline-none focus:border-amber-500"
+                      />
+                      <span className="absolute right-3 top-2 text-[11px] font-bold text-amber-600 pointer-events-none">
+                        {(formData.totalDays || 1) === 1 ? '1 Day' : `${formData.totalDays || 1} Days`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Task Fee & Employee Payout Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Total Task Fee (₹) *</label>
                   <input
                     type="number"
                     required
+                    min="0"
+                    placeholder="e.g. 1200"
                     value={formData.tripAmount}
-                    onChange={(e) => setFormData({ ...formData, tripAmount: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                    onChange={(e) => setFormData({ ...formData, tripAmount: e.target.value === '' ? '' : Number(e.target.value) })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
@@ -645,9 +800,11 @@ const TripsPage = () => {
                   <input
                     type="number"
                     required
+                    min="0"
+                    placeholder="e.g. 800"
                     value={formData.employeePayout}
-                    onChange={(e) => setFormData({ ...formData, employeePayout: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                    onChange={(e) => setFormData({ ...formData, employeePayout: e.target.value === '' ? '' : Number(e.target.value) })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
@@ -658,8 +815,9 @@ const TripsPage = () => {
                   <select
                     value={formData.paymentStatus}
                     onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500 bg-white font-semibold"
                   >
+                    <option value="">-- Select Status --</option>
                     <option value="Paid">Paid</option>
                     <option value="Pending">Pending</option>
                     <option value="Partial">Partial</option>
@@ -671,8 +829,9 @@ const TripsPage = () => {
                   <select
                     value={formData.tripStatus}
                     onChange={(e) => setFormData({ ...formData, tripStatus: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500 bg-white font-semibold"
                   >
+                    <option value="">-- Select Status --</option>
                     <option value="Scheduled">Scheduled</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Completed">Completed</option>
@@ -685,8 +844,9 @@ const TripsPage = () => {
                   <select
                     value={formData.tripType}
                     onChange={(e) => setFormData({ ...formData, tripType: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500 bg-white font-semibold"
                   >
+                    <option value="">-- Select Type --</option>
                     <option value="Full-Day">Full-Day</option>
                     <option value="One-Way">One-Way</option>
                     <option value="Round-Trip">Round-Trip</option>
@@ -696,22 +856,67 @@ const TripsPage = () => {
                 </div>
               </div>
 
-              {/* Calculated Commission Preview */}
-              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
-                <span className="text-emerald-900 font-bold">Auto-Calculated Commission:</span>
-                <span className="text-base font-black text-emerald-700">
-                  ₹{Math.max(0, formData.tripAmount - formData.employeePayout)}
-                </span>
-              </div>
+              {/* Partial Payment Amount Input (conditional when Partial is selected) */}
+              {formData.paymentStatus === 'Partial' && (
+                <div className="bg-blue-50/70 rounded-2xl p-4 border border-blue-200/80 space-y-2.5 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                      <CreditCard className="w-4 h-4 text-blue-600" />
+                      Partial / Advance Payment Entry
+                    </span>
+                    <span className="text-[11px] font-bold text-blue-700 bg-white px-2.5 py-0.5 rounded-full border border-blue-200">
+                      Total Fee: ₹{formData.tripAmount || 0}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Paid Amount (₹) *
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2 text-xs font-bold text-slate-400">₹</span>
+                        <input
+                          type="number"
+                          required
+                          min="0"
+                          max={formData.tripAmount ? Number(formData.tripAmount) : undefined}
+                          placeholder="e.g. 500"
+                          value={formData.paidAmount}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              paidAmount: e.target.value === '' ? '' : Number(e.target.value),
+                            })
+                          }
+                          className="w-full pl-7 pr-3 py-2 rounded-xl border border-blue-300 bg-white text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Remaining Pending Balance
+                      </label>
+                      <div className="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-black text-rose-600 flex items-center justify-between">
+                        <span>₹{Math.max(0, (Number(formData.tripAmount) || 0) - (Number(formData.paidAmount) || 0))}</span>
+                        <span className="text-[10px] uppercase font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md">
+                          Pending
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Remarks / Route Notes</label>
                 <textarea
                   rows="2"
-                  placeholder="e.g. VIP escort duty, customer paid cash on arrival..."
+                  placeholder="e.g. Outstation trip to Vijayawada, full fuel included..."
                   value={formData.remarks}
                   onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500 resize-none"
                 />
               </div>
 
@@ -719,13 +924,13 @@ const TripsPage = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                  className="px-5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow-md hover:scale-[1.01]"
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-xs shadow-md hover:scale-[1.01] active:scale-95 transition-all"
                 >
                   Save Task Record
                 </button>

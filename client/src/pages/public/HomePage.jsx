@@ -1,56 +1,99 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Phone, 
   MessageCircle, 
   CheckCircle2, 
   ArrowRight,
-  ShieldCheck,
-  Users,
-  HeartHandshake,
-  Star
+  ShieldCheck, 
+  Users, 
+  HeartHandshake, 
+  Star,
+  Zap,
+  Award,
+  Sparkles,
+  Clock,
+  Car,
+  Truck,
+  Compass,
+  MapPin,
+  Check
 } from 'lucide-react';
 import SEOHead from '../../components/public/SEOHead';
 import Typewriter from '../../components/public/Typewriter';
+import TrustBadgeBar from '../../components/public/TrustBadgeBar';
+import ComparisonTable from '../../components/public/ComparisonTable';
+import ScrollReveal from '../../components/public/ScrollReveal';
+
+// High-Definition 3D Visual Assets (Porter / Rapido / NxtWave Style)
 import bannerBg from '../../assets/banner_bg_clean.png';
-import driverIcon from '../../assets/icon_driver.png';
-import captainIcon from '../../assets/icon_captain.png';
-import helperIcon from '../../assets/icon_helper.png';
+import visualDriver from '../../assets/visual_driver.jpg';
+import visualHelper from '../../assets/visual_helper.jpg';
+import visualCaptain from '../../assets/visual_captain.jpg';
+import visualSafety from '../../assets/visual_safety.jpg';
+import visualProcess from '../../assets/visual_process.jpg';
 
 const HomePage = () => {
   const phoneRaw = import.meta.env.VITE_COMPANY_PHONE_RAW || '9505151527';
   const whatsappRaw = import.meta.env.VITE_COMPANY_WHATSAPP || '919505151527';
 
+  const [activeStep, setActiveStep] = useState(0);
+
+  const steps = [
+    {
+      num: '01',
+      title: 'Quick Call or WhatsApp Inquiry',
+      desc: 'Tell us your requirement — Driver, Helper, or Captain — with duty hours (4hr, 8hr, 12hr or monthly).',
+      badge: 'Takes < 60 Seconds',
+    },
+    {
+      num: '02',
+      title: 'Verified Staff Profile Matching',
+      desc: 'We match background-verified, police-cleared personnel suited to your vehicle model and specific task.',
+      badge: '100% Background Verified',
+    },
+    {
+      num: '03',
+      title: 'Punctual Dispatch & 5-Star Service',
+      desc: 'Staff arrives on time with uniform and ID credentials. Enjoy peaceful, safe, and professional assistance.',
+      badge: 'Zero Hidden Charges',
+    },
+  ];
+
   return (
     <>
       <SEOHead
         title="Sri Sai Ram Consultancy - Premium Captain, Driver & Helper Staffing"
-        description="Sri Sai Ram Consultancy: Verified Drivers, Helpers, and Captain Chauffeurs in Hyderabad LB Nagar. Call +91 95051 51527."
+        description="Sri Sai Ram Consultancy (SSRC): 100% Verified Drivers, Logistics Helpers, and Captain Chauffeurs in Hyderabad LB Nagar. Call +91 95051 51527."
       />
 
       {/* ═══════════════════════════════════════════
-          1. HERO BANNER — Panoramic Width with Reactive Typewriter
+          1. HERO BANNER — Panoramic Width with Reactive Typewriter & Floating Badges
           ═══════════════════════════════════════════ */}
       <section className="relative bg-[#FFFDF9] overflow-hidden border-b border-[#F0E5D5]">
-        <div className="w-full max-w-[1440px] mx-auto px-1.5 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-3">
+        <div className="w-full max-w-[1440px] mx-auto px-1.5 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3">
           <div className="relative overflow-hidden sm:rounded-2xl md:rounded-3xl border-0 sm:border border-[#F0E0C8] shadow-sm sm:shadow-md bg-white aspect-[2.1/1] sm:aspect-[2.25/1] w-full">
             
-            {/* Background Image (Original Mockup with 4 Staff & Gold Ribbons) */}
+            {/* Background Image */}
             <img
               src={bannerBg}
               alt="Sri Sai Ram Consultancy - Professional Staffing"
               className="absolute inset-0 w-full h-full object-cover object-[center_right] sm:object-right z-0 pointer-events-none"
             />
 
-            {/* Subtle Gradient Backing on Left for Crisp Typography */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#FFFDF9]/95 via-[#FFFDF9]/70 to-transparent sm:from-[#FFFDF9]/90 sm:via-[#FFFDF9]/40 sm:to-transparent z-1 pointer-events-none max-w-[85%] sm:max-w-[54%]" />
+            {/* Subtle Gradient Backing for Crisp Typography */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FFFDF9]/95 via-[#FFFDF9]/75 to-transparent sm:from-[#FFFDF9]/90 sm:via-[#FFFDF9]/45 sm:to-transparent z-1 pointer-events-none max-w-[85%] sm:max-w-[55%]" />
 
             {/* Banner Foreground Content */}
             <div className="relative z-10 flex flex-col justify-center h-full pl-3.5 sm:pl-7 md:pl-11 lg:pl-16 pr-1 py-1 sm:py-3 max-w-[58%] sm:max-w-[52%] md:max-w-[48%]">
               
               {/* Tagline */}
-              <p className="text-[7.5px] sm:text-xs md:text-sm font-black uppercase tracking-wider text-[#081C36]/85 mb-0.5 sm:mb-1.5 md:mb-2 leading-tight">
-                TRUSTED PEOPLE FOR A BETTER TOMORROW
-              </p>
+              <div className="inline-flex items-center gap-1.5 mb-1 sm:mb-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <p className="text-[7.5px] sm:text-xs md:text-sm font-black uppercase tracking-wider text-[#081C36]/85 leading-tight">
+                  TRUSTED PEOPLE FOR A BETTER TOMORROW
+                </p>
+              </div>
 
               {/* Main Heading with Typewriter */}
               <h1 className="text-lg sm:text-3xl md:text-5xl lg:text-6xl font-black leading-[1.08] mb-1 sm:mb-2 md:mb-3">
@@ -64,25 +107,29 @@ const HomePage = () => {
               </h1>
 
               {/* Subtitle */}
-              <p className="text-slate-600 text-[8px] sm:text-xs md:text-sm lg:text-base font-medium leading-tight sm:leading-relaxed max-w-[180px] sm:max-w-sm md:max-w-md lg:max-w-lg mb-1.5 sm:mb-3 md:mb-5">
-                Reliable Drivers, Captains &amp; Helpers for Your Personal and Professional Needs.
+              <p className="text-slate-600 text-[8px] sm:text-xs md:text-sm lg:text-base font-medium leading-tight sm:leading-relaxed max-w-[190px] sm:max-w-sm md:max-w-md lg:max-w-lg mb-2 sm:mb-3 md:mb-5">
+                Reliable Drivers, Captains &amp; Helpers for Personal, Commercial and VIP Corporate Needs in Hyderabad.
               </p>
 
-              {/* Get Started Pill Button */}
-              <div className="flex items-center">
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 sm:gap-3">
                 <a
                   href={`tel:${phoneRaw}`}
-                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-5 sm:py-2.5 md:px-7 md:py-3 rounded-full bg-gradient-to-r from-[#D98E04] to-[#C8960C] hover:from-[#EAA00A] hover:to-[#D98E04] text-white font-black text-[8.5px] sm:text-xs md:text-sm lg:text-base shadow-md shadow-amber-400/25 transition-all duration-300 hover:scale-[1.03] active:scale-95 whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-5 sm:py-2.5 md:px-7 md:py-3 rounded-full bg-gradient-to-r from-[#D98E04] to-[#C8960C] hover:from-[#EAA00A] hover:to-[#D98E04] text-white font-black text-[8.5px] sm:text-xs md:text-sm lg:text-base shadow-md shadow-amber-400/25 transition-all duration-300 hover:scale-[1.03] active:scale-95 whitespace-nowrap"
                 >
-                  Get Started <ArrowRight className="w-2.5 h-2.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                  <Phone className="w-2.5 h-2.5 sm:w-4 sm:h-4" />
+                  <span>Call 9505151527</span>
                 </a>
-              </div>
 
-              {/* Carousel Indicators (1 Navy, 2 Grey) */}
-              <div className="flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-3 md:mt-4">
-                <span className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-full bg-[#081C36]" />
-                <span className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-slate-300" />
-                <span className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-slate-300" />
+                <a
+                  href={`https://wa.me/${whatsappRaw}?text=Hello%20SSRC,%20I%20need%20staffing%20assistance.`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs md:text-sm shadow-md transition-all hover:scale-[1.03] active:scale-95 whitespace-nowrap"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>WhatsApp</span>
+                </a>
               </div>
 
             </div>
@@ -91,217 +138,346 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Trust Ticker Bar */}
+      <TrustBadgeBar />
 
       {/* ═══════════════════════════════════════════
-          2. OUR SERVICES (Drivers, Captains, Helpers) — Rich Cards with Icons
+          2. 3D VISUAL SERVICE CATEGORIES (Porter / Rapido Style)
           ═══════════════════════════════════════════ */}
-      <section className="py-10 sm:py-14 bg-white border-b border-slate-100">
+      <section className="py-12 sm:py-16 bg-[#FAF8F5]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
+          
           {/* Section Header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8 sm:mb-10">
-            <div>
-              <span className="text-xs font-black uppercase tracking-widest text-[#C8960C] block mb-1">
-                Verified Staffing Solutions
+          <ScrollReveal direction="down" duration={650}>
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-[#7C5200] border border-amber-300 text-xs font-black uppercase tracking-wider mb-2">
+                <Zap className="w-3.5 h-3.5 text-amber-600" />
+                On-Demand &amp; Monthly Staffing
               </span>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#081C36] tracking-tight">
-                Our Services
+              <h2 className="text-3xl sm:text-4xl font-black text-[#081C36] tracking-tight">
+                Choose Your Required Staffing Service
               </h2>
+              <p className="text-slate-600 text-sm sm:text-base mt-2">
+                Background-checked, skilled, and punctual personnel ready for instant deployment across Hyderabad &amp; LB Nagar.
+              </p>
             </div>
-            <Link
-              to="/services"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-[#081C36] hover:text-[#C8960C] transition-colors"
-            >
-              <span>Explore All Categories</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+          </ScrollReveal>
+
+          {/* 3 Visual Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+            
+            {/* Card 1: DRIVERS */}
+            <ScrollReveal direction="up" delay={0} duration={650} className="h-full">
+              <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-100 hover:border-amber-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between group h-full">
+                <div className="p-2 sm:p-3 bg-gradient-to-b from-blue-50 to-white">
+                  <div className="relative rounded-2xl overflow-hidden aspect-square bg-slate-100">
+                    <img
+                      src={visualDriver}
+                      alt="Professional Chauffeur Driver"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-md">
+                      Most Popular
+                    </div>
+                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm text-[#081C36] text-xs font-black px-3 py-1.5 rounded-xl shadow-lg border border-slate-200">
+                      ⚡ Verified &amp; On-Demand
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Car className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-2xl font-black text-[#081C36] group-hover:text-[#C8960C] transition-colors">
+                        Professional Drivers
+                      </h3>
+                    </div>
+                    <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">
+                      Steers with Responsibility
+                    </p>
+                    <p className="text-slate-600 text-xs sm:text-sm mt-3 leading-relaxed">
+                      Verified drivers for hatchbacks, luxury sedans, and SUVs. Ideal for daily office commutes, night driving, outstation trips, and airport transfers.
+                    </p>
+
+                    <div className="space-y-2 pt-3 text-xs text-slate-700 font-semibold">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Valid Commercial/LMV Badge &amp; Clean Record</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Automatic &amp; Manual Transmission Mastery</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>4-Hr, 8-Hr, 12-Hr &amp; Monthly Retainers</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 flex items-center gap-2">
+                    <a
+                      href={`tel:${phoneRaw}`}
+                      className="flex-1 py-3 rounded-xl bg-[#081C36] hover:bg-[#0B2545] text-white text-xs font-black text-center shadow-md transition-all"
+                    >
+                      Call to Book
+                    </a>
+                    <a
+                      href={`https://wa.me/${whatsappRaw}?text=Hi%20SSRC,%20I%20want%20to%20hire%20a%20Driver.`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-3 px-4 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 text-xs font-black text-center transition-all flex items-center justify-center gap-1"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>WhatsApp</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Card 2: HELPERS */}
+            <ScrollReveal direction="up" delay={150} duration={650} className="h-full">
+              <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-100 hover:border-amber-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between group h-full">
+                <div className="p-2 sm:p-3 bg-gradient-to-b from-emerald-50 to-white">
+                  <div className="relative rounded-2xl overflow-hidden aspect-square bg-slate-100">
+                    <img
+                      src={visualHelper}
+                      alt="Verified All-Purpose Helpers"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-md">
+                      All-Purpose Support
+                    </div>
+                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm text-[#081C36] text-xs font-black px-3 py-1.5 rounded-xl shadow-lg border border-slate-200">
+                      ⚡ Flexible Shifts &amp; Monthly
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Truck className="w-5 h-5 text-emerald-600" />
+                      <h3 className="text-2xl font-black text-[#081C36] group-hover:text-[#C8960C] transition-colors">
+                        Helpers
+                      </h3>
+                    </div>
+                    <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
+                      Supports with Dedication
+                    </p>
+                    <p className="text-slate-600 text-xs sm:text-sm mt-3 leading-relaxed">
+                      Reliable manpower for all types of needs — household &amp; domestic help, house shifting &amp; relocation, office assistance, godown loading/unloading, event setup, and general tasks.
+                    </p>
+
+                    <div className="space-y-2 pt-3 text-xs text-slate-700 font-semibold">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Household, Domestic &amp; Moving Assistance</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Office, Store &amp; Warehouse Floor Support</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Individual Helpers or Dedicated Crew Teams</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 flex items-center gap-2">
+                    <a
+                      href={`tel:${phoneRaw}`}
+                      className="flex-1 py-3 rounded-xl bg-[#081C36] hover:bg-[#0B2545] text-white text-xs font-black text-center shadow-md transition-all"
+                    >
+                      Call to Book
+                    </a>
+                    <a
+                      href={`https://wa.me/${whatsappRaw}?text=Hi%20SSRC,%20I%20need%20Helpers%20assistance.`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-3 px-4 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 text-xs font-black text-center transition-all flex items-center justify-center gap-1"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>WhatsApp</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Card 3: CAPTAINS */}
+            <ScrollReveal direction="up" delay={300} duration={650} className="h-full">
+              <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-100 hover:border-amber-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between group h-full">
+                <div className="p-2 sm:p-3 bg-gradient-to-b from-amber-50 to-white">
+                  <div className="relative rounded-2xl overflow-hidden aspect-square bg-slate-100">
+                    <img
+                      src={visualCaptain}
+                      alt="Executive Chauffeur Captain"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-3 left-3 bg-amber-500 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      <span>Executive VIP</span>
+                    </div>
+                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm text-[#081C36] text-xs font-black px-3 py-1.5 rounded-xl shadow-lg border border-slate-200">
+                      ⚡ Executive Protocol Chauffeur
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Compass className="w-5 h-5 text-amber-600" />
+                      <h3 className="text-2xl font-black text-[#081C36] group-hover:text-[#C8960C] transition-colors">
+                        Executive Captains
+                      </h3>
+                    </div>
+                    <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">
+                      Leads with Confidence
+                    </p>
+                    <p className="text-slate-600 text-xs sm:text-sm mt-3 leading-relaxed">
+                      Elite corporate chauffeurs for CEOs, VIP delegations, luxury hotel guest escorts, and outstation executive trips. Impeccably groomed and protocol-trained.
+                    </p>
+
+                    <div className="space-y-2 pt-3 text-xs text-slate-700 font-semibold">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>8+ Years Flawless Executive Driving Record</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Corporate Etiquette, Multilingual &amp; Discreet</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Mercedes, BMW, Audi, Fortuner Luxury Handling</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 flex items-center gap-2">
+                    <a
+                      href={`tel:${phoneRaw}`}
+                      className="flex-1 py-3 rounded-xl bg-[#081C36] hover:bg-[#0B2545] text-white text-xs font-black text-center shadow-md transition-all"
+                    >
+                      Call to Book
+                    </a>
+                    <a
+                      href={`https://wa.me/${whatsappRaw}?text=Hi%20SSRC,%20I%20need%20an%20Executive%20Captain%20Chauffeur.`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-3 px-4 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 text-xs font-black text-center transition-all flex items-center justify-center gap-1"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>WhatsApp</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
+
           </div>
 
-          {/* 3 Services Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+        </div>
+      </section>
 
-            {/* 1. PROFESSIONAL DRIVERS */}
-            <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-lg border border-slate-200 hover:border-[#C8960C] hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between group h-full">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-50/60 p-1 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-                    <img src={driverIcon} alt="Professional Drivers" className="w-full h-full object-contain" />
+      {/* ═══════════════════════════════════════════
+          3. HOW IT WORKS (Visual 3-Step Rapid Workflow)
+          ═══════════════════════════════════════════ */}
+      <section className="py-14 sm:py-20 bg-white border-y border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Left 3D Visual Graphic */}
+            <div className="lg:col-span-6">
+              <ScrollReveal direction="right" duration={700}>
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-300/60 bg-white group">
+                  <img
+                    src={visualProcess}
+                    alt="SSRC 3-Step Rapid Staffing Process"
+                    className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute top-4 left-4 bg-[#081C36]/90 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs font-black px-3.5 py-1.5 rounded-full shadow-lg">
+                    ⚡ 15-Minute Fast Matching
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1 rounded-full">
-                    Most Popular
+                </div>
+              </ScrollReveal>
+            </div>
+
+            {/* Right Steps Flow */}
+            <div className="lg:col-span-6 space-y-6">
+              <ScrollReveal direction="left" duration={650}>
+                <div>
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-[#7C5200] border border-amber-300 text-xs font-black uppercase tracking-wider mb-2">
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    Effortless Booking
                   </span>
-                </div>
-
-                <div>
-                  <h3 className="text-2xl font-black text-[#081C36] group-hover:text-[#C8960C] transition-colors">
-                    Professional Driver
-                  </h3>
-                  <p className="text-xs text-[#C8960C] font-extrabold uppercase tracking-wider mt-0.5">
-                    Steers with Responsibility
+                  <h2 className="text-3xl sm:text-4xl font-black text-[#081C36] tracking-tight">
+                    How Sri Sai Ram Consultancy Works
+                  </h2>
+                  <p className="text-slate-600 text-sm mt-2">
+                    From inquiry to verified personnel at your doorstep in 3 seamless steps.
                   </p>
                 </div>
-
-                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                  Carefully vetted drivers with extensive experience handling hatchbacks, luxury sedans, and SUVs. Ideal for city commutes, airport drops, and outstation tasks.
-                </p>
-
-                <ul className="space-y-2 pt-2 text-xs text-slate-700 font-medium">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Valid Commercial / Transport License</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Thorough Police Verification &amp; KYC</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Full-Day, Night Duty &amp; Monthly Contracts</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="pt-6 mt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
-                <a
-                  href={`tel:${phoneRaw}`}
-                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#081C36] hover:bg-[#0c294e] text-white font-black text-xs shadow-md transition-all hover:scale-105"
-                >
-                  <Phone className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Call Now</span>
-                </a>
-                <a
-                  href={`https://wa.me/${whatsappRaw}?text=${encodeURIComponent('Hello! I want to hire a Driver via Sri Sai Ram Consultancy.')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs shadow-md transition-all hover:scale-105"
-                >
-                  <MessageCircle className="w-3.5 h-3.5" />
-                  <span>WhatsApp</span>
-                </a>
-              </div>
-            </div>
-
-            {/* 2. DEDICATED HELPERS */}
-            <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-lg border border-slate-200 hover:border-emerald-500 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between group h-full">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-50/60 p-1 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-                    <img src={helperIcon} alt="Dedicated Helpers" className="w-full h-full object-contain" />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full">
-                    Verified Manpower
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-2xl font-black text-[#081C36] group-hover:text-emerald-700 transition-colors">
-                    Dedicated Helper
-                  </h3>
-                  <p className="text-xs text-emerald-700 font-extrabold uppercase tracking-wider mt-0.5">
-                    Supports with Dedication
-                  </p>
-                </div>
-
-                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                  Trained, energetic manpower for warehouse freight loading/unloading, household relocation packing, event setups, and logistics tasks.
-                </p>
-
-                <ul className="space-y-2 pt-2 text-xs text-slate-700 font-medium">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Heavy Goods &amp; Fragile Handling Trained</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Reliable &amp; Verified ID Documents</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Shift-Based &amp; Daily Wage Deployments</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="pt-6 mt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
-                <a
-                  href={`tel:${phoneRaw}`}
-                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#081C36] hover:bg-emerald-950 text-white font-black text-xs shadow-md transition-all hover:scale-105"
-                >
-                  <Phone className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Call Now</span>
-                </a>
-                <a
-                  href={`https://wa.me/${whatsappRaw}?text=${encodeURIComponent('Hello! I want to hire a Helper via Sri Sai Ram Consultancy.')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs shadow-md transition-all hover:scale-105"
-                >
-                  <MessageCircle className="w-3.5 h-3.5" />
-                  <span>WhatsApp</span>
-                </a>
-              </div>
-            </div>
-
-            {/* 3. CAPTAIN CHAUFFEURS */}
-            <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-lg border-2 border-amber-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between relative group h-full">
-              <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-[#D98E04] to-[#C8960C] text-white font-black text-[10px] uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md">
-                VIP Choice
-              </div>
+              </ScrollReveal>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-50 p-1 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-                    <img src={captainIcon} alt="Captain Chauffeurs" className="w-full h-full object-contain" />
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-2xl font-black text-[#081C36] group-hover:text-[#C8960C] transition-colors">
-                    Captain Chauffeur
-                  </h3>
-                  <p className="text-xs text-[#C8960C] font-extrabold uppercase tracking-wider mt-0.5">
-                    Leads with Confidence
-                  </p>
-                </div>
-
-                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                  Premium executive chauffeurs for corporate executives, celebrities, long-distance luxury tours, and VIP motorcades. Punctual, uniformed, and discreet.
-                </p>
-
-                <ul className="space-y-2 pt-2 text-xs text-slate-700 font-medium">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>8+ Years Luxury Fleet Experience</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>VIP Protocol &amp; Route Navigation Master</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Bilingual, Professional Attire Guaranteed</span>
-                  </li>
-                </ul>
+                {steps.map((step, idx) => (
+                  <ScrollReveal key={idx} direction="left" delay={idx * 120} duration={600}>
+                    <div
+                      onClick={() => setActiveStep(idx)}
+                      className={`p-5 rounded-2xl border-2 transition-all cursor-pointer ${
+                        activeStep === idx
+                          ? 'bg-amber-50/70 border-[#C8960C] shadow-md'
+                          : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
+                            activeStep === idx
+                              ? 'bg-[#081C36] text-amber-400 shadow-md'
+                              : 'bg-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {step.num}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-extrabold text-[#081C36] text-base">
+                              {step.title}
+                            </h4>
+                            <span className="text-[10px] font-bold bg-amber-200/80 text-amber-950 px-2.5 py-0.5 rounded-full">
+                              {step.badge}
+                            </span>
+                          </div>
+                          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                            {step.desc}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </ScrollReveal>
+                ))}
               </div>
 
-              <div className="pt-6 mt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
-                <a
-                  href={`tel:${phoneRaw}`}
-                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-[#D98E04] to-[#C8960C] hover:from-[#EAA00A] hover:to-[#D98E04] text-white font-black text-xs shadow-md transition-all hover:scale-105"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Call Now</span>
-                </a>
-                <a
-                  href={`https://wa.me/${whatsappRaw}?text=${encodeURIComponent('Hello! I want to hire an Executive Captain via Sri Sai Ram Consultancy.')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs shadow-md transition-all hover:scale-105"
-                >
-                  <MessageCircle className="w-3.5 h-3.5" />
-                  <span>WhatsApp</span>
-                </a>
-              </div>
+              <ScrollReveal direction="up" delay={360} duration={600}>
+                <div className="pt-2 flex items-center gap-3">
+                  <a
+                    href={`tel:${phoneRaw}`}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
+                  >
+                    <Phone className="w-4 h-4 text-slate-950" />
+                    <span>Call to Book Now</span>
+                  </a>
+                </div>
+              </ScrollReveal>
+
             </div>
 
           </div>
@@ -309,181 +485,147 @@ const HomePage = () => {
         </div>
       </section>
 
-
       {/* ═══════════════════════════════════════════
-          3. STATS STRIP (Clean Card)
+          4. 5-STAR SAFETY & VERIFICATION SHOWCASE
           ═══════════════════════════════════════════ */}
-      <section className="py-2 bg-white">
-        <div className="max-w-5xl mx-auto px-3.5 sm:px-6">
-          <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-4 items-center">
-
-              {/* 1000+ Professionals */}
-              <div className="flex items-center gap-1 sm:gap-2.5">
-                <div className="shrink-0">
-                  <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-7 sm:h-7" fill="#C8960C">
-                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-                  </svg>
-                </div>
-                <div className="leading-tight">
-                  <div className="text-[11px] sm:text-base font-black text-[#081C36]">1000+</div>
-                  <p className="text-[7.5px] sm:text-[11px] text-slate-500 font-semibold leading-none mt-0.5">Professionals</p>
-                </div>
-              </div>
-
-              {/* 500+ Happy Clients */}
-              <div className="flex items-center gap-1 sm:gap-2.5">
-                <div className="shrink-0">
-                  <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-7 sm:h-7" fill="#C8960C">
-                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
-                  </svg>
-                </div>
-                <div className="leading-tight">
-                  <div className="text-[11px] sm:text-base font-black text-[#081C36]">500+</div>
-                  <p className="text-[7.5px] sm:text-[11px] text-slate-500 font-semibold leading-none mt-0.5">Happy Clients</p>
-                </div>
-              </div>
-
-              {/* 95% Satisfaction */}
-              <div className="flex items-center gap-1 sm:gap-2.5">
-                <div className="shrink-0">
-                  <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-7 sm:h-7" fill="#C8960C">
-                    <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
-                  </svg>
-                </div>
-                <div className="leading-tight">
-                  <div className="text-[11px] sm:text-base font-black text-[#081C36]">95%</div>
-                  <p className="text-[7.5px] sm:text-[11px] text-slate-500 font-semibold leading-none mt-0.5">Satisfaction</p>
-                </div>
-              </div>
-
-              {/* Multiple Cities */}
-              <div className="flex items-center gap-1 sm:gap-2.5">
-                <div className="shrink-0">
-                  <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-7 sm:h-7" fill="#C8960C">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                  </svg>
-                </div>
-                <div className="leading-tight">
-                  <div className="text-[11px] sm:text-base font-black text-[#081C36]">Multiple</div>
-                  <p className="text-[7.5px] sm:text-[11px] text-slate-500 font-semibold leading-none mt-0.5">Cities</p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* ═══════════════════════════════════════════
-          4. WHY CHOOSE US?
-          ═══════════════════════════════════════════ */}
-      <section className="py-5 sm:py-8 bg-white">
-        <div className="max-w-5xl mx-auto px-3.5 sm:px-6">
-
-          {/* Heading */}
-          <h2 className="text-lg sm:text-2xl font-black text-[#081C36] mb-3.5 sm:mb-5 tracking-tight">
-            Why Choose Us?
-          </h2>
-
-          {/* 4 Feature Cards */}
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-4 md:gap-5">
-
-            {/* 1. Trusted & Verified */}
-            <div className="bg-white rounded-2xl p-2 sm:p-4 border border-slate-100 shadow-[0_2px_6px_rgba(0,0,0,0.03)] text-center flex flex-col items-center justify-center gap-1 sm:gap-2">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-8 sm:h-8" fill="none" stroke="#C8960C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="m9 12 2 2 4-4" />
-              </svg>
-              <span className="text-[8px] sm:text-xs font-bold text-[#081C36] leading-tight">
-                Trusted &amp; Verified
-              </span>
-            </div>
-
-            {/* 2. Quality Service */}
-            <div className="bg-white rounded-2xl p-2 sm:p-4 border border-slate-100 shadow-[0_2px_6px_rgba(0,0,0,0.03)] text-center flex flex-col items-center justify-center gap-1 sm:gap-2">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-8 sm:h-8" fill="#C8960C">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-              <span className="text-[8px] sm:text-xs font-bold text-[#081C36] leading-tight">
-                Quality Service
-              </span>
-            </div>
-
-            {/* 3. Quick Hiring */}
-            <div className="bg-white rounded-2xl p-2 sm:p-4 border border-slate-100 shadow-[0_2px_6px_rgba(0,0,0,0.03)] text-center flex flex-col items-center justify-center gap-1 sm:gap-2">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-8 sm:h-8" fill="none" stroke="#C8960C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              <span className="text-[8px] sm:text-xs font-bold text-[#081C36] leading-tight">
-                Quick Hiring
-              </span>
-            </div>
-
-            {/* 4. 24/7 Support */}
-            <div className="bg-white rounded-2xl p-2 sm:p-4 border border-slate-100 shadow-[0_2px_6px_rgba(0,0,0,0.03)] text-center flex flex-col items-center justify-center gap-1 sm:gap-2">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-8 sm:h-8" fill="none" stroke="#C8960C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
-              </svg>
-              <span className="text-[8px] sm:text-xs font-bold text-[#081C36] leading-tight">
-                24/7 Support
-              </span>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-
-      {/* ═══════════════════════════════════════════
-          5. PEOPLE YOU CAN TRUST BANNER
-          ═══════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-[#EDF3FA]">
+      <section className="py-14 sm:py-20 bg-gradient-to-br from-[#081C36] via-[#0B2545] to-[#081C36] text-white relative overflow-hidden">
         
-        {/* City skyline illustration background */}
-        <div
-          className="absolute inset-0 bg-repeat-x bg-bottom opacity-25 pointer-events-none"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' fill='%236080A0'%3E%3Cpath d='M0 200V130h20v-30h15v-40h10v-20h5v-15h2v-10h2v10h2v15h5v20h10v40h15v30h20v-50h30v-60h15v-30h10v30h15v60h30v50h15v-70h25v-40h10v-30h2v-15h2v15h2v30h10v40h25v70h20v-40h15v-60h20v-50h10v-20h2v-10h2v10h2v20h10v50h20v60h15v40h20v-80h30v-40h15v40h30v80h10v-50h20v-60h25v-30h10v30h25v60h20v50h20v-90h30v-50h15v-30h2v-10h2v10h2v30h15v50h30v90h15v-40h25v-60h20v60h25v40h10v-70h30v-50h15v50h30v70h15v-45h20v-55h15v-35h5v-15h2v-10h2v10h2v15h5v35h15v55h20v45h25v-60h30v60h100V200H0z'/%3E%3C/svg%3E")`,
-            backgroundSize: '800px 140px',
-          }}
-        />
+        {/* Glow backdrop */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-8 py-6 sm:py-9 flex flex-row items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <div className="lg:col-span-6 space-y-6">
+              <ScrollReveal direction="left" duration={650}>
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 text-xs font-black uppercase tracking-widest">
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  100% Background Check Guarantee
+                </span>
 
-          {/* Left Text */}
-          <div>
-            <h2 className="text-base sm:text-2xl lg:text-3xl font-black text-[#081C36] mb-0.5">
-              People You Can Trust
-            </h2>
-            <p className="text-slate-600 text-[10px] sm:text-sm font-medium mb-2">
-              For Homes, Offices and Beyond
-            </p>
-            {/* Gold bar underline */}
-            <div className="w-9 sm:w-14 h-1 bg-[#C8960C] rounded-full" />
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mt-3">
+                  Your Safety &amp; Trust Are Our Non-Negotiable Standard
+                </h2>
+
+                <p className="text-slate-300 text-sm sm:text-base leading-relaxed mt-2">
+                  Before any driver, helper, or captain is assigned to your family or business, they undergo a stringent 4-level credential check.
+                </p>
+              </ScrollReveal>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <ScrollReveal direction="up" delay={0} duration={600}>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md space-y-2 h-full">
+                    <div className="w-8 h-8 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black">
+                      1
+                    </div>
+                    <h4 className="font-extrabold text-white text-sm">Police &amp; Court Records</h4>
+                    <p className="text-xs text-slate-300">Criminal history, court verification &amp; clean police record check.</p>
+                  </div>
+                </ScrollReveal>
+
+                <ScrollReveal direction="up" delay={120} duration={600}>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md space-y-2 h-full">
+                    <div className="w-8 h-8 rounded-lg bg-blue-400 text-slate-950 flex items-center justify-center font-black">
+                      2
+                    </div>
+                    <h4 className="font-extrabold text-white text-sm">Aadhaar &amp; Address KYC</h4>
+                    <p className="text-xs text-slate-300">Biometric Aadhaar confirmation with verified local residence proof.</p>
+                  </div>
+                </ScrollReveal>
+
+                <ScrollReveal direction="up" delay={240} duration={600}>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md space-y-2 h-full">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black">
+                      3
+                    </div>
+                    <h4 className="font-extrabold text-white text-sm">Practical Driving &amp; Skill Test</h4>
+                    <p className="text-xs text-slate-300">Rigorous road evaluation in heavy traffic and highway maneuvering.</p>
+                  </div>
+                </ScrollReveal>
+
+                <ScrollReveal direction="up" delay={360} duration={600}>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md space-y-2 h-full">
+                    <div className="w-8 h-8 rounded-lg bg-purple-400 text-slate-950 flex items-center justify-center font-black">
+                      4
+                    </div>
+                    <h4 className="font-extrabold text-white text-sm">Protocol &amp; Grooming Code</h4>
+                    <p className="text-xs text-slate-300">Strict zero-alcohol tolerance, polite demeanor &amp; client privacy code.</p>
+                  </div>
+                </ScrollReveal>
+              </div>
+
+            </div>
+
+            {/* Right 3D Visual */}
+            <div className="lg:col-span-6">
+              <ScrollReveal direction="right" duration={700}>
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-400/40 bg-white/5 backdrop-blur-md group">
+                  <img
+                    src={visualSafety}
+                    alt="100% Background Check Guarantee"
+                    className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+              </ScrollReveal>
+            </div>
+
           </div>
-
-          {/* Right Quote Badge */}
-          <div className="relative bg-white/90 backdrop-blur-sm rounded-xl py-2 px-3 sm:py-3 sm:px-6 border border-amber-200 shadow-sm text-right shrink-0">
-            <span
-              className="text-[#081C36] font-bold leading-tight block"
-              style={{
-                fontFamily: "'Caveat', 'Dancing Script', cursive",
-                fontSize: 'clamp(0.9rem, 2.8vw, 1.5rem)'
-              }}
-            >
-              "Your Comfort<br />Our Priority"
-            </span>
-          </div>
-
         </div>
       </section>
 
-      {/* Spacing for mobile bottom nav */}
-      <div className="h-16 md:hidden" />
+      {/* ═══════════════════════════════════════════
+          5. PORTER-STYLE COMPARISON TABLE
+          ═══════════════════════════════════════════ */}
+      <section className="py-14 sm:py-20 bg-[#FAF8F5]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal direction="up" duration={700}>
+            <ComparisonTable />
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          6. HIGH-CONVERSION CTA BAR
+          ═══════════════════════════════════════════ */}
+      <section className="py-12 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 shadow-xl border-y border-amber-600/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal direction="up" duration={650}>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider text-slate-900 bg-amber-300/80 px-3 py-1 rounded-full border border-amber-600/20">
+                  ⚡ Need Staff Today?
+                </span>
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 mt-2 tracking-tight">
+                  Call Now for Instant Matching &amp; Fast Dispatch
+                </h3>
+                <p className="text-slate-900 font-semibold text-xs sm:text-sm mt-1">
+                  Beside Reliance Market, Jama Thota Sagar Ring Road, LB Nagar, Hyderabad.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <a
+                  href={`tel:${phoneRaw}`}
+                  className="px-6 py-3.5 rounded-2xl bg-[#081C36] hover:bg-[#0B2545] text-white font-black text-sm shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                >
+                  <Phone className="w-4 h-4 text-amber-400" />
+                  <span>Call +91 95051 51527</span>
+                </a>
+                <a
+                  href={`https://wa.me/${whatsappRaw}?text=Hi%20SSRC,%20I%20need%20urgent%20staffing%20assistance.`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-3.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
     </>
   );
 };

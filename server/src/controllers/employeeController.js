@@ -116,24 +116,52 @@ const getEmployeeById = async (req, res) => {
 
 const createEmployee = async (req, res) => {
   try {
-    if (store.isMongo()) {
-      const employee = new Employee(req.body);
-      const saved = await employee.save();
-      return res.status(201).json({ success: true, data: saved });
+    const { name, mobileNumber, category } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Employee full name is required' });
+    }
+    if (!mobileNumber || !mobileNumber.trim()) {
+      return res.status(400).json({ success: false, message: 'Primary mobile number is required' });
     }
 
-    const prefix = req.body.category === 'Driver' ? 'DRV' : req.body.category === 'Helper' ? 'HLP' : 'CPT';
+    const payload = {
+      ...req.body,
+      dailyRate: Number(req.body.dailyRate) || 0,
+      monthlyRate: Number(req.body.monthlyRate) || 0,
+    };
+
+    if (store.isMongo()) {
+      try {
+        const employee = new Employee(payload);
+        const saved = await employee.save();
+        return res.status(201).json({ success: true, data: saved });
+      } catch (mongoErr) {
+        // Handle potential duplicate employeeId index collision
+        if (mongoErr.code === 11000) {
+          const prefix = category === 'Driver' ? 'DRV' : category === 'Helper' ? 'HLP' : 'CPT';
+          payload.employeeId = `${prefix}-${Date.now().toString().slice(-4)}`;
+          const fallbackEmployee = new Employee(payload);
+          const savedFallback = await fallbackEmployee.save();
+          return res.status(201).json({ success: true, data: savedFallback });
+        }
+        throw mongoErr;
+      }
+    }
+
+    const prefix = payload.category === 'Driver' ? 'DRV' : payload.category === 'Helper' ? 'HLP' : 'CPT';
     const count = store.data.employees.length + 1;
     const newEmployee = {
       _id: `emp-${Date.now()}`,
       employeeId: `${prefix}-${String(count).padStart(4, '0')}`,
-      ...req.body,
+      ...payload,
       createdAt: new Date(),
     };
     store.data.employees.unshift(newEmployee);
     res.status(201).json({ success: true, data: newEmployee });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    console.error('createEmployee error:', error);
+    res.status(400).json({ success: false, message: error.message || 'Failed to save employee profile' });
   }
 };
 
@@ -141,8 +169,14 @@ const updateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const payload = {
+      ...req.body,
+      dailyRate: Number(req.body.dailyRate) || 0,
+      monthlyRate: Number(req.body.monthlyRate) || 0,
+    };
+
     if (store.isMongo()) {
-      const employee = await Employee.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+      const employee = await Employee.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
       if (!employee) return res.status(404).json({ success: false, message: 'Employee not found' });
       return res.json({ success: true, data: employee });
     }
@@ -150,10 +184,11 @@ const updateEmployee = async (req, res) => {
     const index = store.data.employees.findIndex((e) => String(e._id) === String(id));
     if (index === -1) return res.status(404).json({ success: false, message: 'Employee not found' });
 
-    store.data.employees[index] = { ...store.data.employees[index], ...req.body, updatedAt: new Date() };
+    store.data.employees[index] = { ...store.data.employees[index], ...payload, updatedAt: new Date() };
     res.json({ success: true, data: store.data.employees[index] });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    console.error('updateEmployee error:', error);
+    res.status(400).json({ success: false, message: error.message || 'Failed to update employee profile' });
   }
 };
 

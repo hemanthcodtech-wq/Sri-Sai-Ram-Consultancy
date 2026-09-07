@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Car, 
@@ -10,208 +11,369 @@ import {
   Clock, 
   ArrowRight,
   Star,
-  Award
+  Award,
+  Zap,
+  Sparkles,
+  Calendar,
+  Check,
+  MapPin,
+  BadgeCheck
 } from 'lucide-react';
 import SEOHead from '../../components/public/SEOHead';
 import ScrollReveal from '../../components/public/ScrollReveal';
+import TrustBadgeBar from '../../components/public/TrustBadgeBar';
+import ComparisonTable from '../../components/public/ComparisonTable';
+
+// 3D Visual Assets
+import visualDriver from '../../assets/visual_driver.jpg';
+import visualHelper from '../../assets/visual_helper.jpg';
+import visualCaptain from '../../assets/visual_captain.jpg';
 
 const ServicesPage = () => {
   const phoneRaw = import.meta.env.VITE_COMPANY_PHONE_RAW || '9505151527';
   const whatsappRaw = import.meta.env.VITE_COMPANY_WHATSAPP || '919505151527';
 
-  const services = [
-    {
+  const [activeTab, setActiveTab] = useState('driver');
+
+  const servicesData = {
+    driver: {
       id: 'driver',
       title: 'Professional Driver Services',
       tagline: 'Steers with Responsibility',
-      icon: Car,
-      iconColor: 'text-blue-600',
-      iconBg: 'bg-blue-50 border-blue-600',
+      image: visualDriver,
+      themeColor: 'blue',
+      badge: '100% Background Verified',
       description:
-        'Experienced, background-verified personal and commercial drivers for local city travel, night driving, airport drops, and outstation family trips. Skilled in driving all manual and automatic vehicle categories.',
-      highlights: [
-        'Expert driving across Sedans, SUVs, Hatchbacks & Luxury cars',
-        'Valid LMV/Commercial badge & Clean driving record',
-        'Zero alcohol tolerance with background verification',
-        'Familiar with all routes, GPS systems, and traffic shortcuts',
-        'Available for 4-Hour, 8-Hour, 12-Hour shifts and monthly contracts',
+        'Carefully vetted, background-verified personal and commercial drivers for local city travel, night driving, airport drops, and outstation trips across Telangana & Andhra Pradesh.',
+      features: [
+        'Sedans, SUVs, Hatchbacks & Luxury Car Handling',
+        'Valid LMV/Commercial badge & 100% Clean driving record',
+        'Zero alcohol tolerance with verified residential credentials',
+        'Familiar with all Hyderabad routes, ORR & GPS traffic navigation',
+        'Available for 4-Hour, 8-Hour, 12-Hour shifts and monthly retainers',
       ],
-      idealFor: 'Daily office commutes, weekend getaways, medical emergency standby, family events.',
-      category: 'Driver',
+      idealFor: [
+        'Daily office commutes & school drops',
+        'Weekend outstation getaways with family',
+        'Medical emergency standby & senior citizen assistance',
+        'Corporate fleet driving & client airport pick-ups',
+      ],
+      shiftOptions: [
+        { shift: '4-Hour Short Shift', time: 'Half Day (City Drive)', highlight: 'On-Demand Booking' },
+        { shift: '8-Hour Standard Shift', time: 'Full Day Duty', highlight: 'Most Popular Shift' },
+        { shift: '12-Hour Extended Shift', time: 'Long Duty / Outstation', highlight: 'Flexible Hours' },
+        { shift: 'Monthly Dedicated Retainer', time: 'Dedicated Personal Driver', highlight: 'Backup Guarantee Included' },
+      ],
     },
-    {
+    helper: {
       id: 'helper',
-      title: 'Dedicated Helper & Logistics Support',
+      title: 'All-Purpose Helper Services',
       tagline: 'Supports with Dedication',
-      icon: Truck,
-      iconColor: 'text-emerald-600',
-      iconBg: 'bg-emerald-50 border-emerald-600',
+      image: visualHelper,
+      themeColor: 'emerald',
+      badge: 'All-Purpose Support',
       description:
-        'Energetic and trustworthy manpower for household relocation, cargo loading/unloading, commercial warehouse sorting, shop floor packaging, and logistics dispatch assistance.',
-      highlights: [
-        'Trained in careful loading, fragile packing, and unloading',
-        'Warehouse inventory, carton movement, and dispatch assistance',
-        'Punctual, physically fit, and hard-working personnel',
-        'Verified Aadhaar and residential credentials on file',
-        'Available on individual daily hire or dedicated monthly workforce teams',
+        'Energetic, honest and background-verified manpower for any type of requirement — household domestic help, house shifting & moving, office & store support, godown loading/unloading, event assistance, and general errand tasks.',
+      features: [
+        'Versatile support for home, office, relocation & commercial tasks',
+        'Trained in careful shifting, fragile furniture packing, and loading',
+        'Office file handling, shop floor organization & inventory sorting',
+        'Punctual, physically fit, disciplined and trustworthy personnel',
+        'Available on individual daily shifts or dedicated monthly workforce teams',
       ],
-      idealFor: 'House shifting, retail godowns, transport hubs, event setup, material supply chains.',
-      category: 'Helper',
+      idealFor: [
+        'House shifting & apartment domestic assistance',
+        'Office boy, pantry & file movement support',
+        'Retail store, godown & market loading/unloading',
+        'Event setup, catering assistance & material coordination',
+      ],
+      shiftOptions: [
+        { shift: '4-Hour Quick Task', time: 'Half Day (Domestic/Loading)', highlight: 'Quick Task Dispatch' },
+        { shift: '8-Hour Standard Duty', time: 'Full Day Helper Duty', highlight: 'Full Day Assistance' },
+        { shift: '12-Hour Extended Shift', time: 'Full Day Moving / Heavy Duty', highlight: 'Event & Bulk Operations' },
+        { shift: 'Monthly Dedicated Helper', time: 'Dedicated Retainer Staff', highlight: 'Backup Guarantee Included' },
+      ],
     },
-    {
+    captain: {
       id: 'captain',
       title: 'Executive Captain Chauffeur Services',
       tagline: 'Leads with Confidence',
-      icon: Compass,
-      iconColor: 'text-amber-600',
-      iconBg: 'bg-amber-50 border-amber-600',
+      image: visualCaptain,
+      themeColor: 'amber',
+      badge: 'Executive VIP Protocol',
       description:
         'Elite chauffeurs trained for corporate leadership, VIP delegates, luxury hotel guest transport, and long-distance inter-state executive journeys. Discreet, impeccably groomed, and courteous.',
-      highlights: [
+      features: [
         '8 to 15+ years of flawless executive driving record',
         'Fluent in English, Hindi, and regional languages with corporate etiquette',
         'Mastery of high-end luxury vehicles (Mercedes, BMW, Audi, Fortuner, etc.)',
         'VIP protocol, defensive driving, and security escort awareness',
         'Available for executive fleet management and personal corporate retainers',
       ],
-      idealFor: 'CEOs, VIP delegations, luxury weddings, business summits, outstation VIP escorts.',
-      category: 'Captain',
+      idealFor: [
+        'Managing Directors, CEOs & Board Executives',
+        'VIP foreign delegations & embassy dignitaries',
+        'Luxury destination weddings & high-profile events',
+        'Outstation inter-state VIP motorcades',
+      ],
+      shiftOptions: [
+        { shift: '8-Hour Executive Duty', time: 'VIP City Escort', highlight: 'Executive Protocol' },
+        { shift: '12-Hour Protocol Duty', time: 'Full Day VIP Delegation', highlight: 'Delegation Escort' },
+        { shift: 'Outstation Inter-State', time: 'Inter-State Journey', highlight: 'Highway Master Chauffeur' },
+        { shift: 'Monthly Executive Retainer', time: 'Corporate Chauffeur Retainer', highlight: 'Full Retainer Service' },
+      ],
     },
-  ];
+  };
+
+  const current = servicesData[activeTab];
 
   return (
     <>
       <SEOHead
-        title="Services - Driver, Helper & Captain Staffing | SSRC"
-        description="Explore Driver, Helper, and Captain Chauffeur staffing services in Hyderabad LB Nagar. Contact us via Call or WhatsApp for instant dispatch."
+        title="Services & Duty Shifts - Driver, Helper & Captain Staffing | SSRC"
+        description="Explore 100% background-verified Driver, Helper, and Captain Chauffeur staffing services in Hyderabad LB Nagar with flexible duty shifts and instant dispatch."
       />
 
       {/* Hero Header */}
-      <section className="bg-[#FFFDF8] text-[#081C36] py-12 sm:py-14 border-b-2 border-[#C8960C] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-[#C8960C]/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <ScrollReveal direction="down" duration={700}>
-            <span className="inline-block px-3.5 py-1 rounded-full bg-amber-100 text-[#7C5200] border border-amber-300 text-xs font-bold uppercase tracking-widest mb-3">
-              ✦ Certified Staffing Solutions ✦
-            </span>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#081C36] tracking-tight">
-              Our Staffing Services
-            </h1>
-            <p className="text-slate-500 text-sm sm:text-base max-w-2xl mx-auto mt-3">
-              Specialized recruitment and on-demand staffing designed for highest safety, punctuality, and complete peace of mind.
-            </p>
+      <section className="bg-gradient-to-b from-[#FFFDF8] to-[#F8F5EE] text-[#081C36] py-12 sm:py-16 border-b border-[#C8960C]/30 text-center relative overflow-hidden">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-4">
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-100 text-[#7C5200] border border-amber-300 text-xs font-black uppercase tracking-widest">
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            Verified Staffing Solutions
+          </span>
+          <h1 className="text-3xl sm:text-5xl font-black text-[#081C36] tracking-tight">
+            Our Staffing Solutions
+          </h1>
+          <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto">
+            Select a category below to explore verified skills, shift options, and instant booking details.
+          </p>
+
+          {/* Interactive Category Switcher Tabs */}
+          <div className="flex items-center justify-center gap-2 sm:gap-4 pt-4 flex-wrap">
+            <button
+              onClick={() => setActiveTab('driver')}
+              className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all shadow-sm ${
+                activeTab === 'driver'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 scale-105'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'
+              }`}
+            >
+              <Car className="w-4 h-4" />
+              <span>Professional Drivers</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('helper')}
+              className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all shadow-sm ${
+                activeTab === 'helper'
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/25 scale-105'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'
+              }`}
+            >
+              <Truck className="w-4 h-4" />
+              <span>All-Purpose Helpers</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('captain')}
+              className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all shadow-sm ${
+                activeTab === 'captain'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/25 scale-105'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'
+              }`}
+            >
+              <Compass className="w-4 h-4" />
+              <span>Executive Captains</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <TrustBadgeBar />
+
+      {/* ═══════════════════════════════════════════
+          ACTIVE SERVICE DEEP DIVE SHOWCASE (Rapido / Porter Style)
+          ═══════════════════════════════════════════ */}
+      <section className="py-12 sm:py-16 bg-[#FAF8F5]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <ScrollReveal direction="up" duration={650}>
+            <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-2xl border-2 border-slate-200 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              
+              {/* Left: 3D Visual Graphic */}
+              <div className="lg:col-span-5">
+                <div className="relative rounded-3xl overflow-hidden shadow-xl border-4 border-amber-300/80 bg-white group">
+                  <img
+                    src={current.image}
+                    alt={current.title}
+                    className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute top-4 left-4 bg-[#081C36]/90 backdrop-blur-md text-amber-300 border border-amber-400/30 text-xs font-black px-3.5 py-1.5 rounded-full shadow-lg">
+                    {current.tagline}
+                  </div>
+                  <div className="absolute bottom-4 right-4 bg-white/95 text-[#081C36] text-xs font-black px-3 py-1.5 rounded-xl shadow-lg border border-slate-200 flex items-center gap-1">
+                    <BadgeCheck className="w-4 h-4 text-emerald-600" />
+                    <span>{current.badge}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Service In-Depth Details */}
+              <div className="lg:col-span-7 space-y-6">
+                <div>
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+                    Verified Category
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl font-black text-[#081C36] tracking-tight mt-2">
+                    {current.title}
+                  </h2>
+                  <p className="text-slate-600 text-sm sm:text-base leading-relaxed mt-2">
+                    {current.description}
+                  </p>
+                </div>
+
+                {/* Highlights List */}
+                <div className="space-y-2.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    Key Skills &amp; Qualifications
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2">
+                    {current.features.map((feat, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm font-semibold text-[#081C36]">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Best For Tags */}
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">
+                    Ideal Use Cases
+                  </h4>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {current.idealFor.map((item, idx) => (
+                      <span key={idx} className="text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200">
+                        • {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-4 border-t border-slate-100 flex items-center gap-3 flex-wrap">
+                  <a
+                    href={`tel:${phoneRaw}`}
+                    className="px-6 py-3 rounded-xl bg-[#081C36] hover:bg-[#0B2545] text-white text-xs sm:text-sm font-black text-center shadow-lg transition-all hover:scale-105 flex items-center gap-2"
+                  >
+                    <Phone className="w-4 h-4 text-amber-400" />
+                    <span>Call to Hire ({phoneRaw})</span>
+                  </a>
+                  <a
+                    href={`https://wa.me/${whatsappRaw}?text=Hello%20SSRC,%20I%20want%20to%20hire%20${encodeURIComponent(current.title)}.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-black text-center shadow-lg transition-all hover:scale-105 flex items-center gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>WhatsApp Inquiry</span>
+                  </a>
+                </div>
+
+              </div>
+
+            </div>
+          </ScrollReveal>
+
+          {/* ═══════════════════════════════════════════
+              SHIFT & ENGAGEMENT OPTIONS
+              ═══════════════════════════════════════════ */}
+          <div className="mt-14">
+            <ScrollReveal direction="down" duration={650}>
+              <div className="text-center mb-8">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+                  Flexible Scheduling
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-black text-[#081C36] mt-2">
+                  {current.title} — Available Duty Shifts
+                </h3>
+                <p className="text-slate-500 text-xs sm:text-sm mt-1">
+                  Customizable on-demand shifts and dedicated monthly staffing arrangements.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {current.shiftOptions.map((opt, idx) => (
+                <ScrollReveal key={idx} direction="up" delay={idx * 100} duration={600} className="h-full">
+                  <div
+                    className="bg-white rounded-3xl p-6 shadow-lg border-2 border-slate-200 hover:border-amber-400 hover:shadow-xl transition-all space-y-3 flex flex-col justify-between h-full"
+                  >
+                    <div className="space-y-2">
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 font-black text-sm flex items-center justify-center">
+                        0{idx + 1}
+                      </div>
+                      <h4 className="font-extrabold text-[#081C36] text-base">
+                        {opt.shift}
+                      </h4>
+                      <p className="text-xs text-slate-500 font-medium">
+                        {opt.time}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-[#7C5200] border border-amber-200 text-xs font-extrabold">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
+                        <span>{opt.highlight}</span>
+                      </div>
+                    </div>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          COMPARISON TABLE MATRIX
+          ═══════════════════════════════════════════ */}
+      <section className="py-14 sm:py-18 bg-white border-y border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal direction="up" duration={700}>
+            <ComparisonTable />
           </ScrollReveal>
         </div>
       </section>
 
-      {/* Services List */}
-      <section className="py-16 bg-[#FFF8F0]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          {services.map((service, index) => {
-            const Icon = service.icon;
-            return (
-              <ScrollReveal key={service.id} direction="up" delay={index * 150} duration={700}>
-                <div
-                  id={service.id}
-                  className="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border border-[#F0E0C8] hover:border-[#C8960C] hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 ease-out group"
+      {/* ═══════════════════════════════════════════
+          BOTTOM CTA
+          ═══════════════════════════════════════════ */}
+      <section className="py-12 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal direction="up" duration={650}>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                  Have Custom Fleet or Dedicated Workforce Requirements?
+                </h3>
+                <p className="text-slate-900 font-semibold text-xs sm:text-sm mt-1">
+                  Speak directly with our staffing coordinators for customized monthly enterprise contracts.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <a
+                  href={`tel:${phoneRaw}`}
+                  className="px-6 py-3.5 rounded-2xl bg-[#081C36] hover:bg-[#0B2545] text-white font-black text-sm shadow-xl transition-all hover:scale-105"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    
-                    {/* Left Column: Details */}
-                    <div className="lg:col-span-8 space-y-6">
-                      <div className="flex items-start gap-4">
-                        <div className={`w-16 h-16 rounded-2xl ${service.iconBg} border-2 flex items-center justify-center shrink-0`}>
-                          <Icon className={`w-9 h-9 ${service.iconColor}`} />
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-[#C8960C] uppercase tracking-widest block">
-                            {service.tagline}
-                          </span>
-                          <h2 className="text-2xl sm:text-3xl font-black text-[#081C36] tracking-tight mt-0.5">
-                            {service.title}
-                          </h2>
-                        </div>
-                      </div>
-
-                      <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
-                        {service.description}
-                      </p>
-
-                      <div className="space-y-3">
-                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                          Key Responsibilities & Qualifications:
-                        </h4>
-                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {service.highlights.map((h, i) => (
-                            <li key={i} className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
-                              <CheckCircle2 className="w-4 h-4 text-[#C8960C] shrink-0 mt-0.5" />
-                              <span>{h}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-100 text-xs text-slate-700">
-                        <span className="font-bold text-[#081C36]">Ideal For: </span>
-                        {service.idealFor}
-                      </div>
-                    </div>
-
-                    {/* Right Column: Quick Action Box without price */}
-                    <div className="lg:col-span-4 bg-[#081C36] rounded-2xl p-6 text-white border-2 border-[#C8960C]/50 flex flex-col justify-between space-y-6">
-                      <div>
-                        <div className="text-[#C8960C] text-xs font-bold uppercase tracking-wider">
-                          Direct Assistance Desk
-                        </div>
-                        <div className="text-xl font-black text-white mt-1">
-                          Hire {service.category} Staff
-                        </div>
-                        <div className="text-xs text-slate-300 mt-1">
-                          Verified candidates ready for immediate deployment.
-                        </div>
-                      </div>
-
-                      {/* CTAs */}
-                      <div className="space-y-3">
-                        <a
-                          href={`tel:${phoneRaw}`}
-                          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#C8960C] to-[#E8A900] hover:from-[#E8A900] hover:to-[#C8960C] text-white font-extrabold text-sm shadow-md transition-all hover:scale-[1.02]"
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span>Call Now to Hire</span>
-                        </a>
-
-                        <a
-                          href={`https://wa.me/${whatsappRaw}?text=${encodeURIComponent(`Hello! I want to hire a ${service.category} via Sri Sai Ram Consultancy.`)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs shadow-md transition-all hover:scale-[1.02]"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                          <span>WhatsApp Us Directly</span>
-                        </a>
-
-                        <Link
-                          to={`/contact?service=${service.category}`}
-                          className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/20 transition-all text-center"
-                        >
-                          <span>Send Online Message</span>
-                        </Link>
-                      </div>
-
-                        <div className="pt-3 border-t border-white/10 text-[11px] text-[#C8960C] font-bold text-center">
-                          ✓ Instant Dispatch • Verified Documents
-                      </div>
-
-                    </div>
-
-                  </div>
-                </div>
-              </ScrollReveal>
-            );
-          })}
-
+                  Call +91 95051 51527
+                </a>
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
     </>
@@ -219,4 +381,3 @@ const ServicesPage = () => {
 };
 
 export default ServicesPage;
-

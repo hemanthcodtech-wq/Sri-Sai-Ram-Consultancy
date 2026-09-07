@@ -46,7 +46,12 @@ const employeeSchema = new mongoose.Schema(
     },
     documents: {
       aadhaarNumber: { type: String, default: '' },
+      aadhaarDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
+      panNumber: { type: String, default: '' },
+      panDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
       licenseNumber: { type: String, default: '' }, // For drivers/captains
+      licenseDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
+      experienceDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
       badgeNumber: { type: String, default: '' },
       policeVerificationStatus: {
         type: String,
@@ -94,14 +99,26 @@ const employeeSchema = new mongoose.Schema(
   }
 );
 
-// Auto-generate employeeId if not set
-employeeSchema.pre('save', async function (next) {
+// Auto-generate unique employeeId if not set
+employeeSchema.pre('save', async function () {
   if (!this.employeeId) {
     const prefix = this.category === 'Driver' ? 'DRV' : this.category === 'Helper' ? 'HLP' : 'CPT';
-    const count = await mongoose.model('Employee').countDocuments();
-    this.employeeId = `${prefix}-${String(count + 1).padStart(4, '0')}`;
+    let idGenerated = false;
+    let attempt = 0;
+    while (!idGenerated && attempt < 20) {
+      const count = await mongoose.model('Employee').countDocuments({ category: this.category });
+      const candidateId = `${prefix}-${String(count + 1 + attempt).padStart(4, '0')}`;
+      const existing = await mongoose.model('Employee').findOne({ employeeId: candidateId });
+      if (!existing) {
+        this.employeeId = candidateId;
+        idGenerated = true;
+      }
+      attempt++;
+    }
+    if (!this.employeeId) {
+      this.employeeId = `${prefix}-${Date.now().toString().slice(-4)}`;
+    }
   }
-  next();
 });
 
 module.exports = mongoose.model('Employee', employeeSchema);

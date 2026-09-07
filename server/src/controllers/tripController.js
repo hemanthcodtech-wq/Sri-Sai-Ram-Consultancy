@@ -49,10 +49,12 @@ const getTrips = async (req, res) => {
       const totalAmount = trips.reduce((sum, t) => sum + (t.tripAmount || 0), 0);
       const totalPayout = trips.reduce((sum, t) => sum + (t.employeePayout || 0), 0);
       const totalCommission = trips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
-      const totalPaid = trips
-        .filter((t) => t.paymentStatus === 'Paid')
-        .reduce((sum, t) => sum + (t.tripAmount || 0), 0);
-      const totalPending = totalAmount - totalPaid;
+      const totalPaid = trips.reduce((sum, t) => {
+        if (t.paymentStatus === 'Paid') return sum + (t.tripAmount || 0);
+        if (t.paymentStatus === 'Partial') return sum + (t.paidAmount || 0);
+        return sum;
+      }, 0);
+      const totalPending = Math.max(0, totalAmount - totalPaid);
 
       return res.json({
         success: true,
@@ -100,10 +102,12 @@ const getTrips = async (req, res) => {
     const totalAmount = filtered.reduce((sum, t) => sum + (t.tripAmount || 0), 0);
     const totalPayout = filtered.reduce((sum, t) => sum + (t.employeePayout || 0), 0);
     const totalCommission = filtered.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
-    const totalPaid = filtered
-      .filter((t) => t.paymentStatus === 'Paid')
-      .reduce((sum, t) => sum + (t.tripAmount || 0), 0);
-    const totalPending = totalAmount - totalPaid;
+    const totalPaid = filtered.reduce((sum, t) => {
+      if (t.paymentStatus === 'Paid') return sum + (t.tripAmount || 0);
+      if (t.paymentStatus === 'Partial') return sum + (t.paidAmount || 0);
+      return sum;
+    }, 0);
+    const totalPending = Math.max(0, totalAmount - totalPaid);
 
     res.json({
       success: true,
@@ -136,8 +140,14 @@ const getTripById = async (req, res) => {
 
 const createTrip = async (req, res) => {
   try {
-    const { assignedEmployee, tripAmount, employeePayout } = req.body;
+    const { assignedEmployee, tripAmount, employeePayout, startDate, endDate, tripDate } = req.body;
     const commissionAmount = Math.max(0, Number(tripAmount || 0) - Number(employeePayout || 0));
+
+    const sDate = startDate ? new Date(startDate) : tripDate ? new Date(tripDate) : new Date();
+    const eDate = endDate ? new Date(endDate) : sDate;
+    const diffMs = eDate - sDate;
+    const computedDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
+    const totalDays = Number(req.body.totalDays) || computedDays;
 
     if (store.isMongo()) {
       const employee = await Employee.findById(assignedEmployee);
@@ -148,6 +158,10 @@ const createTrip = async (req, res) => {
         assignedEmployeeName: employee.name,
         category: req.body.category || employee.category,
         commissionAmount,
+        startDate: sDate,
+        endDate: eDate,
+        totalDays,
+        tripDate: sDate,
       });
 
       const saved = await trip.save();
@@ -164,13 +178,17 @@ const createTrip = async (req, res) => {
       assignedEmployeeName: emp ? emp.name : 'Assigned Staff',
       category: req.body.category || (emp ? emp.category : 'Driver'),
       commissionAmount,
-      tripDate: req.body.tripDate ? new Date(req.body.tripDate) : new Date(),
+      startDate: sDate,
+      endDate: eDate,
+      totalDays,
+      tripDate: sDate,
       createdAt: new Date(),
     };
 
     store.data.trips.unshift(newTrip);
     res.status(201).json({ success: true, data: newTrip });
   } catch (error) {
+    console.error('createTrip error:', error);
     res.status(400).json({ success: false, message: error.message });
   }
 };
@@ -178,20 +196,34 @@ const createTrip = async (req, res) => {
 const updateTrip = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const payload = { ...req.body };
+    if (payload.startDate || payload.endDate) {
+      const sDate = payload.startDate ? new Date(payload.startDate) : payload.tripDate ? new Date(payload.tripDate) : new Date();
+      const eDate = payload.endDate ? new Date(payload.endDate) : sDate;
+      payload.startDate = sDate;
+      payload.endDate = eDate;
+      payload.tripDate = sDate;
+      if (!payload.totalDays) {
+        const diffMs = eDate - sDate;
+        payload.totalDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
+      }
+    }
+
     if (store.isMongo()) {
-      if (req.body.assignedEmployee) {
-        const emp = await Employee.findById(req.body.assignedEmployee);
+      if (payload.assignedEmployee) {
+        const emp = await Employee.findById(payload.assignedEmployee);
         if (emp) {
-          req.body.assignedEmployeeName = emp.name;
-          if (!req.body.category) req.body.category = emp.category;
+          payload.assignedEmployeeName = emp.name;
+          if (!payload.category) payload.category = emp.category;
         }
       }
 
-      if (req.body.tripAmount !== undefined && req.body.employeePayout !== undefined) {
-        req.body.commissionAmount = Math.max(0, Number(req.body.tripAmount) - Number(req.body.employeePayout));
+      if (payload.tripAmount !== undefined && payload.employeePayout !== undefined) {
+        payload.commissionAmount = Math.max(0, Number(payload.tripAmount) - Number(payload.employeePayout));
       }
 
-      const trip = await Trip.findByIdAndUpdate(id, req.body, { new: true, runValidators: true }).populate(
+      const trip = await Trip.findByIdAndUpdate(id, payload, { new: true, runValidators: true }).populate(
         'assignedEmployee',
         'name category mobileNumber'
       );
@@ -202,12 +234,12 @@ const updateTrip = async (req, res) => {
     const index = store.data.trips.findIndex((t) => String(t._id) === String(id));
     if (index === -1) return res.status(404).json({ success: false, message: 'Trip not found' });
 
-    let updatedObj = { ...store.data.trips[index], ...req.body, updatedAt: new Date() };
-    if (req.body.assignedEmployee) {
-      const emp = store.data.employees.find((e) => String(e._id) === String(req.body.assignedEmployee));
+    let updatedObj = { ...store.data.trips[index], ...payload, updatedAt: new Date() };
+    if (payload.assignedEmployee) {
+      const emp = store.data.employees.find((e) => String(e._id) === String(payload.assignedEmployee));
       if (emp) {
         updatedObj.assignedEmployeeName = emp.name;
-        if (!req.body.category) updatedObj.category = emp.category;
+        if (!payload.category) updatedObj.category = emp.category;
       }
     }
     if (updatedObj.tripAmount !== undefined && updatedObj.employeePayout !== undefined) {
@@ -217,6 +249,7 @@ const updateTrip = async (req, res) => {
     store.data.trips[index] = updatedObj;
     res.json({ success: true, data: updatedObj });
   } catch (error) {
+    console.error('updateTrip error:', error);
     res.status(400).json({ success: false, message: error.message });
   }
 };

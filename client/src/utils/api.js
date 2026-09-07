@@ -24,8 +24,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Token expired or invalid
-      if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+      // Only redirect if it's an authenticated route request that failed authentication
+      if (!isLoginRequest && window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
         localStorage.removeItem('ssrc_token');
         localStorage.removeItem('ssrc_user');
         window.location.href = '/admin/login';

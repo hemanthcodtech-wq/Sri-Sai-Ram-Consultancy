@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 
 /**
  * ScrollReveal Component
- * Smooth scroll-triggered fade and slide animation wrapper.
+ * Smooth scroll-triggered fade in, fade out, zoom, and slide animation wrapper.
  */
 const ScrollReveal = ({ 
   children, 
   direction = 'up', 
   delay = 0, 
-  duration = 700, 
+  duration = 650, 
   className = '', 
   once = false 
 }) => {
@@ -30,8 +30,8 @@ const ScrollReveal = ({
         });
       },
       {
-        threshold: 0.12,
-        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.1,
+        rootMargin: '0px 0px -30px 0px',
       }
     );
 
@@ -52,27 +52,28 @@ const ScrollReveal = ({
 
     switch (direction) {
       case 'up':
-        return 'opacity-0 translate-y-10 scale-95 blur-[2px]';
+        return 'opacity-0 translate-y-12 scale-[0.97] blur-[1px]';
       case 'down':
-        return 'opacity-0 -translate-y-10 scale-95 blur-[2px]';
+        return 'opacity-0 -translate-y-12 scale-[0.97] blur-[1px]';
       case 'left':
-        return 'opacity-0 -translate-x-12 blur-[2px]';
+        return 'opacity-0 -translate-x-12 scale-[0.98] blur-[1px]';
       case 'right':
-        return 'opacity-0 translate-x-12 blur-[2px]';
+        return 'opacity-0 translate-x-12 scale-[0.98] blur-[1px]';
       case 'zoom':
-        return 'opacity-0 scale-90 blur-[2px]';
+        return 'opacity-0 scale-[0.92] blur-[1px]';
       default:
-        return 'opacity-0 translate-y-8 blur-[2px]';
+        return 'opacity-0 translate-y-10 scale-[0.97] blur-[1px]';
     }
   };
 
   return (
     <div
       ref={domRef}
-      className={`transition-all ease-out ${getDirectionStyles()} ${className}`}
+      className={`transition-all will-change-transform ${getDirectionStyles()} ${className}`}
       style={{
         transitionDuration: `${duration}ms`,
         transitionDelay: `${delay}ms`,
+        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
       {children}
@@ -81,3 +82,4 @@ const ScrollReveal = ({
 };
 
 export default ScrollReveal;
+

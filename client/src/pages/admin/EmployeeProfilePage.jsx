@@ -20,7 +20,13 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  CreditCard,
+  FileCheck,
+  Eye,
+  ExternalLink,
+  BadgeCheck,
+  Briefcase
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
@@ -201,6 +207,129 @@ const EmployeeProfilePage = () => {
               <div className="text-xl font-black text-slate-800 mt-0.5">
                 ₹{employee.dailyRate || 800}
               </div>
+            </div>
+          </div>
+
+          {/* KYC & Uploaded Documents Vault */}
+          <div className="bg-slate-50/90 rounded-2xl p-5 border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">
+                  Verified KYC &amp; Uploaded Document Dossier
+                </h3>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                <BadgeCheck className="w-3.5 h-3.5" /> Police Clearance: {employee.documents?.policeVerificationStatus || 'Verified'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              
+              {/* Aadhaar Card */}
+              <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs flex flex-col justify-between gap-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Aadhaar Card</span>
+                    <strong className="text-xs font-mono text-slate-900 mt-0.5 block">
+                      {employee.documents?.aadhaarNumber || 'Not Provided'}
+                    </strong>
+                  </div>
+                  <CreditCard className="w-4 h-4 text-blue-600 shrink-0" />
+                </div>
+                {employee.documents?.aadhaarDoc ? (
+                  <a
+                    href={employee.documents.aadhaarDoc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs transition-colors border border-blue-200"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View Aadhaar PDF/Img</span>
+                  </a>
+                ) : (
+                  <span className="text-[10px] font-semibold text-slate-400 italic">No File Uploaded</span>
+                )}
+              </div>
+
+              {/* PAN Card */}
+              <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs flex flex-col justify-between gap-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">PAN Card</span>
+                    <strong className="text-xs font-mono text-slate-900 mt-0.5 block uppercase">
+                      {employee.documents?.panNumber || 'Not Provided'}
+                    </strong>
+                  </div>
+                  <FileText className="w-4 h-4 text-purple-600 shrink-0" />
+                </div>
+                {employee.documents?.panDoc ? (
+                  <a
+                    href={employee.documents.panDoc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs transition-colors border border-purple-200"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View PAN PDF/Img</span>
+                  </a>
+                ) : (
+                  <span className="text-[10px] font-semibold text-slate-400 italic">No File Uploaded</span>
+                )}
+              </div>
+
+              {/* Driving License */}
+              <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs flex flex-col justify-between gap-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Driving License</span>
+                    <strong className="text-xs font-mono text-slate-900 mt-0.5 block uppercase">
+                      {employee.documents?.licenseNumber || 'Not Provided'}
+                    </strong>
+                  </div>
+                  <Car className="w-4 h-4 text-amber-600 shrink-0" />
+                </div>
+                {employee.documents?.licenseDoc ? (
+                  <a
+                    href={employee.documents.licenseDoc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs transition-colors border border-amber-200"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View License PDF/Img</span>
+                  </a>
+                ) : (
+                  <span className="text-[10px] font-semibold text-slate-400 italic">No File Uploaded</span>
+                )}
+              </div>
+
+              {/* Experience Certificate */}
+              <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs flex flex-col justify-between gap-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Experience Proof</span>
+                    <strong className="text-xs text-slate-900 mt-0.5 block">
+                      {employee.experience || '1 Year'}
+                    </strong>
+                  </div>
+                  <Briefcase className="w-4 h-4 text-teal-600 shrink-0" />
+                </div>
+                {employee.documents?.experienceDoc ? (
+                  <a
+                    href={employee.documents.experienceDoc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-xs transition-colors border border-teal-200"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View Certificate</span>
+                  </a>
+                ) : (
+                  <span className="text-[10px] font-semibold text-slate-400 italic">No File Uploaded</span>
+                )}
+              </div>
+
             </div>
           </div>
 

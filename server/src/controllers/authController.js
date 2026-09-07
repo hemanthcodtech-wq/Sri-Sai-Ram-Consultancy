@@ -77,9 +77,23 @@ const loginUser = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
+    if (req.user) {
+      return res.json({
+        success: true,
+        user: {
+          _id: req.user._id,
+          name: req.user.name,
+          email: req.user.email,
+          role: req.user.role || 'admin',
+        },
+      });
+    }
+
     if (store.isMongo() && req.user?._id) {
       const user = await User.findById(req.user._id).select('-password');
-      return res.json({ success: true, user });
+      if (user) {
+        return res.json({ success: true, user });
+      }
     }
 
     const user = store.data.users[0] || {
@@ -88,9 +102,12 @@ const getMe = async (req, res) => {
       email: 'admin@ssrc.com',
       role: 'admin',
     };
-    res.json({ success: true, user: { _id: user._id, name: user.name, email: user.email, role: user.role } });
+    return res.json({
+      success: true,
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

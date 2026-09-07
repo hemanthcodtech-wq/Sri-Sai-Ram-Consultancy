@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Lock, Mail, ShieldCheck, ArrowRight, AlertCircle, ArrowLeft, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -11,11 +11,18 @@ const AdminLogin = () => {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const { login } = useAuth();
+  const { user, token, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/admin/dashboard';
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('ssrc_token');
+    if ((user || token) && storedToken) {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [user, token, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

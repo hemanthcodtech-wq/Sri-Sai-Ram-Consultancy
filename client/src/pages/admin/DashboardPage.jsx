@@ -35,9 +35,9 @@ const DashboardPage = () => {
     name: '',
     mobileNumber: '',
     category: 'Driver',
-    experience: '2 Years',
-    dailyRate: 800,
-    monthlyRate: 22000,
+    experience: '',
+    dailyRate: '',
+    monthlyRate: '',
     status: 'Available',
   });
   const [savingEmp, setSavingEmp] = useState(false);
@@ -64,15 +64,20 @@ const DashboardPage = () => {
     e.preventDefault();
     setSavingEmp(true);
     try {
-      await api.post('/employees', empFormData);
+      const payload = {
+        ...empFormData,
+        dailyRate: Number(empFormData.dailyRate) || 0,
+        monthlyRate: Number(empFormData.monthlyRate) || 0,
+      };
+      await api.post('/employees', payload);
       setIsAddEmpModalOpen(false);
       setEmpFormData({
         name: '',
         mobileNumber: '',
         category: 'Driver',
-        experience: '2 Years',
-        dailyRate: 800,
-        monthlyRate: 22000,
+        experience: '',
+        dailyRate: '',
+        monthlyRate: '',
         status: 'Available',
       });
       fetchStats();
@@ -530,8 +535,10 @@ const DashboardPage = () => {
                   <label className="block text-xs font-bold text-slate-700 mb-1">Daily Payout Rate (₹)</label>
                   <input
                     type="number"
+                    min="0"
+                    placeholder="e.g. 800"
                     value={empFormData.dailyRate}
-                    onChange={(e) => setEmpFormData({ ...empFormData, dailyRate: Number(e.target.value) })}
+                    onChange={(e) => setEmpFormData({ ...empFormData, dailyRate: e.target.value === '' ? '' : Number(e.target.value) })}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
                   />
                 </div>
