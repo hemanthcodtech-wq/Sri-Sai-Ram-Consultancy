@@ -24,9 +24,18 @@ const getEmployees = async (req, res) => {
         employees.map(async (emp) => {
           const trips = await Trip.find({ assignedEmployee: emp._id });
           const totalTrips = trips.length;
-          const totalEarnings = trips.reduce((sum, t) => sum + (t.employeePayout || 0), 0);
+          const totalSalary = trips.reduce((sum, t) => sum + (t.salaryAmount || t.employeePayout || 0), 0);
+          const totalAdvance = trips.reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
+          const totalDue = trips.reduce((sum, t) => {
+            if (t.paymentStatus === 'Paid') return sum;
+            return sum + (t.dueAmount !== undefined ? t.dueAmount : Math.max(0, (t.salaryAmount || t.employeePayout || 0) - (t.advanceAmount || 0)));
+          }, 0);
+          const totalPaid = trips.reduce((sum, t) => {
+            if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
+            return sum + (t.advanceAmount || 0);
+          }, 0);
           const completedTrips = trips.filter((t) => t.tripStatus === 'Completed').length;
-          return { ...emp.toObject(), totalTrips, totalEarnings, completedTrips };
+          return { ...emp.toObject(), totalTrips, totalSalary, totalAdvance, totalDue, totalPaid, totalEarnings: totalSalary, completedTrips };
         })
       );
       return res.json({ success: true, count: employeesWithStats.length, data: employeesWithStats });
@@ -54,9 +63,18 @@ const getEmployees = async (req, res) => {
     const employeesWithStats = filtered.map((emp) => {
       const trips = store.data.trips.filter((t) => String(t.assignedEmployee) === String(emp._id));
       const totalTrips = trips.length;
-      const totalEarnings = trips.reduce((sum, t) => sum + (t.employeePayout || 0), 0);
+      const totalSalary = trips.reduce((sum, t) => sum + (t.salaryAmount || t.employeePayout || 0), 0);
+      const totalAdvance = trips.reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
+      const totalDue = trips.reduce((sum, t) => {
+        if (t.paymentStatus === 'Paid') return sum;
+        return sum + (t.dueAmount !== undefined ? t.dueAmount : Math.max(0, (t.salaryAmount || t.employeePayout || 0) - (t.advanceAmount || 0)));
+      }, 0);
+      const totalPaid = trips.reduce((sum, t) => {
+        if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
+        return sum + (t.advanceAmount || 0);
+      }, 0);
       const completedTrips = trips.filter((t) => t.tripStatus === 'Completed').length;
-      return { ...emp, totalTrips, totalEarnings, completedTrips };
+      return { ...emp, totalTrips, totalSalary, totalAdvance, totalDue, totalPaid, totalEarnings: totalSalary, completedTrips };
     });
 
     res.json({ success: true, count: employeesWithStats.length, data: employeesWithStats });
@@ -73,20 +91,40 @@ const getEmployeeById = async (req, res) => {
     if (store.isMongo()) {
       const employee = await Employee.findById(id);
       if (!employee) return res.status(404).json({ success: false, message: 'Employee not found' });
-      const trips = await Trip.find({ assignedEmployee: employee._id }).sort({ tripDate: -1 });
+      const trips = await Trip.find({ assignedEmployee: employee._id })
+        .populate('operator', 'name phone company')
+        .populate('route', 'fromCity toCity routeName')
+        .sort({ tripDate: -1, createdAt: -1 });
 
       const totalTrips = trips.length;
       const completedTrips = trips.filter((t) => t.tripStatus === 'Completed').length;
-      const totalEarnings = trips.reduce((sum, t) => sum + (t.employeePayout || 0), 0);
-      const paidEarnings = trips.filter((t) => t.paymentStatus === 'Paid').reduce((sum, t) => sum + (t.employeePayout || 0), 0);
-      const pendingEarnings = totalEarnings - paidEarnings;
+      const totalSalary = trips.reduce((sum, t) => sum + (t.salaryAmount || t.employeePayout || 0), 0);
+      const totalAdvance = trips.reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
+      const totalDue = trips.reduce((sum, t) => {
+        if (t.paymentStatus === 'Paid') return sum;
+        return sum + (t.dueAmount !== undefined ? t.dueAmount : Math.max(0, (t.salaryAmount || t.employeePayout || 0) - (t.advanceAmount || 0)));
+      }, 0);
+      const totalPaid = trips.reduce((sum, t) => {
+        if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
+        return sum + (t.advanceAmount || 0);
+      }, 0);
 
       return res.json({
         success: true,
         data: {
           employee,
           trips,
-          stats: { totalTrips, completedTrips, totalEarnings, paidEarnings, pendingEarnings },
+          stats: {
+            totalTrips,
+            completedTrips,
+            totalSalary,
+            totalAdvance,
+            totalDue,
+            totalPaid,
+            totalEarnings: totalSalary,
+            paidEarnings: totalPaid,
+            pendingEarnings: totalDue,
+          },
         },
       });
     }
@@ -97,16 +135,33 @@ const getEmployeeById = async (req, res) => {
     const trips = store.data.trips.filter((t) => String(t.assignedEmployee) === String(employee._id));
     const totalTrips = trips.length;
     const completedTrips = trips.filter((t) => t.tripStatus === 'Completed').length;
-    const totalEarnings = trips.reduce((sum, t) => sum + (t.employeePayout || 0), 0);
-    const paidEarnings = trips.filter((t) => t.paymentStatus === 'Paid').reduce((sum, t) => sum + (t.employeePayout || 0), 0);
-    const pendingEarnings = totalEarnings - paidEarnings;
+    const totalSalary = trips.reduce((sum, t) => sum + (t.salaryAmount || t.employeePayout || 0), 0);
+    const totalAdvance = trips.reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
+    const totalDue = trips.reduce((sum, t) => {
+      if (t.paymentStatus === 'Paid') return sum;
+      return sum + (t.dueAmount !== undefined ? t.dueAmount : Math.max(0, (t.salaryAmount || t.employeePayout || 0) - (t.advanceAmount || 0)));
+    }, 0);
+    const totalPaid = trips.reduce((sum, t) => {
+      if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
+      return sum + (t.advanceAmount || 0);
+    }, 0);
 
     res.json({
       success: true,
       data: {
         employee,
         trips,
-        stats: { totalTrips, completedTrips, totalEarnings, paidEarnings, pendingEarnings },
+        stats: {
+          totalTrips,
+          completedTrips,
+          totalSalary,
+          totalAdvance,
+          totalDue,
+          totalPaid,
+          totalEarnings: totalSalary,
+          paidEarnings: totalPaid,
+          pendingEarnings: totalDue,
+        },
       },
     });
   } catch (error) {
@@ -127,8 +182,18 @@ const createEmployee = async (req, res) => {
 
     const payload = {
       ...req.body,
-      dailyRate: Number(req.body.dailyRate) || 0,
-      monthlyRate: Number(req.body.monthlyRate) || 0,
+      reference: req.body.reference || { name: '', phone: '', relationship: '' },
+      bankDetails: req.body.bankDetails || {
+        accountNumber: '',
+        accountHolderName: '',
+        bankName: '',
+        branchName: '',
+        ifscCode: '',
+      },
+      documents: {
+        ...(req.body.documents || {}),
+        licenseExpiryDate: req.body.documents?.licenseExpiryDate ? new Date(req.body.documents.licenseExpiryDate) : undefined,
+      },
     };
 
     if (store.isMongo()) {
@@ -171,9 +236,13 @@ const updateEmployee = async (req, res) => {
 
     const payload = {
       ...req.body,
-      dailyRate: Number(req.body.dailyRate) || 0,
-      monthlyRate: Number(req.body.monthlyRate) || 0,
     };
+    if (req.body.documents && req.body.documents.licenseExpiryDate) {
+      payload.documents = {
+        ...req.body.documents,
+        licenseExpiryDate: new Date(req.body.documents.licenseExpiryDate),
+      };
+    }
 
     if (store.isMongo()) {
       const employee = await Employee.findByIdAndUpdate(id, payload, { new: true, runValidators: true });

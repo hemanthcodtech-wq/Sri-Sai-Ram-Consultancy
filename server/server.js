@@ -11,6 +11,8 @@ const tripRoutes = require('./src/routes/tripRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const inquiryRoutes = require('./src/routes/inquiryRoutes');
 const uploadRoutes = require('./src/routes/uploadRoutes');
+const organizerRoutes = require('./src/routes/organizerRoutes');
+const routeRoutes = require('./src/routes/routeRoutes');
 
 // Initialize app
 const app = express();
@@ -58,6 +60,8 @@ app.use('/api/trips', tripRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/organizers', organizerRoutes);
+app.use('/api/routes', routeRoutes);
 
 // Root greeting
 app.get('/', (req, res) => {

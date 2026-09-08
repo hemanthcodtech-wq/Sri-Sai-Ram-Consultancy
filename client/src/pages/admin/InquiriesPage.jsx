@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  RefreshCw
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
@@ -102,13 +103,27 @@ const InquiriesPage = () => {
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Website Bookings & Inquiries
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                Website Bookings & Inquiries
+              </h1>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300">
+                {inquiries.length} Total
+              </span>
+            </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Review incoming public staffing inquiries, follow up on WhatsApp, and assign candidates.
             </p>
           </div>
+
+          <button
+            onClick={fetchInquiries}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all disabled:opacity-50 self-start sm:self-auto"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
         </div>
 
         {/* Filter Bar */}

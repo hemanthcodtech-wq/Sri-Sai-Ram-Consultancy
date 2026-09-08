@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Car, 
-  ClipboardList, 
-  TrendingUp, 
-  LogOut, 
-  Menu, 
-  X, 
+import {
+  LayoutDashboard,
+  Users,
+  Car,
+  ClipboardList,
+  TrendingUp,
+  LogOut,
+  Menu,
+  X,
   ExternalLink,
   Bell,
   ChevronRight,
   Shield,
+  Building2,
+  Navigation,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import logoImg from '../../assets/logo.png';
@@ -41,6 +43,16 @@ const AdminLayout = () => {
       icon: Users,
     },
     {
+      name: 'Route Management',
+      path: '/admin/routes',
+      icon: Navigation,
+    },
+    {
+      name: 'Organizer Management',
+      path: '/admin/organizers',
+      icon: Building2,
+    },
+    {
       name: 'Task Management',
       path: '/admin/tasks',
       icon: ClipboardList,
@@ -59,10 +71,12 @@ const AdminLayout = () => {
 
   // Bottom bar items — shorter labels for mobile
   const bottomNavItems = [
-    { name: 'Dashboard', shortName: 'Dash',  path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', shortName: 'Dash', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Employees', shortName: 'Staff', path: '/admin/employees', icon: Users },
-    { name: 'Tasks',     shortName: 'Tasks', path: '/admin/tasks',     icon: ClipboardList },
-    { name: 'Earnings',  shortName: 'Money', path: '/admin/earnings',  icon: TrendingUp },
+    { name: 'Routes', shortName: 'Routes', path: '/admin/routes', icon: Navigation },
+    { name: 'Organizers', shortName: 'Orgs', path: '/admin/organizers', icon: Building2 },
+    { name: 'Tasks', shortName: 'Tasks', path: '/admin/tasks', icon: ClipboardList },
+    { name: 'Earnings', shortName: 'Money', path: '/admin/earnings', icon: TrendingUp },
     { name: 'Inquiries', shortName: 'Inbox', path: '/admin/inquiries', icon: Bell },
   ];
 
@@ -108,9 +122,8 @@ const AdminLayout = () => {
 
       {/* ── Sidebar (Luxury Light Theme) ─────────────────── */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen w-68 bg-[#FFFDF8] text-slate-800 z-50 flex flex-col justify-between border-r border-[#F0E0C8] transition-transform duration-300 shadow-xl md:shadow-none ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:sticky top-0 left-0 h-screen w-68 bg-[#FFFDF8] text-slate-800 z-50 flex flex-col justify-between border-r border-[#F0E0C8] transition-transform duration-300 shadow-xl md:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         {/* Top Metallic Gold Accent Bar */}
         <div className="h-[3px] bg-gradient-to-r from-[#C8960C] via-[#F5C842] to-[#C8960C]" />
@@ -155,11 +168,10 @@ const AdminLayout = () => {
                   key={item.name}
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group relative ${
-                    active
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group relative ${active
                       ? 'bg-gradient-to-r from-[#C8960C] to-[#E8A900] text-white shadow-md shadow-amber-500/25 font-bold'
                       : 'text-slate-700 hover:bg-[#F5F0E8] hover:text-[#C8960C]'
-                  }`}
+                    }`}
                 >
                   {/* Active left gold marker */}
                   {active && (
@@ -172,11 +184,10 @@ const AdminLayout = () => {
                   </div>
 
                   {item.badge && (
-                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider ${
-                      active
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider ${active
                         ? 'bg-white/25 text-white'
                         : 'bg-amber-100 text-[#B27500] border border-amber-300'
-                    }`}>
+                      }`}>
                       {item.badge}
                     </span>
                   )}
@@ -300,9 +311,8 @@ const AdminLayout = () => {
                   <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-[#C8960C] rounded-full" />
                 )}
                 <Icon
-                  className={`w-5 h-5 relative z-10 transition-transform duration-200 ${
-                    active ? 'scale-110 text-[#C8960C]' : 'text-slate-400'
-                  }`}
+                  className={`w-5 h-5 relative z-10 transition-transform duration-200 ${active ? 'scale-110 text-[#C8960C]' : 'text-slate-400'
+                    }`}
                 />
                 <span className={`relative z-10 ${active ? 'text-[#C8960C]' : 'text-slate-500'}`}>
                   {item.shortName}

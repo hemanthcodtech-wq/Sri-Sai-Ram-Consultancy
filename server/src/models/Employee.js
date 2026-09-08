@@ -44,12 +44,26 @@ const employeeSchema = new mongoose.Schema(
       pincode: { type: String, default: '' },
       fullAddress: { type: String, default: '' },
     },
+    reference: {
+      name: { type: String, default: '' },
+      phone: { type: String, default: '' },
+      relationship: { type: String, default: '' },
+    },
+    bankDetails: {
+      accountNumber: { type: String, default: '' },
+      accountHolderName: { type: String, default: '' },
+      bankName: { type: String, default: '' },
+      branchName: { type: String, default: '' },
+      ifscCode: { type: String, default: '' },
+    },
     documents: {
       aadhaarNumber: { type: String, default: '' },
       aadhaarDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
       panNumber: { type: String, default: '' },
       panDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
       licenseNumber: { type: String, default: '' }, // For drivers/captains
+      licenseExpiryDate: { type: Date }, // License validation / expiry date
+      heavyVehicleExperience: { type: String, default: '' }, // Experience in heavy trucks, containers, etc.
       licenseDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
       experienceDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
       badgeNumber: { type: String, default: '' },
@@ -62,16 +76,24 @@ const employeeSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Available', 'On Duty', 'Inactive', 'Leave'],
+      enum: ['Available', 'On Duty', 'Inactive', 'Leave', 'Blocked'],
       default: 'Available',
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+    blockReason: {
+      type: String,
+      default: '',
     },
     dailyRate: {
       type: Number,
-      default: 800,
+      default: 0,
     },
     monthlyRate: {
       type: Number,
-      default: 20000,
+      default: 0,
     },
     joiningDate: {
       type: Date,

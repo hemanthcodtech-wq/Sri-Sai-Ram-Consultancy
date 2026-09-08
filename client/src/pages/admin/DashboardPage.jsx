@@ -36,9 +36,15 @@ const DashboardPage = () => {
     mobileNumber: '',
     category: 'Driver',
     experience: '',
-    dailyRate: '',
-    monthlyRate: '',
     status: 'Available',
+    reference: {
+      name: '',
+      phone: '',
+    },
+    documents: {
+      licenseNumber: '',
+      licenseExpiryDate: '',
+    },
   });
   const [savingEmp, setSavingEmp] = useState(false);
 
@@ -66,8 +72,6 @@ const DashboardPage = () => {
     try {
       const payload = {
         ...empFormData,
-        dailyRate: Number(empFormData.dailyRate) || 0,
-        monthlyRate: Number(empFormData.monthlyRate) || 0,
       };
       await api.post('/employees', payload);
       setIsAddEmpModalOpen(false);
@@ -76,14 +80,20 @@ const DashboardPage = () => {
         mobileNumber: '',
         category: 'Driver',
         experience: '',
-        dailyRate: '',
-        monthlyRate: '',
         status: 'Available',
+        reference: {
+          name: '',
+          phone: '',
+        },
+        documents: {
+          licenseNumber: '',
+          licenseExpiryDate: '',
+        },
       });
       fetchStats();
     } catch (err) {
       console.error('Error adding employee:', err);
-      alert('Error creating employee. Please check details.');
+      alert(err.response?.data?.message || 'Error creating employee. Please check details.');
     } finally {
       setSavingEmp(false);
     }
@@ -532,14 +542,45 @@ const DashboardPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Daily Payout Rate (₹)</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">License Expiry Date</label>
                   <input
-                    type="number"
-                    min="0"
-                    placeholder="e.g. 800"
-                    value={empFormData.dailyRate}
-                    onChange={(e) => setEmpFormData({ ...empFormData, dailyRate: e.target.value === '' ? '' : Number(e.target.value) })}
+                    type="date"
+                    value={empFormData.documents.licenseExpiryDate}
+                    onChange={(e) => setEmpFormData({
+                      ...empFormData,
+                      documents: { ...empFormData.documents, licenseExpiryDate: e.target.value },
+                    })}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Reference Person Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. S. Narayana"
+                    value={empFormData.reference.name}
+                    onChange={(e) => setEmpFormData({
+                      ...empFormData,
+                      reference: { ...empFormData.reference, name: e.target.value },
+                    })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Reference Phone</label>
+                  <input
+                    type="tel"
+                    placeholder="e.g. 98480 55443"
+                    value={empFormData.reference.phone}
+                    onChange={(e) => setEmpFormData({
+                      ...empFormData,
+                      reference: { ...empFormData.reference, phone: e.target.value },
+                    })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>

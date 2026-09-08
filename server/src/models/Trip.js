@@ -25,15 +25,38 @@ const tripSchema = new mongoose.Schema(
       default: 1,
       min: 1,
     },
+    vehicleNumber: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    route: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Route',
+    },
+    routeName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    operator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Organizer',
+    },
+    operatorName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     clientName: {
       type: String,
-      required: true,
       trim: true,
+      default: '',
     },
     clientPhone: {
       type: String,
-      required: true,
       trim: true,
+      default: '',
     },
     clientEmail: {
       type: String,
@@ -42,8 +65,8 @@ const tripSchema = new mongoose.Schema(
     },
     pickupLocation: {
       type: String,
-      required: true,
       trim: true,
+      default: '',
     },
     dropLocation: {
       type: String,
@@ -68,14 +91,34 @@ const tripSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    advanceAmount: {
+      type: Number,
+      default: 0,
+    },
+    advancePaymentMode: {
+      type: String,
+      enum: ['Cash', 'Online', 'UPI', 'Bank Transfer', 'None'],
+      default: 'Cash',
+    },
+    salaryAmount: {
+      type: Number,
+      default: 0,
+    },
+    salaryPaymentMode: {
+      type: String,
+      enum: ['Cash', 'Online', 'UPI', 'Bank Transfer'],
+      default: 'Online',
+    },
+    dueAmount: {
+      type: Number,
+      default: 0,
+    },
     tripAmount: {
       type: Number,
-      required: true,
       default: 0,
     },
     employeePayout: {
       type: Number,
-      required: true,
       default: 0,
     },
     commissionAmount: {
@@ -126,6 +169,17 @@ tripSchema.pre('save', async function () {
     const diffMs = new Date(this.endDate) - new Date(this.startDate);
     this.totalDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
   }
+  if (this.salaryAmount !== undefined || this.employeePayout !== undefined) {
+    this.salaryAmount = Number(this.salaryAmount !== undefined ? this.salaryAmount : this.employeePayout || 0);
+    this.employeePayout = this.salaryAmount;
+  }
+  this.advanceAmount = Number(this.advanceAmount || 0);
+  if (this.paymentStatus === 'Paid') {
+    this.dueAmount = 0;
+  } else {
+    this.dueAmount = Math.max(0, (this.salaryAmount || 0) - (this.advanceAmount || 0));
+  }
+
   // Commission = Trip Amount - Employee Payout
   if (this.tripAmount && this.employeePayout) {
     this.commissionAmount = Math.max(0, this.tripAmount - this.employeePayout);

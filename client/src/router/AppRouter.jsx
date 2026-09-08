@@ -22,6 +22,8 @@ import EmployeesPage from '../pages/admin/EmployeesPage';
 import EmployeeProfilePage from '../pages/admin/EmployeeProfilePage';
 import TripsPage from '../pages/admin/TripsPage';
 import InquiriesPage from '../pages/admin/InquiriesPage';
+import RoutesPage from '../pages/admin/RoutesPage';
+import OrganizersPage from '../pages/admin/OrganizersPage';
 
 // Public Layout Wrapper with header, footer and floating contact buttons
 const PublicLayout = ({ children }) => {
@@ -92,6 +94,8 @@ const AppRouter = () => {
         <Route path="employees/:id" element={<EmployeeProfilePage />} />
         <Route path="tasks" element={<TripsPage />} />
         <Route path="trips" element={<TripsPage />} />
+        <Route path="routes" element={<RoutesPage />} />
+        <Route path="organizers" element={<OrganizersPage />} />
         <Route path="inquiries" element={<InquiriesPage />} />
       </Route>
 

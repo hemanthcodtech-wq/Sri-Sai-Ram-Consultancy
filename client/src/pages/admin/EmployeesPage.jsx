@@ -26,7 +26,6 @@ import {
   BadgeCheck,
   ShieldAlert,
   Image as ImageIcon,
-  DollarSign,
   Briefcase,
   Sparkles,
   MapPin,
@@ -39,7 +38,11 @@ import {
   Eye,
   Loader2,
   File,
-  RefreshCw
+  RefreshCw,
+  Building,
+  UserCheck,
+  AlertTriangle,
+  Calendar
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
@@ -67,8 +70,6 @@ const EmployeesPage = () => {
     category: 'Driver',
     experience: '',
     photo: '',
-    dailyRate: '',
-    monthlyRate: '',
     status: 'Available',
     address: {
       street: '',
@@ -76,12 +77,26 @@ const EmployeesPage = () => {
       state: '',
       fullAddress: '',
     },
+    reference: {
+      name: '',
+      phone: '',
+      relationship: '',
+    },
+    bankDetails: {
+      accountNumber: '',
+      accountHolderName: '',
+      bankName: '',
+      branchName: '',
+      ifscCode: '',
+    },
     documents: {
       aadhaarNumber: '',
       aadhaarDoc: '',
       panNumber: '',
       panDoc: '',
       licenseNumber: '',
+      licenseExpiryDate: '',
+      heavyVehicleExperience: '',
       licenseDoc: '',
       experienceDoc: '',
       policeVerificationStatus: 'Verified',
@@ -162,6 +177,16 @@ const EmployeesPage = () => {
   const handleOpenModal = (employee = null) => {
     if (employee) {
       setEditingEmployee(employee);
+      
+      let expiryStr = '';
+      if (employee.documents?.licenseExpiryDate) {
+        try {
+          expiryStr = new Date(employee.documents.licenseExpiryDate).toISOString().slice(0, 10);
+        } catch {
+          expiryStr = '';
+        }
+      }
+
       setFormData({
         name: employee.name || '',
         mobileNumber: employee.mobileNumber || '',
@@ -169,8 +194,6 @@ const EmployeesPage = () => {
         category: employee.category || 'Driver',
         experience: employee.experience || '',
         photo: employee.photo || '',
-        dailyRate: employee.dailyRate !== undefined && employee.dailyRate !== null ? employee.dailyRate : '',
-        monthlyRate: employee.monthlyRate !== undefined && employee.monthlyRate !== null ? employee.monthlyRate : '',
         status: employee.status || 'Available',
         address: {
           street: employee.address?.street || '',
@@ -178,12 +201,26 @@ const EmployeesPage = () => {
           state: employee.address?.state || '',
           fullAddress: employee.address?.fullAddress || '',
         },
+        reference: {
+          name: employee.reference?.name || '',
+          phone: employee.reference?.phone || '',
+          relationship: employee.reference?.relationship || '',
+        },
+        bankDetails: {
+          accountNumber: employee.bankDetails?.accountNumber || '',
+          accountHolderName: employee.bankDetails?.accountHolderName || '',
+          bankName: employee.bankDetails?.bankName || '',
+          branchName: employee.bankDetails?.branchName || '',
+          ifscCode: employee.bankDetails?.ifscCode || '',
+        },
         documents: {
           aadhaarNumber: employee.documents?.aadhaarNumber || '',
           aadhaarDoc: employee.documents?.aadhaarDoc || '',
           panNumber: employee.documents?.panNumber || '',
           panDoc: employee.documents?.panDoc || '',
           licenseNumber: employee.documents?.licenseNumber || '',
+          licenseExpiryDate: expiryStr,
+          heavyVehicleExperience: employee.documents?.heavyVehicleExperience || '',
           licenseDoc: employee.documents?.licenseDoc || '',
           experienceDoc: employee.documents?.experienceDoc || '',
           policeVerificationStatus: employee.documents?.policeVerificationStatus || 'Verified',
@@ -200,8 +237,6 @@ const EmployeesPage = () => {
         category: 'Driver',
         experience: '',
         photo: '',
-        dailyRate: '',
-        monthlyRate: '',
         status: 'Available',
         address: {
           street: '',
@@ -209,12 +244,26 @@ const EmployeesPage = () => {
           state: '',
           fullAddress: '',
         },
+        reference: {
+          name: '',
+          phone: '',
+          relationship: '',
+        },
+        bankDetails: {
+          accountNumber: '',
+          accountHolderName: '',
+          bankName: '',
+          branchName: '',
+          ifscCode: '',
+        },
         documents: {
           aadhaarNumber: '',
           aadhaarDoc: '',
           panNumber: '',
           panDoc: '',
           licenseNumber: '',
+          licenseExpiryDate: '',
+          heavyVehicleExperience: '',
           licenseDoc: '',
           experienceDoc: '',
           policeVerificationStatus: 'Verified',
@@ -231,8 +280,6 @@ const EmployeesPage = () => {
     try {
       const payload = {
         ...formData,
-        dailyRate: Number(formData.dailyRate) || 0,
-        monthlyRate: Number(formData.monthlyRate) || 0,
         specialSkills: typeof formData.specialSkills === 'string'
           ? formData.specialSkills.split(',').map((s) => s.trim()).filter(Boolean)
           : formData.specialSkills,
@@ -264,6 +311,99 @@ const EmployeesPage = () => {
     }
   };
 
+  // Helper to compute license validity and whether task allocation is blocked
+  const getLicenseStatus = (emp) => {
+    if (emp.isBlocked || emp.status === 'Blocked') {
+      return {
+        status: 'blocked',
+        blocked: true,
+        isPermanentlyBlocked: true,
+        label: `Staff Blocked: ${emp.blockReason || 'Administrative restraint'}`,
+        warning: 'Task Allocation Blocked',
+        badgeBg: 'bg-rose-100 text-rose-900 border-rose-300 font-bold',
+      };
+    }
+
+    if (!emp.documents?.licenseExpiryDate) {
+      if (emp.category === 'Helper') {
+        return { status: 'none', label: 'Not Applicable', isHelper: true };
+      }
+      return { 
+        status: 'missing', 
+        blocked: false, 
+        label: 'Expiry Date Not Set', 
+        badgeBg: 'bg-slate-100 text-slate-700 border-slate-200' 
+      };
+    }
+    
+    const expiry = new Date(emp.documents.licenseExpiryDate);
+    if (isNaN(expiry.getTime())) {
+      return { status: 'invalid', blocked: false, label: 'Date Invalid', badgeBg: 'bg-slate-100 text-slate-700' };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expDate = new Date(expiry);
+    expDate.setHours(0, 0, 0, 0);
+
+    const diffMs = expDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const formatted = expDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    if (diffDays < 0) {
+      return {
+        status: 'expired',
+        blocked: true,
+        diffDays,
+        formatted,
+        label: `License Expired (${formatted})`,
+        warning: 'Task Allocation Blocked',
+        badgeBg: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+      };
+    }
+
+    if (diffDays <= 2) {
+      return {
+        status: 'expiring_soon',
+        blocked: true,
+        diffDays,
+        formatted,
+        label: `Expires in ${diffDays === 0 ? 'Today' : diffDays === 1 ? '1 Day' : '2 Days'} (${formatted})`,
+        warning: 'Task Allocation Blocked (<= 2 Days)',
+        badgeBg: 'bg-amber-100 text-amber-900 border-amber-300 font-extrabold',
+      };
+    }
+
+    return {
+      status: 'valid',
+      blocked: false,
+      diffDays,
+      formatted,
+      label: `License Valid till ${formatted}`,
+      warning: null,
+      badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    };
+  };
+
+  const handleToggleBlockStaff = async (emp, shouldBlock) => {
+    let reason = '';
+    if (shouldBlock) {
+      reason = window.prompt(`Enter reason for blocking ${emp.name} from upcoming tasks:`, 'Disciplinary review');
+      if (reason === null) return;
+    }
+    try {
+      await api.put(`/employees/${emp._id}`, {
+        isBlocked: shouldBlock,
+        status: shouldBlock ? 'Blocked' : 'Available',
+        blockReason: shouldBlock ? (reason || 'Blocked by admin') : '',
+      });
+      fetchEmployees();
+    } catch (err) {
+      console.error('Error updating block status:', err);
+      alert('Failed to update employee status.');
+    }
+  };
+
   // Calculate pagination slices
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -279,26 +419,28 @@ const EmployeesPage = () => {
         {/* Top Header & Action */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Employee Biodata Directory
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+              <span>Employee Biodata Directory</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-[#B27500] border border-amber-300 text-xs font-bold">
+                {employees.length} Staff
+              </span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Manage complete staff files, police verification records, experience, and contact info.
+              Manage complete staff files, reference contacts, bank accounts, and driving license validation records.
             </p>
           </div>
 
           <button
             onClick={() => handleOpenModal()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-transform self-start sm:self-auto"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-transform self-start sm:self-auto cursor-pointer"
           >
-            <Plus className="w-4 h-4 text-slate-950" />
+            <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
             <span>Add New Employee</span>
           </button>
         </div>
 
         {/* Search & Multi-Filter Bar */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-          
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             
             {/* Search Input */}
@@ -306,7 +448,7 @@ const EmployeesPage = () => {
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="text"
-                placeholder="Search by name, phone, employee ID..."
+                placeholder="Search by name, phone, employee ID, reference, city..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-amber-500"
@@ -337,7 +479,6 @@ const EmployeesPage = () => {
               <option value="Inactive">Inactive</option>
             </select>
           </div>
-
         </div>
 
         {/* Employee Cards Grid / Table */}
@@ -347,7 +488,7 @@ const EmployeesPage = () => {
             <p className="text-xs font-semibold text-slate-500">Loading Employee Records...</p>
           </div>
         ) : employees.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-slate-200">
+          <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm">
             <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-slate-900">No Employee Records Found</h3>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
@@ -362,11 +503,14 @@ const EmployeesPage = () => {
                 const isDriver = emp.category === 'Driver';
                 const Icon = isCaptain ? Compass : isDriver ? Car : Truck;
                 const badgeBg = isCaptain ? 'bg-amber-100 text-amber-900' : isDriver ? 'bg-blue-100 text-blue-900' : 'bg-emerald-100 text-emerald-900';
+                const licenseInfo = getLicenseStatus(emp);
 
                 return (
                   <div
                     key={emp._id}
-                    className="bg-white rounded-3xl p-5 shadow-sm hover:shadow-md border border-slate-200 transition-all flex flex-col justify-between"
+                    className={`bg-white rounded-3xl p-5 shadow-sm hover:shadow-md border transition-all flex flex-col justify-between relative ${
+                      licenseInfo.blocked ? 'border-amber-300 bg-amber-50/10' : 'border-slate-200'
+                    }`}
                   >
                     <div className="space-y-3.5">
                       
@@ -394,14 +538,43 @@ const EmployeesPage = () => {
                         </span>
                       </div>
 
+                      {/* License Validity & Task Allocation Status Indicator */}
+                      {!licenseInfo.isHelper && (
+                        <div className={`p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 ${licenseInfo.badgeBg}`}>
+                          <div className="flex items-center gap-1.5 overflow-hidden">
+                            {licenseInfo.blocked ? (
+                              <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 animate-bounce" />
+                            ) : (
+                              <BadgeCheck className="w-4 h-4 text-emerald-700 shrink-0" />
+                            )}
+                            <span className="truncate font-bold">{licenseInfo.label}</span>
+                          </div>
+                          {licenseInfo.blocked && (
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-600 text-white shrink-0">
+                              Task Blocked
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Heavy Vehicle Experience Badge if any */}
+                      {emp.documents?.heavyVehicleExperience && (
+                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-700 flex items-center gap-1.5">
+                          <Truck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span className="truncate font-semibold">
+                            <strong>Heavy Truck:</strong> {emp.documents.heavyVehicleExperience}
+                          </span>
+                        </div>
+                      )}
+
                       {/* Stats & Details */}
-                      <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
                         <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                           <span className="text-[10px] text-slate-400 font-bold uppercase block">Experience</span>
-                          <span className="font-bold text-slate-800">{emp.experience}</span>
+                          <span className="font-bold text-slate-800">{emp.experience || '1 Year'}</span>
                         </div>
                         <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase block">Status</span>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase block">Duty Status</span>
                           <span className={`font-bold ${
                             emp.status === 'Available' ? 'text-emerald-600' : emp.status === 'On Duty' ? 'text-blue-600' : 'text-slate-500'
                           }`}>
@@ -410,29 +583,47 @@ const EmployeesPage = () => {
                         </div>
                       </div>
 
-                      <div className="text-xs text-slate-600 space-y-1">
+                      {/* Reference & Contact Info */}
+                      <div className="text-xs text-slate-600 space-y-1.5 pt-1">
                         <div className="flex items-center gap-2">
                           <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>{emp.mobileNumber}</span>
+                          <span className="font-semibold text-slate-800">{emp.mobileNumber}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                          <span className="text-emerald-700 font-semibold">Police Verification: {emp.documents?.policeVerificationStatus || 'Verified'}</span>
-                        </div>
+                        
+                        {emp.reference?.name && (
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 bg-amber-50/50 p-1.5 rounded-lg border border-amber-200/50">
+                            <UserCheck className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                            <span className="truncate">
+                              Ref: <strong className="text-slate-800">{emp.reference.name}</strong> ({emp.reference.phone || 'No phone'})
+                            </span>
+                          </div>
+                        )}
+
+                        {emp.bankDetails?.accountNumber ? (
+                          <div className="flex items-center gap-2 text-[11px] text-emerald-700 font-semibold">
+                            <Building className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Bank: {emp.bankDetails.bankName || 'A/C Added'} (****{emp.bankDetails.accountNumber.slice(-4)})</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-[11px] text-slate-400 italic">
+                            <Building className="w-3.5 h-3.5 shrink-0" />
+                            <span>No Bank A/C Linked</span>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Rates Summary */}
-                      <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60 flex items-center justify-between text-xs">
+                      {/* Tasks Summary */}
+                      <div className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
                         <div>
-                          <span className="text-[10px] text-amber-900 font-semibold block">Total Earnings</span>
+                          <span className="text-[10px] text-slate-400 font-semibold block">Tasks Assigned</span>
                           <strong className="text-slate-900 font-extrabold text-sm">
-                            ₹{emp.totalEarnings || 0}
+                            {emp.totalTrips || 0}
                           </strong>
                         </div>
                         <div className="text-right">
-                          <span className="text-[10px] text-amber-900 font-semibold block">Tasks Logged</span>
-                          <strong className="text-slate-900 font-extrabold text-sm">
-                            {emp.totalTrips || 0}
+                          <span className="text-[10px] text-slate-400 font-semibold block">Total Payouts</span>
+                          <strong className="text-emerald-700 font-extrabold text-sm">
+                            ₹{emp.totalEarnings || 0}
                           </strong>
                         </div>
                       </div>
@@ -451,16 +642,16 @@ const EmployeesPage = () => {
 
                       <button
                         onClick={() => handleOpenModal(emp)}
-                        className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-                        title="Edit Employee"
+                        className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                        title="Edit Biodata"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
 
                       <button
                         onClick={() => handleDeleteEmployee(emp._id, emp.name)}
-                        className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
-                        title="Delete Record"
+                        className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 transition-colors cursor-pointer"
+                        title="Delete Employee"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -471,13 +662,13 @@ const EmployeesPage = () => {
               })}
             </div>
 
-            {/* Pagination Footer */}
-            <div className="px-6 py-4 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Pagination Controls */}
+            <div className="px-6 py-4 bg-white rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                 <span>
                   Showing <strong className="text-slate-900 font-bold">{employees.length > 0 ? indexOfFirstItem + 1 : 0}</strong> to{' '}
                   <strong className="text-slate-900 font-bold">{Math.min(indexOfLastItem, employees.length)}</strong> of{' '}
-                  <strong className="text-slate-900 font-bold">{employees.length}</strong> employees
+                  <strong className="text-slate-900 font-bold">{employees.length}</strong> staff files
                 </span>
 
                 <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200">
@@ -489,8 +680,7 @@ const EmployeesPage = () => {
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
-                    <option value={15}>15</option>
-                    <option value={25}>25</option>
+                    <option value={20}>20</option>
                     <option value={50}>50</option>
                   </select>
                 </div>
@@ -506,7 +696,7 @@ const EmployeesPage = () => {
                   <ChevronsLeft className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="Previous Page"
@@ -514,12 +704,12 @@ const EmployeesPage = () => {
                   <ChevronLeft className="w-4 h-4" />
                 </button>
 
-                <div className="px-3 py-1 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg">
-                  Page {currentPage} of {totalPages}
-                </div>
+                <span className="px-3 py-1 text-xs font-bold text-slate-700 bg-slate-100 rounded-lg">
+                  {currentPage} / {totalPages}
+                </span>
 
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="Next Page"
@@ -545,118 +735,112 @@ const EmployeesPage = () => {
       {/* Add / Edit Employee Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150">
-          <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] shadow-2xl border border-slate-200/80 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
+          <div className="relative bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
             
-            {/* Modal Header — Clean White, Perfectly Positioned Title, Subtitle & Close Button */}
+            {/* Modal Header */}
             <div className="bg-white px-6 sm:px-8 pt-6 pb-4 border-b border-slate-100 flex items-start justify-between gap-4 shrink-0 z-10">
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 mb-0.5">
-                  <Sparkles className="w-3 h-3 text-amber-500" />
-                  SSRC HR Staff Directory
-                </div>
+              <div>
                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {editingEmployee ? `Edit Employee: ${editingEmployee.name}` : 'Add New Employee Biodata'}
+                  {editingEmployee ? `Edit Biodata: ${editingEmployee.name}` : 'Add New Employee Record'}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                  Fill in credentials, category, contact, and rates.
+                  Complete candidate personal details, reference contact, bank account, and driving license validation.
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all shrink-0 active:scale-95 mt-1 cursor-pointer"
-                title="Close modal"
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Scrollable Form Body */}
+            {/* Modal Scrollable Form */}
             <form onSubmit={handleSaveEmployee} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
               
-              {/* Category Selector: 3 Visual Interactive Cards */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
-                  1. Staff Designation Category *
-                </label>
+              {/* Section 1: Staff Category Selection */}
+              <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>1. Staff Category &amp; Designation</span>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   
-                  {/* Driver */}
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, category: 'Driver' })}
-                    className={`p-3.5 rounded-2xl border-2 text-left transition-all relative flex flex-col justify-between ${
+                    className={`p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-3 cursor-pointer ${
                       formData.category === 'Driver'
-                        ? 'border-blue-500 bg-blue-50/70 shadow-md ring-2 ring-blue-400/20'
-                        : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/60 hover:border-slate-300'
+                        ? 'border-amber-500 bg-amber-50/60 shadow-xs'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${formData.category === 'Driver' ? 'bg-blue-600 text-white shadow' : 'bg-slate-200 text-slate-700'}`}>
-                        <Car className="w-4 h-4" />
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                        <Car className="w-5 h-5" />
                       </div>
                       {formData.category === 'Driver' && (
-                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] shadow">
+                        <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </span>
                       )}
                     </div>
                     <div>
                       <div className="text-sm font-black text-slate-900">Driver</div>
-                      <div className="text-[11px] text-slate-500 font-medium">Steers Responsibly</div>
+                      <div className="text-[11px] text-slate-500 font-medium">Commercial &amp; Chauffeur</div>
                     </div>
                   </button>
 
-                  {/* Helper */}
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, category: 'Helper' })}
-                    className={`p-3.5 rounded-2xl border-2 text-left transition-all relative flex flex-col justify-between ${
+                    className={`p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-3 cursor-pointer ${
                       formData.category === 'Helper'
-                        ? 'border-emerald-500 bg-emerald-50/70 shadow-md ring-2 ring-emerald-400/20'
-                        : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/60 hover:border-slate-300'
+                        ? 'border-amber-500 bg-amber-50/60 shadow-xs'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${formData.category === 'Helper' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-200 text-slate-700'}`}>
-                        <Truck className="w-4 h-4" />
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                        <Truck className="w-5 h-5" />
                       </div>
                       {formData.category === 'Helper' && (
-                        <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] shadow">
+                        <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </span>
                       )}
                     </div>
                     <div>
                       <div className="text-sm font-black text-slate-900">Helper</div>
-                      <div className="text-[11px] text-slate-500 font-medium">Supports Dedicatedly</div>
+                      <div className="text-[11px] text-slate-500 font-medium">Loading &amp; Relocation</div>
                     </div>
                   </button>
 
-                  {/* Captain */}
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, category: 'Captain' })}
-                    className={`p-3.5 rounded-2xl border-2 text-left transition-all relative flex flex-col justify-between ${
+                    className={`p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-3 cursor-pointer ${
                       formData.category === 'Captain'
-                        ? 'border-amber-500 bg-amber-50/70 shadow-md ring-2 ring-amber-400/20'
-                        : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/60 hover:border-slate-300'
+                        ? 'border-amber-500 bg-amber-50/60 shadow-xs'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${formData.category === 'Captain' ? 'bg-amber-500 text-slate-950 shadow' : 'bg-slate-200 text-slate-700'}`}>
-                        <Award className="w-4 h-4" />
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                        <Compass className="w-5 h-5" />
                       </div>
                       {formData.category === 'Captain' && (
-                        <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold shadow">
+                        <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </span>
                       )}
                     </div>
                     <div>
                       <div className="text-sm font-black text-slate-900">Captain</div>
-                      <div className="text-[11px] text-slate-500 font-medium">Leads with Confidence</div>
+                      <div className="text-[11px] text-slate-500 font-medium">VIP Fleet &amp; Lead Supervisor</div>
                     </div>
                   </button>
 
@@ -675,80 +859,72 @@ const EmployeesPage = () => {
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       Full Name *
                     </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Ramesh Kumar"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Ramesh Kumar"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       Primary Mobile Number *
                     </label>
-                    <div className="relative">
-                      <input
-                        type="tel"
-                        required
-                        placeholder="+91 98480 12345"
-                        value={formData.mobileNumber}
-                        onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
-                      />
-                    </div>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="+91 98480 12345"
+                      value={formData.mobileNumber}
+                      onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       Experience *
                     </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="e.g. 3 Years, 5+ Years"
-                        value={formData.experience}
-                        onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      placeholder="e.g. 3 Years, 5+ Years"
+                      value={formData.experience}
+                      onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Alternate / WhatsApp Phone
+                      Duty Availability Status
                     </label>
-                    <input
-                      type="tel"
-                      placeholder="e.g. 95051 51527"
-                      value={formData.alternateNumber}
-                      onChange={(e) => setFormData({ ...formData, alternateNumber: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
-                    />
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-bold focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="Available">🟢 Available (Ready for assignment)</option>
+                      <option value="On Duty">🟡 On Duty (Assigned)</option>
+                      <option value="Inactive">⚪ Inactive (On Leave)</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* Profile Photo Uploader & Preview */}
+                {/* Profile Photo Uploader */}
                 <div className="pt-2 border-t border-slate-200/60">
                   <label className="block text-xs font-bold text-slate-700 mb-2">
                     Profile Photo (Direct Upload or Image URL)
                   </label>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    
-                    {/* Live Avatar Preview */}
                     <div className="relative w-14 h-14 rounded-2xl bg-white border-2 border-slate-200 overflow-hidden shrink-0 flex items-center justify-center shadow-sm">
                       {formData.photo ? (
                         <img
                           src={formData.photo}
                           alt="Avatar Preview"
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
                         />
                       ) : (
                         <User className="w-7 h-7 text-slate-400" />
@@ -760,14 +936,13 @@ const EmployeesPage = () => {
                       )}
                     </div>
 
-                    {/* File Upload Button & URL input */}
                     <div className="flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold cursor-pointer transition-all shadow-xs">
                           {uploadingField === 'photo' ? (
                             <>
                               <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
-                              <span>Uploading to Cloudinary...</span>
+                              <span>Uploading...</span>
                             </>
                           ) : (
                             <>
@@ -803,356 +978,329 @@ const EmployeesPage = () => {
                         className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500"
                       />
                     </div>
-
                   </div>
                 </div>
               </div>
 
-              {/* Section 3: Engagement Rates & Availability Status */}
+              {/* Section 3: Reference Box (Refer Name & Phone Number) */}
+              <div className="bg-amber-50/40 rounded-2xl p-4 sm:p-5 border border-amber-200/80 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900">
+                  <UserCheck className="w-4 h-4 text-amber-600" />
+                  <span>3. Reference Box (Referral / Guarantor Details)</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Reference Person Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. S. Narayana Rao"
+                      value={formData.reference.name}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          reference: { ...formData.reference, name: e.target.value },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Reference Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. +91 98480 55443"
+                      value={formData.reference.phone}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          reference: { ...formData.reference, phone: e.target.value },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Relationship / Designation
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Former Supervisor / Contractor"
+                      value={formData.reference.relationship}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          reference: { ...formData.reference, relationship: e.target.value },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Employee Account Details (Bank Name, Acc No, IFSC, etc.) */}
+              <div className="bg-emerald-50/40 rounded-2xl p-4 sm:p-5 border border-emerald-200/80 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-900">
+                  <Building className="w-4 h-4 text-emerald-600" />
+                  <span>4. Employee Bank Account Details</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Account Number
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 38920194821"
+                      value={formData.bankDetails.accountNumber}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bankDetails: { ...formData.bankDetails, accountNumber: e.target.value },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Account Holder Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Ramesh Kumar"
+                      value={formData.bankDetails.accountHolderName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bankDetails: { ...formData.bankDetails, accountHolderName: e.target.value },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Bank Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. State Bank of India / HDFC"
+                      value={formData.bankDetails.bankName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bankDetails: { ...formData.bankDetails, bankName: e.target.value },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Branch Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Kukatpally Main Branch"
+                      value={formData.bankDetails.branchName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bankDetails: { ...formData.bankDetails, branchName: e.target.value },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      IFSC Code
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. SBIN0004128"
+                      value={formData.bankDetails.ifscCode}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bankDetails: { ...formData.bankDetails, ifscCode: e.target.value.toUpperCase() },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-mono font-bold text-slate-900 uppercase focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 5: Driving License, Validation Date & Heavy Truck Experience */}
               <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
-                  <DollarSign className="w-4 h-4 text-emerald-600" />
-                  <span>3. Rates &amp; Availability</span>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+                    <Car className="w-4 h-4 text-amber-600" />
+                    <span>5. Driving License, Validation Date &amp; Heavy Truck Experience</span>
+                  </div>
+                  <span className="text-[10px] text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full font-bold border border-amber-300">
+                    Task Allocation Gatekeeper
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Daily Rate (₹)
+                      Driving License ID / Number
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm font-bold">₹</span>
-                      <input
-                        type="number"
-                        min="0"
-                        placeholder="e.g. 800"
-                        value={formData.dailyRate}
-                        onChange={(e) => setFormData({ ...formData, dailyRate: e.target.value === '' ? '' : Number(e.target.value) })}
-                        className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-bold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      placeholder="e.g. TS092018009988"
+                      value={formData.documents.licenseNumber}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          documents: { ...formData.documents, licenseNumber: e.target.value.toUpperCase() },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-mono font-bold text-slate-900 uppercase focus:outline-none focus:border-amber-500"
+                    />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Monthly Rate (₹)
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                      <span>License Validation / Expiry Date *</span>
+                      <span className="text-[10px] font-normal text-rose-600 font-bold">2-Day Allocation Buffer</span>
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm font-bold">₹</span>
-                      <input
-                        type="number"
-                        min="0"
-                        placeholder="e.g. 22000"
-                        value={formData.monthlyRate}
-                        onChange={(e) => setFormData({ ...formData, monthlyRate: e.target.value === '' ? '' : Number(e.target.value) })}
-                        className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-bold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
-                      />
-                    </div>
+                    <input
+                      type="date"
+                      value={formData.documents.licenseExpiryDate}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          documents: { ...formData.documents, licenseExpiryDate: e.target.value },
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
                   </div>
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Current Status
+                {/* Heavy Truck Experience Details */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Experience in Heavy Trucks &amp; Multi-Axle Commercial Vehicles</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 5 Years Experience on 10-Wheeler / 12-Wheeler Heavy Trucks, Trailers, Containers"
+                    value={formData.documents.heavyVehicleExperience}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        documents: { ...formData.documents, heavyVehicleExperience: e.target.value },
+                      })
+                    }
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* License Document Upload */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Driving License Document File (PDF / Image)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
+                      {uploadingField === 'licenseDoc' ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                          <span>Uploading to Cloudinary...</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
+                          <span>{formData.documents.licenseDoc ? 'Replace License Document' : 'Upload Driving License (PDF/Img)'}</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => handleFileUpload(e, 'licenseDoc')}
+                        className="hidden"
+                        disabled={uploadingField === 'licenseDoc'}
+                      />
                     </label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-bold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
-                    >
-                      <option value="Available">🟢 Available (Ready)</option>
-                      <option value="On Duty">🟡 On Duty (Assigned)</option>
-                      <option value="Inactive">⚪ Inactive (On Leave)</option>
-                    </select>
+
+                    {formData.documents.licenseDoc && (
+                      <a
+                        href={formData.documents.licenseDoc}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition-colors border border-amber-200 flex items-center gap-1"
+                        title="View License Document"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>View</span>
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Section 4: KYC & Cloudinary Document Uploaders */}
+              {/* Section 6: Other KYC Documents & Police Verification */}
               <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-4">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>4. KYC Verification &amp; Documents (Cloudinary PDF / Images)</span>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                    <BadgeCheck className="w-3.5 h-3.5" /> 100% Police Clearance Verified
-                  </span>
-                </div>
-
-                {/* 1. Aadhaar Card Card */}
-                <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-blue-600" />
-                      <span className="text-xs font-bold text-slate-800">Aadhaar Card Record</span>
-                    </div>
-                    {formData.documents.aadhaarDoc ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                        <FileCheck className="w-3.5 h-3.5 text-emerald-600" /> Uploaded to Cloudinary
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold text-slate-400">PDF / Image Required</span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Aadhaar Card Number</label>
-                      <input
-                        type="text"
-                        placeholder="XXXX-XXXX-1234"
-                        value={formData.documents.aadhaarNumber}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            documents: { ...formData.documents, aadhaarNumber: e.target.value },
-                          })
-                        }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Aadhaar Document File</label>
-                      <div className="flex items-center gap-2">
-                        <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                          {uploadingField === 'aadhaarDoc' ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
-                              <span>Uploading...</span>
-                            </>
-                          ) : (
-                            <>
-                              <UploadCloud className="w-3.5 h-3.5 text-blue-600" />
-                              <span>{formData.documents.aadhaarDoc ? 'Replace Document' : 'Upload Aadhaar (PDF/Img)'}</span>
-                            </>
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*,application/pdf"
-                            onChange={(e) => handleFileUpload(e, 'aadhaarDoc')}
-                            className="hidden"
-                            disabled={uploadingField === 'aadhaarDoc'}
-                          />
-                        </label>
-
-                        {formData.documents.aadhaarDoc && (
-                          <a
-                            href={formData.documents.aadhaarDoc}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-colors border border-blue-200 flex items-center gap-1"
-                            title="View Aadhaar Document"
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span className="hidden sm:inline">View</span>
-                          </a>
-                        )}
-                      </div>
-                    </div>
+                    <span>6. Identity Verification (Aadhaar, PAN &amp; Police Clearance)</span>
                   </div>
                 </div>
 
-                {/* 2. PAN Card Card */}
-                <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-purple-600" />
-                      <span className="text-xs font-bold text-slate-800">PAN Card Record</span>
-                    </div>
-                    {formData.documents.panDoc ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                        <FileCheck className="w-3.5 h-3.5 text-emerald-600" /> Uploaded to Cloudinary
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold text-slate-400">PDF / Image Required</span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">PAN Card Number</label>
-                      <input
-                        type="text"
-                        placeholder="ABCDE1234F"
-                        value={formData.documents.panNumber}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            documents: { ...formData.documents, panNumber: e.target.value.toUpperCase() },
-                          })
-                        }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 uppercase focus:outline-none focus:border-amber-500 focus:bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">PAN Document File</label>
-                      <div className="flex items-center gap-2">
-                        <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                          {uploadingField === 'panDoc' ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
-                              <span>Uploading...</span>
-                            </>
-                          ) : (
-                            <>
-                              <UploadCloud className="w-3.5 h-3.5 text-purple-600" />
-                              <span>{formData.documents.panDoc ? 'Replace Document' : 'Upload PAN (PDF/Img)'}</span>
-                            </>
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*,application/pdf"
-                            onChange={(e) => handleFileUpload(e, 'panDoc')}
-                            className="hidden"
-                            disabled={uploadingField === 'panDoc'}
-                          />
-                        </label>
-
-                        {formData.documents.panDoc && (
-                          <a
-                            href={formData.documents.panDoc}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition-colors border border-purple-200 flex items-center gap-1"
-                            title="View PAN Document"
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span className="hidden sm:inline">View</span>
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Driving License Card */}
-                <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Car className="w-4 h-4 text-amber-600" />
-                      <span className="text-xs font-bold text-slate-800">Driving License / Commercial Badge</span>
-                    </div>
-                    {formData.documents.licenseDoc ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                        <FileCheck className="w-3.5 h-3.5 text-emerald-600" /> Uploaded to Cloudinary
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold text-slate-400">PDF / Image Optional</span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Driving License Number</label>
-                      <input
-                        type="text"
-                        placeholder="TS0920201234567"
-                        value={formData.documents.licenseNumber}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            documents: { ...formData.documents, licenseNumber: e.target.value.toUpperCase() },
-                          })
-                        }
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 uppercase focus:outline-none focus:border-amber-500 focus:bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">License Document File</label>
-                      <div className="flex items-center gap-2">
-                        <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                          {uploadingField === 'licenseDoc' ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
-                              <span>Uploading...</span>
-                            </>
-                          ) : (
-                            <>
-                              <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
-                              <span>{formData.documents.licenseDoc ? 'Replace Document' : 'Upload License (PDF/Img)'}</span>
-                            </>
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*,application/pdf"
-                            onChange={(e) => handleFileUpload(e, 'licenseDoc')}
-                            className="hidden"
-                            disabled={uploadingField === 'licenseDoc'}
-                          />
-                        </label>
-
-                        {formData.documents.licenseDoc && (
-                          <a
-                            href={formData.documents.licenseDoc}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition-colors border border-amber-200 flex items-center gap-1"
-                            title="View License Document"
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span className="hidden sm:inline">View</span>
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. Experience & Relieving Certificate */}
-                <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-teal-600" />
-                      <span className="text-xs font-bold text-slate-800">Experience / Relieving Certificate</span>
-                    </div>
-                    {formData.documents.experienceDoc ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                        <FileCheck className="w-3.5 h-3.5 text-emerald-600" /> Uploaded to Cloudinary
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold text-slate-400">PDF / Image Optional</span>
-                    )}
-                  </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Aadhaar Number */}
                   <div>
-                    <div className="flex items-center gap-2">
-                      <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                        {uploadingField === 'experienceDoc' ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-600" />
-                            <span>Uploading to Cloudinary...</span>
-                          </>
-                        ) : (
-                          <>
-                            <UploadCloud className="w-3.5 h-3.5 text-teal-600" />
-                            <span>{formData.documents.experienceDoc ? 'Replace Experience Certificate' : 'Upload Experience Certificate (PDF/Image)'}</span>
-                          </>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          onChange={(e) => handleFileUpload(e, 'experienceDoc')}
-                          className="hidden"
-                          disabled={uploadingField === 'experienceDoc'}
-                        />
-                      </label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Aadhaar Card Number</label>
+                    <input
+                      type="text"
+                      placeholder="XXXX-XXXX-1234"
+                      value={formData.documents.aadhaarNumber}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          documents: { ...formData.documents, aadhaarNumber: e.target.value },
+                        })
+                      }
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
 
-                      {formData.documents.experienceDoc && (
-                        <a
-                          href={formData.documents.experienceDoc}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold transition-colors border border-teal-200 flex items-center gap-1"
-                          title="View Experience Certificate"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>View Certificate</span>
-                        </a>
-                      )}
-                    </div>
+                  {/* PAN Card */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">PAN Card Number</label>
+                    <input
+                      type="text"
+                      placeholder="ABCDE1234F"
+                      value={formData.documents.panNumber}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          documents: { ...formData.documents, panNumber: e.target.value.toUpperCase() },
+                        })
+                      }
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-900 uppercase focus:outline-none focus:border-amber-500"
+                    />
                   </div>
                 </div>
 
@@ -1169,7 +1317,7 @@ const EmployeesPage = () => {
                         documents: { ...formData.documents, policeVerificationStatus: e.target.value },
                       })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-bold focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-bold focus:outline-none focus:border-amber-500"
                   >
                     <option value="Verified">✅ Verified (100% Police &amp; Background Cleared)</option>
                     <option value="In Progress">⏳ In Verification (Submitted to Dept)</option>
@@ -1178,11 +1326,11 @@ const EmployeesPage = () => {
                 </div>
               </div>
 
-              {/* Section 5: Address & Special Skills */}
+              {/* Section 7: Residential Address & Special Skills */}
               <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-4">
                 <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
                   <MapPin className="w-4 h-4 text-amber-500" />
-                  <span>5. Location &amp; Skills Tag</span>
+                  <span>7. Residential Address &amp; Special Skills</span>
                 </div>
 
                 <div>
@@ -1199,7 +1347,7 @@ const EmployeesPage = () => {
                         address: { ...formData.address, fullAddress: e.target.value },
                       })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all resize-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500 resize-none"
                   />
                 </div>
 
@@ -1209,15 +1357,15 @@ const EmployeesPage = () => {
                   </label>
                   <input
                     type="text"
-                    placeholder="VIP Escort, Automatic Transmission, Outstation Expert, Night Duty"
+                    placeholder="VIP Escort, Heavy Multi-axle, Automatic Transmission, Night Duty"
                     value={formData.specialSkills}
                     onChange={(e) => setFormData({ ...formData, specialSkills: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
-              {/* Sticky Action Footer */}
+              {/* Action Buttons */}
               <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200">
                 <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -1228,13 +1376,13 @@ const EmployeesPage = () => {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-95"
+                    className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/25 hover:shadow-amber-400/40 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/25 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{editingEmployee ? 'Save Changes' : 'Save Biodata Record'}</span>
