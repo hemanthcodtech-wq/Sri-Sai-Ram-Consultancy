@@ -386,7 +386,7 @@ const EarningsPage = () => {
                               href={`/admin/employees/${emp._id}`}
                               className="text-amber-800 hover:text-amber-950 font-bold inline-flex items-center gap-1"
                             >
-                              <span>Dossier</span>
+                              <span>View</span>
                               <ArrowUpRight className="w-3.5 h-3.5" />
                             </a>
                           </td>

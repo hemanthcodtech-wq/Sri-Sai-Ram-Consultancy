@@ -71,6 +71,8 @@ const EmployeesPage = () => {
     experience: '',
     photo: '',
     status: 'Available',
+    isBlocked: false,
+    blockReason: '',
     address: {
       street: '',
       city: '',
@@ -195,6 +197,8 @@ const EmployeesPage = () => {
         experience: employee.experience || '',
         photo: employee.photo || '',
         status: employee.status || 'Available',
+        isBlocked: employee.isBlocked || employee.status === 'Blocked',
+        blockReason: employee.blockReason || '',
         address: {
           street: employee.address?.street || '',
           city: employee.address?.city || '',
@@ -238,6 +242,8 @@ const EmployeesPage = () => {
         experience: '',
         photo: '',
         status: 'Available',
+        isBlocked: false,
+        blockReason: '',
         address: {
           street: '',
           city: '',
@@ -734,8 +740,8 @@ const EmployeesPage = () => {
 
       {/* Add / Edit Employee Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150">
-          <div className="relative bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-x-0 top-0 bottom-[60px] sm:bottom-0 z-40 sm:z-50 bg-slate-950/75 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative bg-white rounded-t-[28px] sm:rounded-3xl w-full max-w-3xl max-h-full sm:max-h-[90vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
             
             {/* Modal Header */}
             <div className="bg-white px-6 sm:px-8 pt-6 pb-4 border-b border-slate-100 flex items-start justify-between gap-4 shrink-0 z-10">
@@ -1269,12 +1275,12 @@ const EmployeesPage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Aadhaar Number */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Aadhaar Card Number</label>
+                  {/* Aadhaar Number & Document */}
+                  <div className="space-y-2 bg-white p-3.5 rounded-xl border border-slate-200">
+                    <label className="block text-xs font-bold text-slate-700">Aadhaar Card Details</label>
                     <input
                       type="text"
-                      placeholder="XXXX-XXXX-1234"
+                      placeholder="Aadhaar No: XXXX-XXXX-1234"
                       value={formData.documents.aadhaarNumber}
                       onChange={(e) =>
                         setFormData({
@@ -1282,16 +1288,52 @@ const EmployeesPage = () => {
                           documents: { ...formData.documents, aadhaarNumber: e.target.value },
                         })
                       }
-                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-amber-500"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-amber-500"
                     />
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
+                        {uploadingField === 'aadhaarDoc' ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
+                            <span>{formData.documents.aadhaarDoc ? 'Replace Aadhaar Doc' : 'Upload Aadhaar (PDF/Img)'}</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => handleFileUpload(e, 'aadhaarDoc')}
+                          className="hidden"
+                          disabled={uploadingField === 'aadhaarDoc'}
+                        />
+                      </label>
+
+                      {formData.documents.aadhaarDoc && (
+                        <a
+                          href={formData.documents.aadhaarDoc}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors border border-emerald-200 flex items-center gap-1 shrink-0"
+                          title="View Aadhaar Document"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>View</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
 
-                  {/* PAN Card */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">PAN Card Number</label>
+                  {/* PAN Card Number & Document */}
+                  <div className="space-y-2 bg-white p-3.5 rounded-xl border border-slate-200">
+                    <label className="block text-xs font-bold text-slate-700">PAN Card Details</label>
                     <input
                       type="text"
-                      placeholder="ABCDE1234F"
+                      placeholder="PAN No: ABCDE1234F"
                       value={formData.documents.panNumber}
                       onChange={(e) =>
                         setFormData({
@@ -1299,8 +1341,44 @@ const EmployeesPage = () => {
                           documents: { ...formData.documents, panNumber: e.target.value.toUpperCase() },
                         })
                       }
-                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-900 uppercase focus:outline-none focus:border-amber-500"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 uppercase focus:outline-none focus:border-amber-500"
                     />
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
+                        {uploadingField === 'panDoc' ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
+                            <span>{formData.documents.panDoc ? 'Replace PAN Doc' : 'Upload PAN (PDF/Img)'}</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => handleFileUpload(e, 'panDoc')}
+                          className="hidden"
+                          disabled={uploadingField === 'panDoc'}
+                        />
+                      </label>
+
+                      {formData.documents.panDoc && (
+                        <a
+                          href={formData.documents.panDoc}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors border border-emerald-200 flex items-center gap-1 shrink-0"
+                          title="View PAN Document"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>View</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1362,6 +1440,74 @@ const EmployeesPage = () => {
                     onChange={(e) => setFormData({ ...formData, specialSkills: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
                   />
+                </div>
+              </div>
+
+              {/* Section 8: Remarks & Performance / Duty Restriction Controls */}
+              <div className="bg-amber-50/30 rounded-2xl p-4 sm:p-5 border border-amber-200/80 space-y-4">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-950">
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  <span>8. Staff Remarks &amp; Performance Review</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Administrative Remarks &amp; Performance Notes
+                  </label>
+                  <textarea
+                    rows="2"
+                    placeholder="Add staff remarks, past performance feedback, vehicle handling record, customer comments..."
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500 resize-none"
+                  />
+                  <span className="text-[10px] text-slate-400">
+                    Remarks are saved directly to this employee's file and referenced during task allocations.
+                  </span>
+                </div>
+
+                {/* Performance Block Checkbox */}
+                <div className="bg-rose-50/70 p-4 rounded-xl border border-rose-200 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <input
+                      type="checkbox"
+                      id="blockEmployeeModalCheck"
+                      checked={formData.isBlocked}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          isBlocked: e.target.checked,
+                          status: e.target.checked ? 'Blocked' : formData.status === 'Blocked' ? 'Available' : formData.status,
+                          blockReason: e.target.checked ? (formData.blockReason || formData.notes || 'Performance / conduct restriction') : '',
+                        })
+                      }
+                      className="w-4 h-4 mt-0.5 text-rose-600 rounded border-rose-300 focus:ring-rose-500 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="blockEmployeeModalCheck" className="text-xs font-bold text-rose-950 cursor-pointer block">
+                        🚫 Block this employee for further trips because of performance / conduct
+                      </label>
+                      <p className="text-[11px] text-rose-700 mt-0.5 leading-relaxed">
+                        When enabled, task management will automatically restrict this employee from being allotted to any new trips.
+                      </p>
+                    </div>
+                  </div>
+
+                  {formData.isBlocked && (
+                    <div className="pt-2 border-t border-rose-200 animate-in fade-in">
+                      <label className="block text-[11px] font-bold text-rose-900 mb-1">
+                        Reason for Blocking (Performance / Policy Issue) *
+                      </label>
+                      <input
+                        type="text"
+                        required={formData.isBlocked}
+                        placeholder="e.g. Repeated late arrival, rash driving feedback from client..."
+                        value={formData.blockReason}
+                        onChange={(e) => setFormData({ ...formData, blockReason: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg bg-white border border-rose-300 text-xs font-semibold text-rose-950 focus:outline-none focus:border-rose-500"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -28,7 +28,9 @@ import {
   ShieldAlert,
   ShieldCheck,
   Check,
-  FileText
+  FileText,
+  Users,
+  Compass
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
@@ -57,7 +59,8 @@ const TripsPage = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
-  const [formData, setFormData] = useState({
+
+  const initialCrewState = {
     tripDate: new Date().toISOString().slice(0, 10),
     startDate: new Date().toISOString().slice(0, 10),
     endDate: new Date().toISOString().slice(0, 10),
@@ -65,27 +68,56 @@ const TripsPage = () => {
     vehicleNumber: '',
     route: '',
     routeName: '',
-    assignedEmployee: '',
-    category: 'Driver',
     operator: '',
     operatorName: '',
     clientName: '',
     clientPhone: '',
     pickupLocation: '',
     dropLocation: '',
-    advanceAmount: '',
-    advancePaymentMode: 'Cash',
-    salaryAmount: '',
-    salaryPaymentMode: 'Online',
-    dueAmount: 0,
+    // Driver 1 (Primary)
+    driver1: {
+      employee: '',
+      employeeName: '',
+      category: 'Driver',
+      salaryAmount: '',
+      advanceAmount: '',
+      advancePaymentMode: 'Cash',
+      salaryPaymentMode: 'Online',
+      dueAmount: 0,
+      paymentStatus: 'Pending',
+    },
+    // Driver 2 (Secondary - Optional)
+    driver2: {
+      employee: '',
+      employeeName: '',
+      category: 'Driver',
+      salaryAmount: '',
+      advanceAmount: '',
+      advancePaymentMode: 'Cash',
+      salaryPaymentMode: 'Online',
+      dueAmount: 0,
+      paymentStatus: 'Pending',
+    },
+    // Helper (Optional)
+    helper: {
+      employee: '',
+      employeeName: '',
+      category: 'Helper',
+      salaryAmount: '',
+      advanceAmount: '',
+      advancePaymentMode: 'Cash',
+      salaryPaymentMode: 'Online',
+      dueAmount: 0,
+      paymentStatus: 'Pending',
+    },
     tripAmount: '',
     paymentStatus: 'Pending',
     tripStatus: 'Scheduled',
     tripType: 'Full-Day',
     remarks: '',
-    blockEmployee: false,
-    blockReason: '',
-  });
+  };
+
+  const [formData, setFormData] = useState(initialCrewState);
 
   const checkEmployeeLicenseForTask = (emp, taskDate) => {
     if (!emp) return { valid: true };
@@ -245,9 +277,14 @@ const TripsPage = () => {
         : sDate;
       const days = trip.totalDays || Math.max(1, Math.round((new Date(eDate) - new Date(sDate)) / (1000 * 60 * 60 * 24)) + 1);
 
-      const sal = trip.salaryAmount !== undefined ? trip.salaryAmount : trip.employeePayout || '';
-      const adv = trip.advanceAmount !== undefined ? trip.advanceAmount : '';
-      const pStatus = trip.paymentStatus || 'Pending';
+      // Extract Driver 1 (or legacy assignedEmployee)
+      const d1Emp = trip.driver1?.employee?._id || trip.driver1?.employee || trip.assignedEmployee?._id || trip.assignedEmployee || '';
+      const d1Sal = trip.driver1?.salaryAmount !== undefined && trip.driver1?.salaryAmount !== null
+        ? trip.driver1.salaryAmount
+        : (trip.salaryAmount !== undefined ? trip.salaryAmount : trip.employeePayout || '');
+      const d1Adv = trip.driver1?.advanceAmount !== undefined && trip.driver1?.advanceAmount !== null
+        ? trip.driver1.advanceAmount
+        : (trip.advanceAmount || '');
 
       setFormData({
         tripDate: sDate,
@@ -257,58 +294,62 @@ const TripsPage = () => {
         vehicleNumber: trip.vehicleNumber || '',
         route: trip.route?._id || trip.route || '',
         routeName: trip.routeName || '',
-        assignedEmployee: trip.assignedEmployee?._id || trip.assignedEmployee || '',
-        category: trip.category || 'Driver',
         operator: trip.operator?._id || trip.operator || '',
         operatorName: trip.operatorName || (trip.operator?.name || ''),
         clientName: trip.clientName || '',
         clientPhone: trip.clientPhone || '',
         pickupLocation: trip.pickupLocation || '',
         dropLocation: trip.dropLocation || '',
-        advanceAmount: adv,
-        advancePaymentMode: trip.advancePaymentMode || 'Cash',
-        salaryAmount: sal,
-        salaryPaymentMode: trip.salaryPaymentMode || 'Online',
-        dueAmount: trip.dueAmount !== undefined ? trip.dueAmount : calculateComputedDue(sal, adv, pStatus),
+        // Driver 1
+        driver1: {
+          employee: d1Emp,
+          employeeName: trip.driver1?.employeeName || trip.assignedEmployeeName || '',
+          category: trip.driver1?.category || trip.category || 'Driver',
+          salaryAmount: d1Sal,
+          advanceAmount: d1Adv,
+          advancePaymentMode: trip.driver1?.advancePaymentMode || trip.advancePaymentMode || 'Cash',
+          salaryPaymentMode: trip.driver1?.salaryPaymentMode || trip.salaryPaymentMode || 'Online',
+          dueAmount: trip.driver1?.dueAmount !== undefined ? trip.driver1.dueAmount : calculateComputedDue(d1Sal, d1Adv, trip.paymentStatus),
+          paymentStatus: trip.driver1?.paymentStatus || trip.paymentStatus || 'Pending',
+        },
+        // Driver 2
+        driver2: {
+          employee: trip.driver2?.employee?._id || trip.driver2?.employee || '',
+          employeeName: trip.driver2?.employeeName || '',
+          category: trip.driver2?.category || 'Driver',
+          salaryAmount: trip.driver2?.salaryAmount !== undefined ? trip.driver2.salaryAmount : '',
+          advanceAmount: trip.driver2?.advanceAmount !== undefined ? trip.driver2.advanceAmount : '',
+          advancePaymentMode: trip.driver2?.advancePaymentMode || 'Cash',
+          salaryPaymentMode: trip.driver2?.salaryPaymentMode || 'Online',
+          dueAmount: trip.driver2?.dueAmount !== undefined ? trip.driver2.dueAmount : 0,
+          paymentStatus: trip.driver2?.paymentStatus || 'Pending',
+        },
+        // Helper
+        helper: {
+          employee: trip.helper?.employee?._id || trip.helper?.employee || '',
+          employeeName: trip.helper?.employeeName || '',
+          category: trip.helper?.category || 'Helper',
+          salaryAmount: trip.helper?.salaryAmount !== undefined ? trip.helper.salaryAmount : '',
+          advanceAmount: trip.helper?.advanceAmount !== undefined ? trip.helper.advanceAmount : '',
+          advancePaymentMode: trip.helper?.advancePaymentMode || 'Cash',
+          salaryPaymentMode: trip.helper?.salaryPaymentMode || 'Online',
+          dueAmount: trip.helper?.dueAmount !== undefined ? trip.helper.dueAmount : 0,
+          paymentStatus: trip.helper?.paymentStatus || 'Pending',
+        },
         tripAmount: trip.tripAmount !== undefined && trip.tripAmount !== null ? trip.tripAmount : '',
-        paymentStatus: pStatus,
+        paymentStatus: trip.paymentStatus || 'Pending',
         tripStatus: trip.tripStatus || 'Scheduled',
         tripType: trip.tripType || 'Full-Day',
         remarks: trip.remarks || '',
-        blockEmployee: false,
-        blockReason: '',
       });
     } else {
       setEditingTrip(null);
       const today = new Date().toISOString().slice(0, 10);
       setFormData({
+        ...initialCrewState,
         tripDate: today,
         startDate: today,
         endDate: today,
-        totalDays: 1,
-        vehicleNumber: '',
-        route: '',
-        routeName: '',
-        assignedEmployee: '',
-        category: 'Driver',
-        operator: '',
-        operatorName: '',
-        clientName: '',
-        clientPhone: '',
-        pickupLocation: '',
-        dropLocation: '',
-        advanceAmount: '',
-        advancePaymentMode: 'Cash',
-        salaryAmount: '',
-        salaryPaymentMode: 'Online',
-        dueAmount: 0,
-        tripAmount: '',
-        paymentStatus: 'Pending',
-        tripStatus: 'Scheduled',
-        tripType: 'Full-Day',
-        remarks: '',
-        blockEmployee: false,
-        blockReason: '',
       });
     }
     setIsModalOpen(true);
@@ -352,47 +393,154 @@ const TripsPage = () => {
     }
   };
 
-  const handleEmployeeSelect = (empId) => {
+  const handleDriver1Select = (empId) => {
     const selected = employees.find((e) => String(e._id) === String(empId));
     setFormData((prev) => ({
       ...prev,
-      assignedEmployee: empId,
-      category: selected ? selected.category : prev.category,
+      driver1: {
+        ...prev.driver1,
+        employee: empId,
+        employeeName: selected ? selected.name : '',
+        category: selected ? selected.category : 'Driver',
+      },
     }));
   };
 
+  const handleDriver2Select = (empId) => {
+    const selected = employees.find((e) => String(e._id) === String(empId));
+    setFormData((prev) => ({
+      ...prev,
+      driver2: {
+        ...prev.driver2,
+        employee: empId,
+        employeeName: selected ? selected.name : '',
+        category: selected ? selected.category : 'Driver',
+      },
+    }));
+  };
+
+  const handleHelperSelect = (empId) => {
+    const selected = employees.find((e) => String(e._id) === String(empId));
+    setFormData((prev) => ({
+      ...prev,
+      helper: {
+        ...prev.helper,
+        employee: empId,
+        employeeName: selected ? selected.name : '',
+        category: selected ? selected.category : 'Helper',
+      },
+    }));
+  };
+
+  // Calculate live total crew amounts
+  const totalCrewSalary = 
+    (formData.driver1.salaryAmount !== '' ? Number(formData.driver1.salaryAmount) : 0) +
+    (formData.driver2.employee && formData.driver2.salaryAmount !== '' ? Number(formData.driver2.salaryAmount) : 0) +
+    (formData.helper.employee && formData.helper.salaryAmount !== '' ? Number(formData.helper.salaryAmount) : 0);
+
+  const totalCrewAdvance = 
+    (formData.driver1.advanceAmount !== '' ? Number(formData.driver1.advanceAmount) : 0) +
+    (formData.driver2.employee && formData.driver2.advanceAmount !== '' ? Number(formData.driver2.advanceAmount) : 0) +
+    (formData.helper.employee && formData.helper.advanceAmount !== '' ? Number(formData.helper.advanceAmount) : 0);
+
+  const totalCrewDue = formData.paymentStatus === 'Paid' ? 0 : Math.max(0, totalCrewSalary - totalCrewAdvance);
+
   const handleSaveTrip = async (e) => {
     e.preventDefault();
-    if (!formData.assignedEmployee) {
-      alert('Please select an employee to assign this task to.');
+    if (!formData.driver1.employee) {
+      alert('Please assign Driver 1 for this task.');
       return;
     }
 
-    const selectedEmp = employees.find((e) => String(e._id) === String(formData.assignedEmployee));
-    if (selectedEmp) {
-      const licenseCheck = checkEmployeeLicenseForTask(selectedEmp, formData.startDate);
-      if (licenseCheck.blocked) {
-        alert(
-          `❌ Cannot allot ${selectedEmp.name} to this task!\n\nReason: ${licenseCheck.reason}.\n\nAccording to company policy, blocked employees or staff with driving licenses expiring within 2 days cannot be allotted tasks.`
-        );
+    // License and block verification for assigned crew
+    const d1Emp = employees.find((e) => String(e._id) === String(formData.driver1.employee));
+    if (d1Emp) {
+      const check1 = checkEmployeeLicenseForTask(d1Emp, formData.startDate);
+      if (check1.blocked) {
+        alert(`❌ Cannot allot ${d1Emp.name} (Driver 1)!\n\nReason: ${check1.reason}`);
         return;
       }
     }
 
-    const finalSalary = formData.salaryAmount === '' ? 0 : Number(formData.salaryAmount);
-    const finalAdvance = formData.advanceAmount === '' ? 0 : Number(formData.advanceAmount);
-    const computedDue = formData.paymentStatus === 'Paid' ? 0 : Math.max(0, finalSalary - finalAdvance);
+    if (formData.driver2.employee) {
+      const d2Emp = employees.find((e) => String(e._id) === String(formData.driver2.employee));
+      if (d2Emp) {
+        const check2 = checkEmployeeLicenseForTask(d2Emp, formData.startDate);
+        if (check2.blocked) {
+          alert(`❌ Cannot allot ${d2Emp.name} (Driver 2)!\n\nReason: ${check2.reason}`);
+          return;
+        }
+      }
+    }
+
+    if (formData.helper.employee) {
+      const hEmp = employees.find((e) => String(e._id) === String(formData.helper.employee));
+      if (hEmp) {
+        const checkH = checkEmployeeLicenseForTask(hEmp, formData.startDate);
+        if (checkH.blocked) {
+          alert(`❌ Cannot allot ${hEmp.name} (Helper)!\n\nReason: ${checkH.reason}`);
+          return;
+        }
+      }
+    }
+
+    const d1Sal = Number(formData.driver1.salaryAmount || 0);
+    const d1Adv = Number(formData.driver1.advanceAmount || 0);
+    const d1Status = formData.driver1.paymentStatus || 'Pending';
+    const d1Due = d1Status === 'Paid' ? 0 : Math.max(0, d1Sal - d1Adv);
+
+    const d2Sal = Number(formData.driver2.salaryAmount || 0);
+    const d2Adv = Number(formData.driver2.advanceAmount || 0);
+    const d2Status = formData.driver2.paymentStatus || 'Pending';
+    const d2Due = d2Status === 'Paid' ? 0 : Math.max(0, d2Sal - d2Adv);
+
+    const helperSal = Number(formData.helper.salaryAmount || 0);
+    const helperAdv = Number(formData.helper.advanceAmount || 0);
+    const helperStatus = formData.helper.paymentStatus || 'Pending';
+    const helperDue = helperStatus === 'Paid' ? 0 : Math.max(0, helperSal - helperAdv);
+
+    const totalSalaryCalc = d1Sal + (formData.driver2.employee ? d2Sal : 0) + (formData.helper.employee ? helperSal : 0);
+    const totalAdvanceCalc = d1Adv + (formData.driver2.employee ? d2Adv : 0) + (formData.helper.employee ? helperAdv : 0);
+    const totalDueCalc = d1Due + (formData.driver2.employee ? d2Due : 0) + (formData.helper.employee ? helperDue : 0);
+
+    const allMembersPaid = (d1Status === 'Paid') &&
+      (!formData.driver2.employee || d2Status === 'Paid') &&
+      (!formData.helper.employee || helperStatus === 'Paid');
+
+    const overallPaymentStatus = allMembersPaid ? 'Paid' : 'Pending';
 
     const payload = {
       ...formData,
-      salaryAmount: finalSalary,
-      employeePayout: finalSalary,
-      advanceAmount: finalAdvance,
-      dueAmount: computedDue,
-      tripAmount: formData.tripAmount === '' ? finalSalary : Number(formData.tripAmount),
-      paymentStatus: formData.paymentStatus || 'Pending',
-      tripStatus: formData.tripStatus || 'Scheduled',
-      tripType: formData.tripType || 'Full-Day',
+      assignedEmployee: formData.driver1.employee,
+      assignedEmployeeName: formData.driver1.employeeName,
+      category: formData.driver1.category || 'Driver',
+      paymentStatus: overallPaymentStatus,
+      driver1: {
+        ...formData.driver1,
+        salaryAmount: d1Sal,
+        advanceAmount: d1Adv,
+        dueAmount: d1Due,
+        paymentStatus: d1Status,
+      },
+      driver2: formData.driver2.employee ? {
+        ...formData.driver2,
+        salaryAmount: d2Sal,
+        advanceAmount: d2Adv,
+        dueAmount: d2Due,
+        paymentStatus: d2Status,
+      } : undefined,
+      helper: formData.helper.employee ? {
+        ...formData.helper,
+        salaryAmount: helperSal,
+        advanceAmount: helperAdv,
+        dueAmount: helperDue,
+        paymentStatus: helperStatus,
+      } : undefined,
+      salaryAmount: totalSalaryCalc,
+      employeePayout: totalSalaryCalc,
+      advanceAmount: totalAdvanceCalc,
+      dueAmount: totalDueCalc,
+      tripAmount: totalSalaryCalc,
     };
 
     try {
@@ -420,11 +568,26 @@ const TripsPage = () => {
         paymentStatus: 'Paid',
         salaryPaymentMode: selectedMode,
         dueAmount: 0,
+        ...(task.driver1 ? { 'driver1.paymentStatus': 'Paid', 'driver1.dueAmount': 0 } : {}),
+        ...(task.driver2 ? { 'driver2.paymentStatus': 'Paid', 'driver2.dueAmount': 0 } : {}),
+        ...(task.helper ? { 'helper.paymentStatus': 'Paid', 'helper.dueAmount': 0 } : {}),
       });
       fetchTrips();
     } catch (err) {
       console.error('Error updating payment status:', err);
       alert('Failed to update status to Paid');
+    }
+  };
+
+  const handleMarkCompleted = async (task) => {
+    try {
+      await api.put(`/trips/${task._id}`, {
+        tripStatus: 'Completed',
+      });
+      fetchTrips();
+    } catch (err) {
+      console.error('Error marking task as completed:', err);
+      alert('Failed to update task to Completed status.');
     }
   };
 
@@ -439,33 +602,77 @@ const TripsPage = () => {
     }
   };
 
-  const getEmployeeInfo = (task) => {
-    let emp = null;
-    if (task.assignedEmployee && typeof task.assignedEmployee === 'object') {
-      emp = task.assignedEmployee;
-    } else if (task.assignedEmployee) {
-      emp = employees.find((e) => String(e._id) === String(task.assignedEmployee));
+  // Helper to extract assigned crew list from a task record
+  const getTaskCrewList = (task) => {
+    const crew = [];
+
+    // Driver 1
+    if (task.driver1?.employee || task.assignedEmployee) {
+      const emp = task.driver1?.employee && typeof task.driver1.employee === 'object' 
+        ? task.driver1.employee 
+        : (task.assignedEmployee && typeof task.assignedEmployee === 'object' ? task.assignedEmployee : null);
+      
+      const name = emp?.name || task.driver1?.employeeName || task.assignedEmployeeName || 'Driver 1';
+      const category = emp?.category || task.driver1?.category || task.category || 'Driver';
+      const salary = task.driver1?.salaryAmount !== undefined ? task.driver1.salaryAmount : (task.salaryAmount || task.employeePayout || 0);
+      const advance = task.driver1?.advanceAmount !== undefined ? task.driver1.advanceAmount : (task.advanceAmount || 0);
+
+      crew.push({
+        role: 'Driver 1',
+        name,
+        category,
+        salary,
+        advance,
+        advanceMode: task.driver1?.advancePaymentMode || task.advancePaymentMode || 'Cash',
+        salaryMode: task.driver1?.salaryPaymentMode || task.salaryPaymentMode || 'Online',
+        photo: emp?.photo,
+        isBlocked: emp?.isBlocked || emp?.status === 'Blocked',
+      });
     }
 
-    const name = emp?.name || task.assignedEmployeeName || 'Unassigned Staff';
-    const category = emp?.category || task.category || 'Driver';
-    const photo = emp?.photo || getFallbackAvatar(name);
-    const employeeId = emp?.employeeId || '';
-    const isBlocked = emp?.isBlocked || emp?.status === 'Blocked';
+    // Driver 2
+    if (task.driver2?.employee) {
+      const emp = typeof task.driver2.employee === 'object' ? task.driver2.employee : null;
+      const name = emp?.name || task.driver2.employeeName || 'Driver 2';
+      const category = emp?.category || task.driver2.category || 'Driver';
+      const salary = task.driver2.salaryAmount || 0;
+      const advance = task.driver2.advanceAmount || 0;
 
-    return { name, category, photo, employeeId, isBlocked, blockReason: emp?.blockReason };
-  };
+      crew.push({
+        role: 'Driver 2',
+        name,
+        category,
+        salary,
+        advance,
+        advanceMode: task.driver2.advancePaymentMode || 'Cash',
+        salaryMode: task.driver2.salaryPaymentMode || 'Online',
+        photo: emp?.photo,
+        isBlocked: emp?.isBlocked || emp?.status === 'Blocked',
+      });
+    }
 
-  const getFallbackAvatar = (name = '') => {
-    const avatars = [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-    ];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
-    return avatars[hash % avatars.length];
+    // Helper
+    if (task.helper?.employee) {
+      const emp = typeof task.helper.employee === 'object' ? task.helper.employee : null;
+      const name = emp?.name || task.helper.employeeName || 'Helper';
+      const category = emp?.category || task.helper.category || 'Helper';
+      const salary = task.helper.salaryAmount || 0;
+      const advance = task.helper.advanceAmount || 0;
+
+      crew.push({
+        role: 'Helper',
+        name,
+        category,
+        salary,
+        advance,
+        advanceMode: task.helper.advancePaymentMode || 'Cash',
+        salaryMode: task.helper.salaryPaymentMode || 'Online',
+        photo: emp?.photo,
+        isBlocked: emp?.isBlocked || emp?.status === 'Blocked',
+      });
+    }
+
+    return crew;
   };
 
   // Calculate pagination slices
@@ -476,7 +683,7 @@ const TripsPage = () => {
 
   return (
     <>
-      <SEOHead title="Task Management & Dispatch - SSRC Admin" />
+      <SEOHead title="Task Management & Multi-Staff Dispatch - SSRC Admin" />
 
       <div className="space-y-6">
         
@@ -490,7 +697,7 @@ const TripsPage = () => {
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Log trip details, vehicle numbers, route &amp; operator dropdowns, advance &amp; salary splits with cash/online modes, and task remarks.
+              Multi-crew assignment (Driver 1, Driver 2, Helper) with individual advance &amp; salary ledger tracking.
             </p>
           </div>
 
@@ -509,7 +716,7 @@ const TripsPage = () => {
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
               <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Staff Salary</span>
               <div className="text-xl font-black text-slate-900 mt-0.5">₹{summary.totalSalary || summary.totalPayout || 0}</div>
-              <span className="text-[10px] text-slate-500 font-medium">Billed to Staff</span>
+              <span className="text-[10px] text-slate-500 font-medium">Billed to Crew Members</span>
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
@@ -541,7 +748,7 @@ const TripsPage = () => {
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="text"
-                placeholder="Search task #, vehicle, route, staff, operator..."
+                placeholder="Search task #, vehicle, route, crew, operator..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-amber-500"
@@ -620,22 +827,23 @@ const TripsPage = () => {
                     <th className="py-3.5 px-4">Task # &amp; Date</th>
                     <th className="py-3.5 px-4">Vehicle &amp; Route</th>
                     <th className="py-3.5 px-4">Operator / Client</th>
-                    <th className="py-3.5 px-4">Assigned Staff</th>
-                    <th className="py-3.5 px-4">Advance (Given)</th>
+                    <th className="py-3.5 px-4">Assigned Crew (3 Members)</th>
+                    <th className="py-3.5 px-4">Advance Records</th>
                     <th className="py-3.5 px-4">Salary &amp; Due</th>
-                    <th className="py-3.5 px-4">Payment &amp; Duty</th>
+                    <th className="py-3.5 px-4">Status</th>
                     <th className="py-3.5 px-4">Remarks</th>
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {currentTrips.map((task) => {
-                    const empInfo = getEmployeeInfo(task);
+                    const crewList = getTaskCrewList(task);
                     const sDateObj = task.startDate ? new Date(task.startDate) : new Date(task.tripDate);
                     const eDateObj = task.endDate ? new Date(task.endDate) : sDateObj;
                     const isMultiDay = sDateObj.toDateString() !== eDateObj.toDateString();
 
                     const isPaid = task.paymentStatus === 'Paid';
+                    const isCompleted = task.tripStatus === 'Completed';
                     const due = isPaid ? 0 : (task.dueAmount !== undefined ? task.dueAmount : Math.max(0, (task.salaryAmount || task.employeePayout || 0) - (task.advanceAmount || 0)));
 
                     return (
@@ -680,67 +888,49 @@ const TripsPage = () => {
                           </div>
                         </td>
 
-                        {/* Assigned Employee */}
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-2.5">
-                            <img
-                              src={empInfo.photo}
-                              alt={empInfo.name}
-                              className="w-9 h-9 rounded-xl object-cover border border-slate-200 shrink-0"
-                              onError={(e) => {
-                                e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80';
-                              }}
-                            />
-                            <div className="min-w-0">
-                              <div className="font-bold text-slate-900 truncate leading-tight flex items-center gap-1.5">
-                                <span>{empInfo.name}</span>
-                                {empInfo.isBlocked && (
-                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-300">
-                                    BLOCKED
+                        {/* Assigned Crew (Driver 1, Driver 2, Helper) */}
+                        <td className="py-3.5 px-4 min-w-[200px]">
+                          <div className="space-y-1.5">
+                            {crewList.map((member, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1 rounded-lg border border-slate-200/80">
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <span className={`px-1.5 py-0.2 rounded text-[9px] font-black ${
+                                    member.role === 'Driver 1' ? 'bg-amber-100 text-amber-900' :
+                                    member.role === 'Driver 2' ? 'bg-blue-100 text-blue-900' :
+                                    'bg-emerald-100 text-emerald-900'
+                                  }`}>
+                                    {member.role}
                                   </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <span className={`px-1.5 py-0.2 rounded text-[10px] font-extrabold ${
-                                  empInfo.category === 'Captain' 
-                                    ? 'bg-amber-100 text-amber-900' 
-                                    : empInfo.category === 'Driver' 
-                                    ? 'bg-blue-100 text-blue-900' 
-                                    : 'bg-emerald-100 text-emerald-900'
-                                }`}>
-                                  {empInfo.category}
+                                  <span className="font-bold text-slate-900 truncate">{member.name}</span>
+                                </div>
+                                <span className="text-[10px] font-mono font-bold text-slate-600 shrink-0 ml-1">
+                                  ₹{member.salary}
                                 </span>
-                                {empInfo.employeeId && (
-                                  <span className="text-[10px] font-mono text-slate-400">#{empInfo.employeeId}</span>
-                                )}
                               </div>
-                            </div>
+                            ))}
                           </div>
                         </td>
 
-                        {/* Advance Amount & Mode */}
+                        {/* Advance Amount Records per member */}
                         <td className="py-3.5 px-4">
                           <div className="font-extrabold text-amber-800 text-sm">
                             ₹{task.advanceAmount || 0}
                           </div>
-                          <span className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                            task.advancePaymentMode === 'Cash' 
-                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-                              : 'bg-blue-50 text-blue-800 border border-blue-200'
-                          }`}>
-                            {task.advancePaymentMode || 'Cash'}
-                          </span>
+                          <div className="space-y-0.5 mt-1">
+                            {crewList.map((member, idx) => (
+                              <div key={idx} className="text-[10px] text-slate-500 font-medium flex items-center justify-between gap-1">
+                                <span>{member.role}:</span>
+                                <span className="font-bold text-amber-900">₹{member.advance} ({member.advanceMode})</span>
+                              </div>
+                            ))}
+                          </div>
                         </td>
 
                         {/* Salary Amount & Due */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-baseline gap-1">
                             <span className="font-black text-slate-900 text-sm">₹{task.salaryAmount || task.employeePayout || 0}</span>
-                            <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
-                              task.salaryPaymentMode === 'Cash' ? 'bg-emerald-50 text-emerald-800' : 'bg-blue-50 text-blue-800'
-                            }`}>
-                              {task.salaryPaymentMode || 'Online'}
-                            </span>
+                            <span className="text-[10px] text-slate-400 font-medium">(Total Crew)</span>
                           </div>
                           <div className="mt-1">
                             {isPaid ? (
@@ -756,19 +946,25 @@ const TripsPage = () => {
                           </div>
                         </td>
 
-                        {/* Payment & Task Status */}
+                        {/* Status (Trip Status & Payment Status) */}
                         <td className="py-3.5 px-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${
-                            isPaid
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                              : task.paymentStatus === 'Partial'
-                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                              : 'bg-amber-100 text-amber-900 border border-amber-300'
-                          }`}>
-                            {task.paymentStatus || 'Pending'}
-                          </span>
-                          <div className="text-[11px] font-semibold text-slate-500 mt-1">
-                            {task.tripStatus || 'Scheduled'}
+                          <div className="flex flex-col gap-1">
+                            <span className={`inline-block px-2.5 py-0.5 rounded-full font-bold text-[10px] text-center ${
+                              isCompleted
+                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                : task.tripStatus === 'In Progress'
+                                ? 'bg-blue-100 text-blue-900 border border-blue-300'
+                                : 'bg-amber-100 text-amber-900 border border-amber-300'
+                            }`}>
+                              {task.tripStatus || 'Scheduled'}
+                            </span>
+                            <span className={`inline-block px-2.5 py-0.5 rounded-full font-bold text-[10px] text-center ${
+                              isPaid
+                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                : 'bg-rose-50 text-rose-800 border border-rose-200'
+                            }`}>
+                              {isPaid ? 'Paid' : 'Pending Due'}
+                            </span>
                           </div>
                         </td>
 
@@ -786,13 +982,27 @@ const TripsPage = () => {
                         {/* Actions */}
                         <td className="py-3.5 px-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
+                            
+                            {/* Mark as Completed Button */}
+                            {!isCompleted && (
+                              <button
+                                onClick={() => handleMarkCompleted(task)}
+                                className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold text-[10px] border border-blue-200 flex items-center gap-1 transition-colors cursor-pointer"
+                                title="Mark Task as Completed"
+                              >
+                                <CheckCircle2 className="w-3 h-3 text-blue-600" />
+                                <span>Mark Completed</span>
+                              </button>
+                            )}
+
+                            {/* Mark Paid Button */}
                             {!isPaid && (
                               <button
                                 onClick={() => handleQuickMarkPaid(task)}
                                 className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200 flex items-center gap-1 transition-colors cursor-pointer"
                                 title="Mark Salary as Paid (Due = 0)"
                               >
-                                <Check className="w-3 h-3" />
+                                <Check className="w-3 h-3 text-emerald-600" />
                                 <span>Mark Paid</span>
                               </button>
                             )}
@@ -894,303 +1104,760 @@ const TripsPage = () => {
 
       {/* Add / Edit Task Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150">
-          <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[92vh] shadow-2xl border border-slate-200/80 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-x-0 top-0 bottom-[60px] sm:bottom-0 z-40 sm:z-50 bg-slate-950/75 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 lg:p-8 overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative bg-white rounded-t-[28px] sm:rounded-3xl w-full max-w-5xl xl:max-w-6xl max-h-full sm:max-h-[94vh] shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
             
-            <div className="bg-white px-6 sm:px-8 pt-6 pb-4 border-b border-slate-100 flex items-start justify-between gap-4 shrink-0 z-10">
+            {/* Top Accent Gradient Bar */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 shrink-0" />
+
+            {/* Modal Header */}
+            <div className="bg-white px-6 sm:px-8 py-5 border-b border-slate-100 flex items-center justify-between gap-4 shrink-0 z-10">
               <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">
+                    Task Dispatch &amp; Crew Allocation
+                  </span>
+                  {editingTrip && (
+                    <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md font-mono">
+                      {editingTrip.tripNumber}
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {editingTrip ? `Edit Task: ${editingTrip.tripNumber}` : 'Log New Task & Duty Record'}
+                  {editingTrip ? `Edit Task Record: ${editingTrip.tripNumber}` : 'Log New Task & Multi-Staff Duty'}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                  Enter date, vehicle, route, employee, operator, and advance/salary payment details.
+                  Assign up to 3 crew members (Driver 1, Driver 2, Helper) with independent advance &amp; salary records.
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all shrink-0 active:scale-95 cursor-pointer"
+                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-800 flex items-center justify-center transition-all shrink-0 active:scale-95 cursor-pointer shadow-2xs"
                 title="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveTrip} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-4">
+            {/* Modal Scrollable Form Body */}
+            <form id="task-dispatch-form" onSubmit={handleSaveTrip} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
               
-              {/* 1. Date & Vehicle Number Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    <Calendar className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
-                    Task Date *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.startDate}
-                    onChange={(e) => handleStartDateChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
-                  />
+              {/* 1. Task Core Parameters (4-Column Grid) */}
+              <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4 text-amber-600" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                    1. Task Details &amp; Operational Route
+                  </h4>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    <Truck className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
-                    Vehicle Number *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. AP 28 TE 4567 / TS 09 EA 1234"
-                    value={formData.vehicleNumber}
-                    onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value.toUpperCase() })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-bold focus:outline-none focus:border-amber-500 uppercase placeholder:normal-case"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Task Start Date */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      <Calendar className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
+                      Task Start Date *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.startDate}
+                      onChange={(e) => handleStartDateChange(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white shadow-2xs"
+                    />
+                  </div>
+
+                  {/* Vehicle Number */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      <Truck className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
+                      Vehicle Number *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. AP 28 TE 4567"
+                      value={formData.vehicleNumber}
+                      onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value.toUpperCase() })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-bold focus:outline-none focus:border-amber-500 uppercase placeholder:normal-case bg-white shadow-2xs"
+                    />
+                  </div>
+
+                  {/* Route Corridor */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      <MapPin className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
+                      Route Corridor *
+                    </label>
+                    <select
+                      required
+                      value={formData.route}
+                      onChange={(e) => handleRouteChange(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white shadow-2xs"
+                    >
+                      <option value="">-- Choose Route Corridor --</option>
+                      {routes.map((r) => (
+                        <option key={r._id} value={r._id}>
+                          {r.routeName ? `${r.routeName} (${r.fromCity} → ${r.toCity})` : `${r.fromCity} → ${r.toCity}`}
+                          {r.status === 'Inactive' ? ' [Inactive]' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Operator / Organizer */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      <Building className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
+                      Operator / Organizer *
+                    </label>
+                    <select
+                      required
+                      value={formData.operator}
+                      onChange={(e) => handleOperatorChange(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white shadow-2xs"
+                    >
+                      <option value="">-- Choose Operator / Organizer --</option>
+                      {organizers.map((org) => (
+                        <option key={org._id} value={org._id}>
+                          {org.name} {org.company ? `(${org.company})` : ''} - {org.phone}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* 2. Route Dropdown & Operator Dropdown */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    <MapPin className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
-                    Route (Select from Corridor) *
-                  </label>
-                  <select
-                    required
-                    value={formData.route}
-                    onChange={(e) => handleRouteChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
-                  >
-                    <option value="">-- Choose Route Corridor --</option>
-                    {routes.map((r) => (
-                      <option key={r._id} value={r._id}>
-                        {r.routeName ? `${r.routeName} (${r.fromCity} → ${r.toCity})` : `${r.fromCity} → ${r.toCity}`}
-                        {r.status === 'Inactive' ? ' [Inactive]' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    <Building className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
-                    Operator / Organizer (Select) *
-                  </label>
-                  <select
-                    required
-                    value={formData.operator}
-                    onChange={(e) => handleOperatorChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
-                  >
-                    <option value="">-- Choose Operator / Organizer --</option>
-                    {organizers.map((org) => (
-                      <option key={org._id} value={org._id}>
-                        {org.name} {org.company ? `(${org.company})` : ''} - {org.phone}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* 3. Employee Dropdown (with Driving License Validation & Block Enforcement) */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-slate-700">
-                    <UserCheck className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
-                    Assign Employee *
-                  </label>
-                  <span className="text-[10px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md font-bold border border-amber-200">
-                    License 2-Day Buffer Checked
+              {/* 2. Multi-Member Crew Allocation (3 Members: Driver 1, Driver 2, Helper) */}
+              <div className="space-y-5 pt-1">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-amber-600" />
+                    <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900">
+                      2. Crew Assignment &amp; Separate Financial Split (Up to 3 Members)
+                    </h4>
+                  </div>
+                  <span className="text-[10px] sm:text-xs text-amber-900 bg-amber-50 px-3 py-1 rounded-full font-bold border border-amber-200">
+                    Individual Advance &amp; Salary Records
                   </span>
                 </div>
 
-                <select
-                  required
-                  value={formData.assignedEmployee}
-                  onChange={(e) => handleEmployeeSelect(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm font-semibold focus:outline-none bg-white ${
-                    formData.assignedEmployee && checkEmployeeLicenseForTask(
-                      employees.find((e) => String(e._id) === String(formData.assignedEmployee)),
-                      formData.startDate
-                    ).blocked
-                      ? 'border-rose-400 focus:border-rose-500 bg-rose-50/30 text-rose-900'
-                      : 'border-slate-300 focus:border-amber-500'
-                  }`}
-                >
-                  <option value="">-- Choose Employee / Driver --</option>
-                  {employees.map((emp) => {
-                    const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
-                    return (
-                      <option 
-                        key={emp._id} 
-                        value={emp._id}
-                        disabled={lic.blocked}
-                        className={lic.blocked ? 'text-rose-600 bg-rose-50 font-bold' : ''}
-                      >
-                        {lic.blocked ? '🚫 ' : ''}{emp.name} ({emp.employeeId} - {emp.category})
-                        {lic.blocked ? ` [BLOCKED: ${lic.reason}]` : lic.formatted ? ` [Valid till ${lic.formatted}]` : ''}
-                      </option>
-                    );
-                  })}
-                </select>
+                {/* MEMBER 1: DRIVER 1 (Primary) */}
+                <div className="bg-amber-50/40 rounded-2xl p-5 sm:p-6 border border-amber-200/90 space-y-4 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-2 uppercase tracking-wide">
+                      <Car className="w-4 h-4 text-amber-700" />
+                      1. Driver 1 (Lead Driver / Captain) *
+                    </span>
+                    <span className="text-[10px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded">
+                      Required
+                    </span>
+                  </div>
 
-                {/* Selected Employee Alert */}
-                {(() => {
-                  const selectedEmp = employees.find((e) => String(e._id) === String(formData.assignedEmployee));
-                  if (!selectedEmp) return null;
-                  const lic = checkEmployeeLicenseForTask(selectedEmp, formData.startDate);
-                  if (lic.blocked) {
-                    return (
-                      <div className="mt-2 p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs flex items-start gap-2 animate-in fade-in">
-                        <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Select Driver 1 Employee *
+                    </label>
+                    <select
+                      required
+                      value={formData.driver1.employee}
+                      onChange={(e) => handleDriver1Select(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white shadow-2xs"
+                    >
+                      <option value="">-- Select Driver 1 --</option>
+                      {employees.map((emp) => {
+                        const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
+                        return (
+                          <option 
+                            key={emp._id} 
+                            value={emp._id}
+                            disabled={lic.blocked}
+                            className={lic.blocked ? 'text-rose-600 bg-rose-50 font-bold' : ''}
+                          >
+                            {lic.blocked ? '🚫 ' : ''}{emp.name} ({emp.employeeId} - {emp.category})
+                            {lic.blocked ? ` [BLOCKED: ${lic.reason}]` : lic.formatted ? ` [Valid till ${lic.formatted}]` : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
+                  {/* DUTY FINANCIALS & SPLIT PAYMENTS Card - Driver 1 */}
+                  <div className="bg-white rounded-2xl p-5 sm:p-6 border border-amber-200 space-y-4 shadow-sm">
+                    <div className="flex items-center justify-between border-b border-amber-100 pb-3">
+                      <span className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 uppercase tracking-wide">
+                        <span className="text-amber-600 font-black text-base">$</span>
+                        DUTY FINANCIALS &amp; SPLIT PAYMENTS
+                      </span>
+                      <span className="text-[10px] sm:text-[11px] font-bold text-amber-900 bg-amber-100/90 border border-amber-300 px-3 py-0.5 rounded-full shadow-2xs">
+                        Advance + Salary
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* 1. Advance Amount (Given) */}
+                      <div className="bg-amber-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
                         <div>
-                          <strong className="block font-black text-rose-950">
-                            Task Allocation Restricted for {selectedEmp.name}
-                          </strong>
-                          <p className="text-[11px] text-rose-800 mt-0.5 font-medium">
-                            {lic.reason}. Staff with expired driving licenses (or expiring within 2 days buffer) or blocked status cannot be allotted tasks.
+                          <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                            1. Advance Amount (Given) ₹
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="e.g. 500"
+                            value={formData.driver1.advanceAmount}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                driver1: { ...formData.driver1, advanceAmount: e.target.value },
+                              })
+                            }
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                            ADVANCE PAYMENT MODE
+                          </label>
+                          <select
+                            value={formData.driver1.advancePaymentMode}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                driver1: { ...formData.driver1, advancePaymentMode: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-amber-500"
+                          >
+                            <option value="Cash">Cash</option>
+                            <option value="Online">Online / UPI</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* 2. Salary Amount (Total to Pay) */}
+                      <div className="bg-amber-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                            2. Salary Amount (Total to Pay) ₹ *
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="0"
+                            placeholder="e.g. 1500"
+                            value={formData.driver1.salaryAmount}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                driver1: { ...formData.driver1, salaryAmount: e.target.value },
+                              })
+                            }
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
+                          />
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-2 font-medium">
+                          Total duty payment allocated for the employee.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom Status & Remaining Due */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 items-center">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 mb-1">
+                          Payment Status *
+                        </label>
+                        <select
+                          value={formData.driver1.paymentStatus || 'Pending'}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              driver1: { ...formData.driver1, paymentStatus: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 bg-white focus:outline-none focus:border-amber-500"
+                        >
+                          <option value="Pending">Pending (Due Active)</option>
+                          <option value="Paid">Paid (Settled)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 mb-1">
+                          Settlement Mode (When Paid)
+                        </label>
+                        <select
+                          value={formData.driver1.salaryPaymentMode}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              driver1: { ...formData.driver1, salaryPaymentMode: e.target.value },
+                            })
+                          }
+                          className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 bg-white focus:outline-none focus:border-amber-500"
+                        >
+                          <option value="Online">Online / UPI</option>
+                          <option value="Cash">Cash</option>
+                          <option value="UPI">UPI</option>
+                          <option value="Bank Transfer">Bank Transfer</option>
+                          <option value="Cheque">Cheque</option>
+                        </select>
+                      </div>
+
+                      <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
+                            REMAINING DUE AMOUNT
+                          </span>
+                          <span className={`text-lg font-black block mt-0.5 ${formData.driver1.paymentStatus === 'Paid' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            ₹{formData.driver1.paymentStatus === 'Paid' ? 0 : Math.max(0, (Number(formData.driver1.salaryAmount) || 0) - (Number(formData.driver1.advanceAmount) || 0))}
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${formData.driver1.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>
+                          {formData.driver1.paymentStatus === 'Paid' ? 'Settled' : 'Pending Due'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* MEMBER 2: DRIVER 2 (Secondary Driver - Optional) */}
+                <div className="bg-blue-50/40 rounded-2xl p-5 sm:p-6 border border-blue-200/90 space-y-4 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-black text-blue-950 flex items-center gap-2 uppercase tracking-wide">
+                      <Car className="w-4 h-4 text-blue-700" />
+                      2. Driver 2 (Secondary / Reliever Driver)
+                    </span>
+                    <span className="text-[10px] font-bold text-blue-800 bg-blue-100 border border-blue-300 px-2.5 py-0.5 rounded">
+                      Optional
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Select Driver 2 Employee
+                    </label>
+                    <select
+                      value={formData.driver2.employee}
+                      onChange={(e) => handleDriver2Select(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-blue-500 bg-white shadow-2xs"
+                    >
+                      <option value="">-- None (Single Driver Duty) --</option>
+                      {employees
+                        .filter((emp) => String(emp._id) !== String(formData.driver1.employee))
+                        .map((emp) => {
+                          const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
+                          return (
+                            <option 
+                              key={emp._id} 
+                              value={emp._id}
+                              disabled={lic.blocked}
+                              className={lic.blocked ? 'text-rose-600 bg-rose-50 font-bold' : ''}
+                            >
+                              {lic.blocked ? '🚫 ' : ''}{emp.name} ({emp.employeeId} - {emp.category})
+                              {lic.blocked ? ` [BLOCKED: ${lic.reason}]` : lic.formatted ? ` [Valid till ${lic.formatted}]` : ''}
+                            </option>
+                          );
+                        })}
+                    </select>
+                  </div>
+
+                  {formData.driver2.employee && (
+                    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-blue-200 space-y-4 shadow-sm animate-in fade-in">
+                      <div className="flex items-center justify-between border-b border-blue-100 pb-3">
+                        <span className="text-xs sm:text-sm font-black text-blue-950 flex items-center gap-1.5 uppercase tracking-wide">
+                          <span className="text-blue-600 font-black text-base">$</span>
+                          DUTY FINANCIALS &amp; SPLIT PAYMENTS (DRIVER 2)
+                        </span>
+                        <span className="text-[10px] sm:text-[11px] font-bold text-blue-900 bg-blue-100/90 border border-blue-300 px-3 py-0.5 rounded-full shadow-2xs">
+                          Advance + Salary
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 1. Advance Amount (Given) */}
+                        <div className="bg-blue-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                              1. Advance Amount (Given) ₹
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 500"
+                              value={formData.driver2.advanceAmount}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  driver2: { ...formData.driver2, advanceAmount: e.target.value },
+                                })
+                              }
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 bg-white"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                              ADVANCE PAYMENT MODE
+                            </label>
+                            <select
+                              value={formData.driver2.advancePaymentMode}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  driver2: { ...formData.driver2, advancePaymentMode: e.target.value },
+                                })
+                              }
+                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-blue-500"
+                            >
+                              <option value="Cash">Cash</option>
+                              <option value="Online">Online / UPI</option>
+                              <option value="UPI">UPI</option>
+                              <option value="Bank Transfer">Bank Transfer</option>
+                              <option value="Cheque">Cheque</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* 2. Salary Amount (Total to Pay) */}
+                        <div className="bg-blue-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                              2. Salary Amount (Total to Pay) ₹ *
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 1500"
+                              value={formData.driver2.salaryAmount}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  driver2: { ...formData.driver2, salaryAmount: e.target.value },
+                                })
+                              }
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 bg-white"
+                            />
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-2 font-medium">
+                            Total duty payment allocated for the employee.
                           </p>
                         </div>
                       </div>
-                    );
-                  }
-                  return null;
-                })()}
+
+                      {/* Bottom Status & Remaining Due */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 items-center">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1">
+                            Payment Status *
+                          </label>
+                          <select
+                            value={formData.driver2.paymentStatus || 'Pending'}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                driver2: { ...formData.driver2, paymentStatus: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                          >
+                            <option value="Pending">Pending (Due Active)</option>
+                            <option value="Paid">Paid (Settled)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1">
+                            Settlement Mode (When Paid)
+                          </label>
+                          <select
+                            value={formData.driver2.salaryPaymentMode}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                driver2: { ...formData.driver2, salaryPaymentMode: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                          >
+                            <option value="Online">Online / UPI</option>
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                          </select>
+                        </div>
+
+                        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
+                              REMAINING DUE AMOUNT
+                            </span>
+                            <span className={`text-lg font-black block mt-0.5 ${formData.driver2.paymentStatus === 'Paid' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              ₹{formData.driver2.paymentStatus === 'Paid' ? 0 : Math.max(0, (Number(formData.driver2.salaryAmount) || 0) - (Number(formData.driver2.advanceAmount) || 0))}
+                            </span>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${formData.driver2.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>
+                            {formData.driver2.paymentStatus === 'Paid' ? 'Settled' : 'Pending Due'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* MEMBER 3: HELPER (Cleaner / Loading Assistant - Optional) */}
+                <div className="bg-emerald-50/40 rounded-2xl p-5 sm:p-6 border border-emerald-200/90 space-y-4 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-black text-emerald-950 flex items-center gap-2 uppercase tracking-wide">
+                      <Truck className="w-4 h-4 text-emerald-700" />
+                      3. Helper (Loading Assistant / Cleaner)
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded">
+                      Optional
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Select Helper Employee
+                    </label>
+                    <select
+                      value={formData.helper.employee}
+                      onChange={(e) => handleHelperSelect(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 bg-white shadow-2xs"
+                    >
+                      <option value="">-- None (No Helper Required) --</option>
+                      {employees
+                        .filter(
+                          (emp) =>
+                            String(emp._id) !== String(formData.driver1.employee) &&
+                            String(emp._id) !== String(formData.driver2.employee)
+                        )
+                        .map((emp) => {
+                          const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
+                          return (
+                            <option 
+                              key={emp._id} 
+                              value={emp._id}
+                              disabled={lic.blocked}
+                              className={lic.blocked ? 'text-rose-600 bg-rose-50 font-bold' : ''}
+                            >
+                              {lic.blocked ? '🚫 ' : ''}{emp.name} ({emp.employeeId} - {emp.category})
+                              {lic.blocked ? ` [BLOCKED: ${lic.reason}]` : ''}
+                            </option>
+                          );
+                        })}
+                    </select>
+                  </div>
+
+                  {formData.helper.employee && (
+                    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-emerald-200 space-y-4 shadow-sm animate-in fade-in">
+                      <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
+                        <span className="text-xs sm:text-sm font-black text-emerald-950 flex items-center gap-1.5 uppercase tracking-wide">
+                          <span className="text-emerald-600 font-black text-base">$</span>
+                          DUTY FINANCIALS &amp; SPLIT PAYMENTS (HELPER)
+                        </span>
+                        <span className="text-[10px] sm:text-[11px] font-bold text-emerald-900 bg-emerald-100/90 border border-emerald-300 px-3 py-0.5 rounded-full shadow-2xs">
+                          Advance + Salary
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 1. Advance Amount (Given) */}
+                        <div className="bg-emerald-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                              1. Advance Amount (Given) ₹
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 500"
+                              value={formData.helper.advanceAmount}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  helper: { ...formData.helper, advanceAmount: e.target.value },
+                                })
+                              }
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 bg-white"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                              ADVANCE PAYMENT MODE
+                            </label>
+                            <select
+                              value={formData.helper.advancePaymentMode}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  helper: { ...formData.helper, advancePaymentMode: e.target.value },
+                                })
+                              }
+                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-emerald-500"
+                            >
+                              <option value="Cash">Cash</option>
+                              <option value="Online">Online / UPI</option>
+                              <option value="UPI">UPI</option>
+                              <option value="Bank Transfer">Bank Transfer</option>
+                              <option value="Cheque">Cheque</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* 2. Salary Amount (Total to Pay) */}
+                        <div className="bg-emerald-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                              2. Salary Amount (Total to Pay) ₹ *
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 1500"
+                              value={formData.helper.salaryAmount}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  helper: { ...formData.helper, salaryAmount: e.target.value },
+                                })
+                              }
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 bg-white"
+                            />
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-2 font-medium">
+                            Total duty payment allocated for the employee.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Bottom Status & Remaining Due */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 items-center">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1">
+                            Payment Status *
+                          </label>
+                          <select
+                            value={formData.helper.paymentStatus || 'Pending'}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                helper: { ...formData.helper, paymentStatus: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 bg-white focus:outline-none focus:border-emerald-500"
+                          >
+                            <option value="Pending">Pending (Due Active)</option>
+                            <option value="Paid">Paid (Settled)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1">
+                            Settlement Mode (When Paid)
+                          </label>
+                          <select
+                            value={formData.helper.salaryPaymentMode}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                helper: { ...formData.helper, salaryPaymentMode: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 bg-white focus:outline-none focus:border-emerald-500"
+                          >
+                            <option value="Online">Online / UPI</option>
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                          </select>
+                        </div>
+
+                        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
+                              REMAINING DUE AMOUNT
+                            </span>
+                            <span className={`text-lg font-black block mt-0.5 ${formData.helper.paymentStatus === 'Paid' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              ₹{formData.helper.paymentStatus === 'Paid' ? 0 : Math.max(0, (Number(formData.helper.salaryAmount) || 0) - (Number(formData.helper.advanceAmount) || 0))}
+                            </span>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${formData.helper.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>
+                            {formData.helper.paymentStatus === 'Paid' ? 'Settled' : 'Pending Due'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
               </div>
 
-              {/* 4. Financial Breakdown: Advance vs Salary vs Due with Mode Selection */}
-              <div className="bg-amber-50/40 rounded-2xl p-4 sm:p-5 border border-amber-200/80 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
-                    <DollarSign className="w-4 h-4 text-amber-600" />
-                    Duty Financials &amp; Split Payments
+              {/* 3. Total Financial Summary & Status Controls */}
+              <div className="bg-slate-900 rounded-2xl p-5 sm:p-6 text-white space-y-4 shadow-md">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-amber-400" />
+                    3. Duty Financials Summary &amp; Status
                   </span>
-                  <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
-                    Advance + Salary
+                  <span className="text-xs font-extrabold text-slate-200 bg-slate-800 px-3 py-1 rounded-full border border-slate-700 shadow-2xs">
+                    Total Crew Members: {(formData.driver1.employee ? 1 : 0) + (formData.driver2.employee ? 1 : 0) + (formData.helper.employee ? 1 : 0)}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Advance Amount (Given) */}
-                  <div className="bg-white p-3.5 rounded-xl border border-amber-200/60 space-y-2">
-                    <label className="block text-xs font-bold text-slate-800">
-                      1. Advance Amount (Given) ₹
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="e.g. 500"
-                      value={formData.advanceAmount}
-                      onChange={(e) => setFormData({ ...formData, advanceAmount: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 font-extrabold text-amber-800 text-sm focus:outline-none focus:border-amber-500"
-                    />
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                        Advance Payment Mode
-                      </label>
-                      <select
-                        value={formData.advancePaymentMode}
-                        onChange={(e) => setFormData({ ...formData, advancePaymentMode: e.target.value })}
-                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-800 bg-slate-50 focus:outline-none"
-                      >
-                        <option value="Cash">Cash</option>
-                        <option value="Online">Online / UPI</option>
-                        <option value="UPI">UPI (GPay / PhonePe)</option>
-                        <option value="Bank Transfer">Bank Transfer / NEFT</option>
-                      </select>
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div className="p-4 bg-slate-800/90 rounded-xl border border-slate-700/80">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Crew Salary</span>
+                    <span className="text-xl sm:text-2xl font-black text-white block mt-1">₹{totalCrewSalary}</span>
                   </div>
 
-                  {/* Salary Amount (Need to pay) */}
-                  <div className="bg-white p-3.5 rounded-xl border border-amber-200/60 space-y-2">
-                    <label className="block text-xs font-bold text-slate-800">
-                      2. Salary Amount (Total to Pay) ₹ *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      placeholder="e.g. 1500"
-                      value={formData.salaryAmount}
-                      onChange={(e) => setFormData({ ...formData, salaryAmount: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 font-black text-slate-900 text-sm focus:outline-none focus:border-amber-500"
-                    />
-                    <span className="text-[10px] text-slate-400 block">
-                      Total duty payment allocated for the employee.
+                  <div className="p-4 bg-slate-800/90 rounded-xl border border-slate-700/80">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Total Advance Paid</span>
+                    <span className="text-xl sm:text-2xl font-black text-amber-400 block mt-1">₹{totalCrewAdvance}</span>
+                  </div>
+
+                  <div className="p-4 bg-slate-800/90 rounded-xl border border-slate-700/80">
+                    <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">Remaining Due</span>
+                    <span className={`text-xl sm:text-2xl font-black block mt-1 ${totalCrewDue === 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      ₹{totalCrewDue}
                     </span>
                   </div>
                 </div>
 
-                {/* Status, Settlement Mode (when Paid), and Live Computed Due Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-amber-200/50 items-center">
-                  
-                  {/* Payment Status Dropdown */}
+                <div className="grid grid-cols-1 gap-3 pt-2 border-t border-slate-800">
+                  {/* Task Status */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-800 mb-1">
-                      Payment Status *
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Task Progress Status *
                     </label>
                     <select
-                      value={formData.paymentStatus}
-                      onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500"
+                      value={formData.tripStatus}
+                      onChange={(e) => setFormData({ ...formData, tripStatus: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs sm:text-sm font-bold text-white focus:outline-none focus:border-amber-400"
                     >
-                      <option value="Pending">Pending (Due Active)</option>
-                      <option value="Paid">Paid (Fully Settled - Due = 0)</option>
+                      <option value="Scheduled">Scheduled</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Cancelled">Cancelled</option>
                     </select>
                   </div>
-
-                  {/* Payment Mode (shown / selectable when Paid or for Salary) */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-800 mb-1">
-                      {formData.paymentStatus === 'Paid' ? 'Paid Settlement Mode *' : 'Settlement Mode (When Paid)'}
-                    </label>
-                    <select
-                      value={formData.salaryPaymentMode}
-                      onChange={(e) => setFormData({ ...formData, salaryPaymentMode: e.target.value })}
-                      className={`w-full px-3 py-2 rounded-xl border text-xs sm:text-sm font-bold focus:outline-none ${
-                        formData.paymentStatus === 'Paid'
-                          ? 'border-emerald-400 bg-emerald-50/40 text-emerald-950 focus:border-emerald-600'
-                          : 'border-slate-300 bg-white text-slate-800 focus:border-amber-500'
-                      }`}
-                    >
-                      <option value="Cash">Cash</option>
-                      <option value="Online">Online / UPI</option>
-                      <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                      <option value="Bank Transfer">Bank Transfer / NEFT</option>
-                    </select>
-                  </div>
-
-                  {/* Due Amount Box */}
-                  <div className="p-3 rounded-xl bg-white border border-slate-200 flex flex-col justify-between">
-                    <span className="text-[10px] font-bold uppercase text-slate-400">
-                      Remaining Due Amount
-                    </span>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className={`text-xl font-black ${
-                        formData.paymentStatus === 'Paid' ? 'text-emerald-600' : 'text-rose-600'
-                      }`}>
-                        ₹{calculateComputedDue(formData.salaryAmount, formData.advanceAmount, formData.paymentStatus)}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                        formData.paymentStatus === 'Paid'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-rose-100 text-rose-800'
-                      }`}>
-                        {formData.paymentStatus === 'Paid' ? '₹0 (Paid)' : 'Pending Due'}
-                      </span>
-                    </div>
-                  </div>
-
                 </div>
               </div>
 
-              {/* Trip Remarks */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+              {/* 4. Trip Remarks */}
+              <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-2">
+                <label className="block text-xs font-bold text-slate-700">
                   <FileText className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
                   Trip Remarks (Admin Notes / Experience / Performance)
                 </label>
@@ -1199,50 +1866,47 @@ const TripsPage = () => {
                   placeholder="e.g. Completed route on time, disciplined behavior, good vehicle maintenance..."
                   value={formData.remarks}
                   onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500 resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500 resize-none bg-white shadow-2xs"
                 />
-                <span className="text-[10px] text-slate-400">
-                  These remarks will be permanently preserved in the staff's biodata dossier and task history.
+                <span className="text-[10px] text-slate-400 block">
+                  These remarks will be permanently preserved in all assigned crew members' dossiers.
                 </span>
               </div>
 
-              {/* Employee Block Option */}
-              <div className="bg-rose-50/60 rounded-2xl p-4 border border-rose-200 space-y-2.5">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="blockEmployeeCheck"
-                    checked={formData.blockEmployee}
-                    onChange={(e) => setFormData({ ...formData, blockEmployee: e.target.checked })}
-                    className="w-4 h-4 text-rose-600 rounded border-rose-300 focus:ring-rose-500 cursor-pointer"
-                  />
-                  <label htmlFor="blockEmployeeCheck" className="text-xs font-bold text-rose-900 cursor-pointer">
-                    🚫 Block this employee from next task allocations
-                  </label>
+            </form>
+
+            {/* Sticky Modal Action Footer */}
+            <div className="bg-white border-t border-slate-200 px-4 sm:px-8 py-3.5 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0 z-20 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+              <div className="flex items-center justify-between sm:justify-start gap-2 text-xs font-bold text-slate-600 bg-slate-50 sm:bg-transparent p-2 sm:p-0 rounded-xl border border-slate-100 sm:border-0">
+                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Tally:</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-900 font-black">₹{totalCrewSalary} Total</span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-amber-700 font-black">₹{totalCrewAdvance} Adv</span>
+                  <span className="text-slate-300">•</span>
+                  <span className={totalCrewDue === 0 ? 'text-emerald-700 font-black' : 'text-rose-600 font-black'}>
+                    ₹{totalCrewDue} Due
+                  </span>
                 </div>
-                <p className="text-[11px] text-rose-700 leading-relaxed pl-6">
-                  Check this if the employee violated policy, showed poor conduct, or should be restricted from being assigned to any future tasks.
-                </p>
               </div>
 
-              {/* Form Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer text-center shadow-2xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-xs shadow-md hover:scale-[1.01] active:scale-95 transition-all cursor-pointer"
+                  form="task-dispatch-form"
+                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-xs shadow-md hover:scale-[1.01] active:scale-95 transition-all cursor-pointer text-center"
                 >
                   Save Task Record
                 </button>
               </div>
-
-            </form>
+            </div>
 
           </div>
         </div>

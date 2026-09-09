@@ -635,8 +635,8 @@ const EmployeeProfilePage = () => {
             </div>
           </div>
 
-          {/* Address & Special Skills */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Address, Special Skills & Remarks */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
               <div className="flex items-center gap-1.5 text-slate-500 font-bold uppercase mb-1">
                 <MapPin className="w-3.5 h-3.5 text-amber-600" />
@@ -656,6 +656,16 @@ const EmployeeProfilePage = () => {
                 {Array.isArray(employee.specialSkills) && employee.specialSkills.length > 0
                   ? employee.specialSkills.join(', ')
                   : 'Standard verified staff profile.'}
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 text-xs">
+              <div className="flex items-center gap-1.5 text-amber-900 font-bold uppercase mb-1">
+                <FileText className="w-3.5 h-3.5 text-amber-600" />
+                <span>Administrative Remarks</span>
+              </div>
+              <p className="text-slate-800 font-medium">
+                {employee.notes || 'No administrative notes recorded.'}
               </p>
             </div>
           </div>
