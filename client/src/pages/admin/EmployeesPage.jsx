@@ -42,10 +42,12 @@ import {
   Building,
   UserCheck,
   AlertTriangle,
-  Calendar
+  Calendar,
+  Download
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
+import { exportToExcel } from '../../utils/excelExport';
 
 const EmployeesPage = () => {
   const [employees, setEmployees] = useState([]);
@@ -410,6 +412,56 @@ const EmployeesPage = () => {
     }
   };
 
+  const handleExportExcel = () => {
+    if (employees.length === 0) {
+      alert('No employee records to export.');
+      return;
+    }
+
+    const exportData = employees.map((emp, idx) => {
+      const expDate = emp.documents?.licenseExpiryDate 
+        ? new Date(emp.documents.licenseExpiryDate).toLocaleDateString('en-IN')
+        : 'N/A';
+      const joinDate = emp.joiningDate 
+        ? new Date(emp.joiningDate).toLocaleDateString('en-IN')
+        : 'N/A';
+
+      return {
+        'S.No': idx + 1,
+        'Staff ID': emp.employeeId || '',
+        'Full Name': emp.name || '',
+        'Category': emp.category || 'Driver',
+        'Mobile Number': emp.mobileNumber || '',
+        'Alternate Number': emp.alternateNumber || 'N/A',
+        'Experience': emp.experience ? `${emp.experience} Years` : 'N/A',
+        'Duty Status': emp.status || 'Available',
+        'Is Blocked': emp.isBlocked || emp.status === 'Blocked' ? 'YES (Blocked)' : 'NO (Active)',
+        'Block Reason': emp.blockReason || 'N/A',
+        'License Number': emp.documents?.licenseNumber || 'N/A',
+        'License Expiry Date': expDate,
+        'Aadhaar Number': emp.documents?.aadhaarNumber || 'N/A',
+        'PAN Number': emp.documents?.panNumber || 'N/A',
+        'City': emp.address?.city || '',
+        'State': emp.address?.state || '',
+        'Full Address': emp.address?.fullAddress || `${emp.address?.street || ''} ${emp.address?.city || ''} ${emp.address?.state || ''}`.trim(),
+        'Reference Person': emp.reference?.name ? `${emp.reference.name} (${emp.reference.relationship || 'Ref'}) - ${emp.reference.phone || ''}` : 'N/A',
+        'Bank Name': emp.bankDetails?.bankName || 'N/A',
+        'Account Number': emp.bankDetails?.accountNumber || 'N/A',
+        'IFSC Code': emp.bankDetails?.ifscCode || 'N/A',
+        'Account Holder': emp.bankDetails?.accountHolderName || 'N/A',
+        'Remarks / Notes': emp.remarks || '',
+        'Joining Date': joinDate,
+      };
+    });
+
+    const activeFilterTag = [
+      categoryFilter !== 'All' ? categoryFilter : '',
+      statusFilter !== 'All' ? statusFilter : '',
+    ].filter(Boolean).join('_') || 'All';
+
+    exportToExcel(exportData, `SSRC_Staff_${activeFilterTag}`, 'Staff_Directory');
+  };
+
   // Calculate pagination slices
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -436,13 +488,24 @@ const EmployeesPage = () => {
             </p>
           </div>
 
-          <button
-            onClick={() => handleOpenModal()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-transform self-start sm:self-auto cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
-            <span>Add New Employee</span>
-          </button>
+          <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+            <button
+              onClick={handleExportExcel}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs shadow-2xs hover:scale-[1.01] active:scale-95 transition-all cursor-pointer"
+              title="Download Staff Directory as Excel"
+            >
+              <Download className="w-4 h-4 text-emerald-600" />
+              <span>Export Excel ({employees.length})</span>
+            </button>
+
+            <button
+              onClick={() => handleOpenModal()}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-transform cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
+              <span>Add New Employee</span>
+            </button>
+          </div>
         </div>
 
         {/* Search & Multi-Filter Bar */}

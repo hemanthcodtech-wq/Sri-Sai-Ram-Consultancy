@@ -30,6 +30,11 @@ const tripSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    vehicleStatus: {
+      type: String,
+      enum: ['RUN', 'HOLD'],
+      default: 'RUN',
+    },
     route: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Route',

@@ -30,10 +30,12 @@ import {
   Check,
   FileText,
   Users,
-  Compass
+  Compass,
+  Download
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
+import { exportToExcel } from '../../utils/excelExport';
 
 const TripsPage = () => {
   const [searchParams] = useSearchParams();
@@ -66,6 +68,7 @@ const TripsPage = () => {
     endDate: new Date().toISOString().slice(0, 10),
     totalDays: 1,
     vehicleNumber: '',
+    vehicleStatus: 'RUN',
     route: '',
     routeName: '',
     operator: '',
@@ -292,6 +295,7 @@ const TripsPage = () => {
         endDate: eDate,
         totalDays: days,
         vehicleNumber: trip.vehicleNumber || '',
+        vehicleStatus: trip.vehicleStatus || 'RUN',
         route: trip.route?._id || trip.route || '',
         routeName: trip.routeName || '',
         operator: trip.operator?._id || trip.operator || '',
@@ -675,6 +679,67 @@ const TripsPage = () => {
     return crew;
   };
 
+  const handleExportExcel = () => {
+    if (trips.length === 0) {
+      alert('No task records to export.');
+      return;
+    }
+
+    const exportData = trips.map((task, idx) => {
+      const crewList = getTaskCrewList(task);
+      const d1 = crewList.find((c) => c.role === 'Driver 1');
+      const d2 = crewList.find((c) => c.role === 'Driver 2');
+      const helper = crewList.find((c) => c.role === 'Helper');
+
+      const sDateObj = task.startDate ? new Date(task.startDate) : (task.tripDate ? new Date(task.tripDate) : null);
+      const eDateObj = task.endDate ? new Date(task.endDate) : sDateObj;
+      const sDateStr = sDateObj ? sDateObj.toLocaleDateString('en-IN') : '';
+      const eDateStr = eDateObj ? eDateObj.toLocaleDateString('en-IN') : '';
+
+      const isPaid = task.paymentStatus === 'Paid';
+      const due = isPaid ? 0 : (task.dueAmount !== undefined ? task.dueAmount : Math.max(0, (task.salaryAmount || 0) - (task.advanceAmount || 0)));
+
+      return {
+        'S.No': idx + 1,
+        'Task #': task.tripNumber || '',
+        'Start Date': sDateStr,
+        'End Date': eDateStr,
+        'Duty Days': task.totalDays || 1,
+        'Vehicle Number': task.vehicleNumber || 'N/A',
+        'Vehicle Status': task.vehicleStatus || 'RUN',
+        'Route Corridor': task.routeName || (task.pickupLocation ? `${task.pickupLocation} → ${task.dropLocation || ''}` : 'N/A'),
+        'Operator / Organizer': task.operatorName || task.operator?.name || task.clientName || 'N/A',
+        'Driver 1 Name': d1 ? d1.name : 'N/A',
+        'Driver 1 Category': d1 ? d1.category : '',
+        'Driver 1 Salary (₹)': d1 ? d1.salary : 0,
+        'Driver 1 Advance (₹)': d1 ? d1.advance : 0,
+        'Driver 1 Advance Mode': d1 ? d1.advanceMode : '',
+        'Driver 2 Name': d2 ? d2.name : 'N/A',
+        'Driver 2 Salary (₹)': d2 ? d2.salary : 0,
+        'Driver 2 Advance (₹)': d2 ? d2.advance : 0,
+        'Driver 2 Advance Mode': d2 ? d2.advanceMode : '',
+        'Helper Name': helper ? helper.name : 'N/A',
+        'Helper Salary (₹)': helper ? helper.salary : 0,
+        'Helper Advance (₹)': helper ? helper.advance : 0,
+        'Helper Advance Mode': helper ? helper.advanceMode : '',
+        'Total Crew Salary (₹)': task.salaryAmount || task.employeePayout || 0,
+        'Total Advance Paid (₹)': task.advanceAmount || 0,
+        'Remaining Due (₹)': due,
+        'Payment Status': task.paymentStatus || 'Pending',
+        'Task Status': task.tripStatus || 'Scheduled',
+        'Remarks': task.remarks || '',
+      };
+    });
+
+    const activeFilterTag = [
+      category !== 'All' ? category : '',
+      tripStatus !== 'All' ? tripStatus : '',
+      paymentStatus !== 'All' ? paymentStatus : '',
+    ].filter(Boolean).join('_') || 'All';
+
+    exportToExcel(exportData, `SSRC_Tasks_${activeFilterTag}`, 'Tasks_Report');
+  };
+
   // Calculate pagination slices
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -701,13 +766,24 @@ const TripsPage = () => {
             </p>
           </div>
 
-          <button
-            onClick={() => handleOpenModal()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-sm shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-transform self-start sm:self-auto cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
-            <span>Log New Task</span>
-          </button>
+          <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+            <button
+              onClick={handleExportExcel}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs shadow-2xs hover:scale-[1.01] active:scale-95 transition-all cursor-pointer"
+              title="Download Filtered Task Records as Excel"
+            >
+              <Download className="w-4 h-4 text-emerald-600" />
+              <span>Export Excel ({trips.length})</span>
+            </button>
+
+            <button
+              onClick={() => handleOpenModal()}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-black text-sm shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-transform cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
+              <span>Log New Task</span>
+            </button>
+          </div>
         </div>
 
         {/* Financial Summary Strip */}
@@ -867,9 +943,18 @@ const TripsPage = () => {
                         {/* Vehicle & Route */}
                         <td className="py-3.5 px-4">
                           {task.vehicleNumber ? (
-                            <span className="font-mono font-extrabold text-slate-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-xs inline-block mb-1">
-                              {task.vehicleNumber}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                              <span className="font-mono font-extrabold text-slate-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-xs inline-block">
+                                {task.vehicleNumber}
+                              </span>
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
+                                task.vehicleStatus === 'HOLD'
+                                  ? 'bg-rose-100 text-rose-800 border-rose-300'
+                                  : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              }`}>
+                                {task.vehicleStatus || 'RUN'}
+                              </span>
+                            </div>
                           ) : (
                             <span className="text-slate-400 text-[11px] block italic mb-1">Vehicle Not Set</span>
                           )}
@@ -1153,7 +1238,7 @@ const TripsPage = () => {
                   </h4>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   {/* Task Start Date */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -1183,6 +1268,22 @@ const TripsPage = () => {
                       onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value.toUpperCase() })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-bold focus:outline-none focus:border-amber-500 uppercase placeholder:normal-case bg-white shadow-2xs"
                     />
+                  </div>
+
+                  {/* Vehicle Status (RUN / HOLD) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      <Car className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
+                      Vehicle Status *
+                    </label>
+                    <select
+                      value={formData.vehicleStatus || 'RUN'}
+                      onChange={(e) => setFormData({ ...formData, vehicleStatus: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500 bg-white shadow-2xs"
+                    >
+                      <option value="RUN">🟢 RUN</option>
+                      <option value="HOLD">🔴 HOLD</option>
+                    </select>
                   </div>
 
                   {/* Route Corridor */}
@@ -1284,7 +1385,7 @@ const TripsPage = () => {
                     </select>
                   </div>
 
-                  {/* DUTY FINANCIALS & SPLIT PAYMENTS Card - Driver 1 */}
+                  {/* DUTY FINANCIALS & SPLIT PAYMENTS Card - Driver 1 (Salary First, Advance Second) */}
                   <div className="bg-white rounded-2xl p-5 sm:p-6 border border-amber-200 space-y-4 shadow-sm">
                     <div className="flex items-center justify-between border-b border-amber-100 pb-3">
                       <span className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-1.5 uppercase tracking-wide">
@@ -1292,16 +1393,42 @@ const TripsPage = () => {
                         DUTY FINANCIALS &amp; SPLIT PAYMENTS
                       </span>
                       <span className="text-[10px] sm:text-[11px] font-bold text-amber-900 bg-amber-100/90 border border-amber-300 px-3 py-0.5 rounded-full shadow-2xs">
-                        Advance + Salary
+                        Salary + Advance
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* 1. Advance Amount (Given) */}
+                      {/* 1. Salary Amount (Total to Pay) */}
+                      <div className="bg-amber-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                            1. Salary Amount (Total to Pay) ₹ *
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="0"
+                            placeholder="e.g. 1500"
+                            value={formData.driver1.salaryAmount}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                driver1: { ...formData.driver1, salaryAmount: e.target.value },
+                              })
+                            }
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
+                          />
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-2 font-medium">
+                          Total duty payment allocated for the employee.
+                        </p>
+                      </div>
+
+                      {/* 2. Advance Amount (Given) */}
                       <div className="bg-amber-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
                         <div>
                           <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                            1. Advance Amount (Given) ₹
+                            2. Advance Amount (Given) ₹
                           </label>
                           <input
                             type="number"
@@ -1339,32 +1466,6 @@ const TripsPage = () => {
                             <option value="Cheque">Cheque</option>
                           </select>
                         </div>
-                      </div>
-
-                      {/* 2. Salary Amount (Total to Pay) */}
-                      <div className="bg-amber-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                            2. Salary Amount (Total to Pay) ₹ *
-                          </label>
-                          <input
-                            type="number"
-                            required
-                            min="0"
-                            placeholder="e.g. 1500"
-                            value={formData.driver1.salaryAmount}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                driver1: { ...formData.driver1, salaryAmount: e.target.value },
-                              })
-                            }
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
-                          />
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-2 font-medium">
-                          Total duty payment allocated for the employee.
-                        </p>
                       </div>
                     </div>
 
@@ -1477,16 +1578,41 @@ const TripsPage = () => {
                           DUTY FINANCIALS &amp; SPLIT PAYMENTS (DRIVER 2)
                         </span>
                         <span className="text-[10px] sm:text-[11px] font-bold text-blue-900 bg-blue-100/90 border border-blue-300 px-3 py-0.5 rounded-full shadow-2xs">
-                          Advance + Salary
+                          Salary + Advance
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* 1. Advance Amount (Given) */}
+                        {/* 1. Salary Amount (Total to Pay) */}
+                        <div className="bg-blue-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                              1. Salary Amount (Total to Pay) ₹ *
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 1500"
+                              value={formData.driver2.salaryAmount}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  driver2: { ...formData.driver2, salaryAmount: e.target.value },
+                                })
+                              }
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 bg-white"
+                            />
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-2 font-medium">
+                            Total duty payment allocated for the employee.
+                          </p>
+                        </div>
+
+                        {/* 2. Advance Amount (Given) */}
                         <div className="bg-blue-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
                           <div>
                             <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                              1. Advance Amount (Given) ₹
+                              2. Advance Amount (Given) ₹
                             </label>
                             <input
                               type="number"
@@ -1524,31 +1650,6 @@ const TripsPage = () => {
                               <option value="Cheque">Cheque</option>
                             </select>
                           </div>
-                        </div>
-
-                        {/* 2. Salary Amount (Total to Pay) */}
-                        <div className="bg-blue-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                              2. Salary Amount (Total to Pay) ₹ *
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="e.g. 1500"
-                              value={formData.driver2.salaryAmount}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  driver2: { ...formData.driver2, salaryAmount: e.target.value },
-                                })
-                              }
-                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 bg-white"
-                            />
-                          </div>
-                          <p className="text-[11px] text-slate-400 mt-2 font-medium">
-                            Total duty payment allocated for the employee.
-                          </p>
                         </div>
                       </div>
 
@@ -1666,16 +1767,41 @@ const TripsPage = () => {
                           DUTY FINANCIALS &amp; SPLIT PAYMENTS (HELPER)
                         </span>
                         <span className="text-[10px] sm:text-[11px] font-bold text-emerald-900 bg-emerald-100/90 border border-emerald-300 px-3 py-0.5 rounded-full shadow-2xs">
-                          Advance + Salary
+                          Salary + Advance
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* 1. Advance Amount (Given) */}
+                        {/* 1. Salary Amount (Total to Pay) */}
+                        <div className="bg-emerald-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                              1. Salary Amount (Total to Pay) ₹ *
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 1500"
+                              value={formData.helper.salaryAmount}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  helper: { ...formData.helper, salaryAmount: e.target.value },
+                                })
+                              }
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 bg-white"
+                            />
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-2 font-medium">
+                            Total duty payment allocated for the employee.
+                          </p>
+                        </div>
+
+                        {/* 2. Advance Amount (Given) */}
                         <div className="bg-emerald-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
                           <div>
                             <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                              1. Advance Amount (Given) ₹
+                              2. Advance Amount (Given) ₹
                             </label>
                             <input
                               type="number"
@@ -1713,31 +1839,6 @@ const TripsPage = () => {
                               <option value="Cheque">Cheque</option>
                             </select>
                           </div>
-                        </div>
-
-                        {/* 2. Salary Amount (Total to Pay) */}
-                        <div className="bg-emerald-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                              2. Salary Amount (Total to Pay) ₹ *
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="e.g. 1500"
-                              value={formData.helper.salaryAmount}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  helper: { ...formData.helper, salaryAmount: e.target.value },
-                                })
-                              }
-                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 bg-white"
-                            />
-                          </div>
-                          <p className="text-[11px] text-slate-400 mt-2 font-medium">
-                            Total duty payment allocated for the employee.
-                          </p>
                         </div>
                       </div>
 

@@ -18,10 +18,12 @@ import {
   Shield,
   Briefcase,
   ExternalLink,
-  Users
+  Users,
+  Download
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
+import { exportToExcel } from '../../utils/excelExport';
 
 const OrganizersPage = () => {
   const [organizers, setOrganizers] = useState([]);
@@ -141,6 +143,27 @@ const OrganizersPage = () => {
     }
   };
 
+  const handleExportExcel = () => {
+    if (organizers.length === 0) {
+      alert('No organizer records to export.');
+      return;
+    }
+
+    const exportData = organizers.map((org, idx) => ({
+      'S.No': idx + 1,
+      'Organizer / Partner Name': org.name || '',
+      'Phone Number': org.phone || '',
+      'Email Address': org.email || 'N/A',
+      'Company / Agency': org.company || 'N/A',
+      'Address / Location': org.address || 'N/A',
+      'Status': org.status || 'Active',
+      'Notes': org.notes || '',
+      'Created Date': org.createdAt ? new Date(org.createdAt).toLocaleDateString('en-IN') : 'N/A',
+    }));
+
+    exportToExcel(exportData, `SSRC_Organizers_${statusFilter}`, 'Organizers_Directory');
+  };
+
   // Calculate pagination slices
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -169,13 +192,24 @@ const OrganizersPage = () => {
             </p>
           </div>
 
-          <button
-            onClick={() => handleOpenModal()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-transform self-start sm:self-auto cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
-            <span>Add New Organizer</span>
-          </button>
+          <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+            <button
+              onClick={handleExportExcel}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs shadow-2xs hover:scale-[1.01] active:scale-95 transition-all cursor-pointer"
+              title="Download Organizer Directory as Excel"
+            >
+              <Download className="w-4 h-4 text-emerald-600" />
+              <span>Export Excel ({organizers.length})</span>
+            </button>
+
+            <button
+              onClick={() => handleOpenModal()}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-slate-950 font-bold text-sm shadow-md shadow-amber-500/20 hover:scale-[1.02] transition-transform cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-slate-950 stroke-[3]" />
+              <span>Add New Organizer</span>
+            </button>
+          </div>
         </div>
 
         {/* Quick Summary Strip */}

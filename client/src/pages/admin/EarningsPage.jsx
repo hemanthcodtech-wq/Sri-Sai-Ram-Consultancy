@@ -18,10 +18,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  Printer
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
+import { exportToExcel } from '../../utils/excelExport';
 
 const EarningsPage = () => {
   const [stats, setStats] = useState(null);
@@ -67,6 +69,28 @@ const EarningsPage = () => {
     window.print();
   };
 
+  const handleExportExcel = () => {
+    if (filteredEmployees.length === 0) {
+      alert('No financial ledger records to export.');
+      return;
+    }
+
+    const exportData = filteredEmployees.map((emp, idx) => ({
+      'S.No': idx + 1,
+      'Staff ID': emp.employeeId || '',
+      'Employee Name': emp.name || '',
+      'Category': emp.category || 'Driver',
+      'Tasks Handled': emp.tripsCount || 0,
+      'Salary Earned (₹)': emp.salaryTotal || emp.earnings || 0,
+      'Advance Paid (₹)': emp.advanceTotal || 0,
+      'Pending Due (₹)': emp.dueTotal || 0,
+      'Settled Total (₹)': emp.paidTotal || emp.amountCollected || 0,
+      'Status': emp.isBlocked ? 'Blocked' : 'Active',
+    }));
+
+    exportToExcel(exportData, `SSRC_Financial_Ledger_${timeRange}_${categoryFilter}`, 'Staff_Financial_Ledger');
+  };
+
   const filteredEmployees = stats?.topEmployees?.filter(emp => {
     if (categoryFilter === 'All') return true;
     return emp.category === categoryFilter;
@@ -98,18 +122,28 @@ const EarningsPage = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Export Excel Ledger Button */}
+            <button
+              onClick={handleExportExcel}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold shadow-2xs hover:scale-[1.01] active:scale-95 transition-all cursor-pointer"
+              title="Download Financial Ledger as Excel"
+            >
+              <Download className="w-4 h-4 text-emerald-600" />
+              <span>Export Excel ({filteredEmployees.length})</span>
+            </button>
+
             {/* Print / Export Report Button */}
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-slate-200 text-slate-700 text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 text-xs font-bold shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
             >
-              <PrinterIcon className="w-4 h-4 text-slate-500" />
+              <Printer className="w-4 h-4 text-slate-500" />
               <span>Print Report</span>
             </button>
 
             {/* Time Filter Buttons */}
-            <div className="flex items-center gap-1 p-1 bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-slate-200 shadow-2xs">
               {[
                 { id: 'today', label: 'Today' },
                 { id: 'week', label: 'Week' },
@@ -120,9 +154,9 @@ const EarningsPage = () => {
                 <button
                   key={t.id}
                   onClick={() => setTimeRange(t.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
                     timeRange === t.id
-                      ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
+                      ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
