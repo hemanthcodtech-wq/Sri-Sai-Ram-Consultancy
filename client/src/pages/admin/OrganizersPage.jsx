@@ -174,7 +174,7 @@ const OrganizersPage = () => {
 
   return (
     <>
-      <SEOHead title="Organizer Management - SSRC Admin" />
+      <SEOHead title="Organizer Management - SSRC Admin" noindex={true} />
 
       <div className="space-y-6">
         

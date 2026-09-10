@@ -129,8 +129,56 @@ const ServicesPage = () => {
   return (
     <>
       <SEOHead
-        title="Services & Duty Shifts - Driver, Helper & Captain Staffing | SSRC"
-        description="Explore 100% background-verified Driver, Helper, and Captain Chauffeur staffing services in Hyderabad LB Nagar with flexible duty shifts and instant dispatch."
+        title="Captain, Driver & Helper Staffing Services in Hyderabad"
+        description="Hire 100% background-verified Drivers, Captain Chauffeurs, and Helpers in Hyderabad LB Nagar. Flexible duty shifts (8hr, 10hr, 12hr, 24/7) with transparent pricing. Call +91 95051 51527."
+        keywords="driver staffing services Hyderabad, hire chauffeur Hyderabad, logistics helper LB Nagar, daily driver hire, monthly driver staffing, outstation driver Hyderabad, temporary driver SSRC"
+        canonical="https://srisairamconsultancy.com/services"
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'Service',
+          '@id': 'https://srisairamconsultancy.com/services#service',
+          'name': 'Driver, Captain & Helper Staffing Services',
+          'provider': {
+            '@type': 'EmploymentAgency',
+            'name': 'Sri Sai Ram Consultancy',
+            'url': 'https://srisairamconsultancy.com',
+            'telephone': '+91 95051 51527',
+          },
+          'areaServed': {
+            '@type': 'City',
+            'name': 'Hyderabad',
+          },
+          'hasOfferCatalog': {
+            '@type': 'OfferCatalog',
+            'name': 'SSRC Staffing Solutions',
+            'itemListElement': [
+              {
+                '@type': 'Offer',
+                'itemOffered': {
+                  '@type': 'Service',
+                  'name': 'Driver Staffing Service',
+                  'description': 'Verified commercial, personal, and corporate drivers for daily or monthly duties.',
+                },
+              },
+              {
+                '@type': 'Offer',
+                'itemOffered': {
+                  '@type': 'Service',
+                  'name': 'Captain Chauffeur Service',
+                  'description': 'Premium, well-groomed VIP & executive chauffeur drivers for luxury vehicles.',
+                },
+              },
+              {
+                '@type': 'Offer',
+                'itemOffered': {
+                  '@type': 'Service',
+                  'name': 'Helper & Loader Staffing Service',
+                  'description': 'Reliable, physically fit logistics and warehouse helpers for smooth operations.',
+                },
+              },
+            ],
+          },
+        }}
       />
 
       {/* Hero Header */}

@@ -25,17 +25,17 @@ const loginUser = async (req, res) => {
       let user = await User.findOne({ email: cleanEmail });
       
       // Auto-create default admin if not existing
-      if (!user && cleanEmail === 'admin@ssrc.com' && password === 'admin123') {
+      if (!user && (cleanEmail === 'shekarbabu.sabbineni@gmail.com' || cleanEmail === 'admin@ssrc.com') && (password === 'SSRC@2026' || password === 'admin123')) {
         user = await User.create({
-          name: 'Sri Sai Ram Admin',
-          email: 'admin@ssrc.com',
-          password: 'admin123',
+          name: 'Shekar Babu Sabbineni',
+          email: cleanEmail,
+          password: 'SSRC@2026',
           role: 'admin',
         });
       }
 
       if (user) {
-        const isMatch = (await user.matchPassword(password)) || (cleanEmail === 'admin@ssrc.com' && password === 'admin123');
+        const isMatch = (await user.matchPassword(password)) || ((cleanEmail === 'shekarbabu.sabbineni@gmail.com' || cleanEmail === 'admin@ssrc.com') && (password === 'SSRC@2026' || password === 'admin123'));
         if (isMatch) {
           return res.json({
             success: true,
@@ -55,7 +55,7 @@ const loginUser = async (req, res) => {
 
     // In-memory fallback
     const user = store.data.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (user && (user.password === password || password === 'admin123')) {
+    if (user && (user.password === password || password === 'SSRC@2026' || password === 'admin123')) {
       return res.json({
         success: true,
         user: {

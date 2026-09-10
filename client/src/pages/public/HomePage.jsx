@@ -59,8 +59,45 @@ const HomePage = () => {
   return (
     <>
       <SEOHead
-        title="Sri Sai Ram Consultancy - Premium Captain, Driver & Helper Staffing"
-        description="Sri Sai Ram Consultancy (SSRC): 100% Verified Drivers, Logistics Helpers, and Captain Chauffeurs in Hyderabad LB Nagar. Call +91 95051 51527."
+        title="Sri Sai Ram Consultancy | Premium Captain, Driver & Helper Staffing Services"
+        description="Sri Sai Ram Consultancy (SSRC): 100% Background-verified Drivers, Logistics Helpers, and Captain Chauffeurs in Hyderabad LB Nagar. Call +91 95051 51527 for instant dispatch."
+        keywords="Sri Sai Ram Consultancy, 9505151527, Driver hiring Hyderabad, Helper staffing LB Nagar, Captain chauffeurs Hyderabad, corporate driver services, household drivers LB Nagar, verified helper staffing"
+        canonical="https://srisairamconsultancy.com/"
+        schema={{
+          '@context': 'https://schema.org',
+          '@graph': [
+            {
+              '@type': 'WebSite',
+              '@id': 'https://srisairamconsultancy.com/#website',
+              'url': 'https://srisairamconsultancy.com/',
+              'name': 'Sri Sai Ram Consultancy',
+              'description': 'Premium Captain, Driver & Helper Staffing Services in Hyderabad',
+              'publisher': {
+                '@id': 'https://srisairamconsultancy.com/#agency',
+              },
+            },
+            {
+              '@type': 'EmploymentAgency',
+              '@id': 'https://srisairamconsultancy.com/#agency',
+              'name': 'Sri Sai Ram Consultancy',
+              'url': 'https://srisairamconsultancy.com',
+              'logo': 'https://srisairamconsultancy.com/favicon.svg',
+              'image': 'https://srisairamconsultancy.com/og-image.png',
+              'telephone': '+91 95051 51527',
+              'email': 'info@srisairamconsultancy.com',
+              'address': {
+                '@type': 'PostalAddress',
+                'streetAddress': 'Beside Reliance Market, Jama Thota Sagar Ring Road, LB Nagar',
+                'addressLocality': 'Hyderabad',
+                'addressRegion': 'Telangana',
+                'postalCode': '500074',
+                'addressCountry': 'IN',
+              },
+              'priceRange': '₹₹',
+              'areaServed': ['Hyderabad', 'Secunderabad', 'Telangana'],
+            },
+          ],
+        }}
       />
 
       {/* ═══════════════════════════════════════════

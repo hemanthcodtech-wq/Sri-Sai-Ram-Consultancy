@@ -219,7 +219,7 @@ const AdminLayout = () => {
               </div>
               <div className="overflow-hidden">
                 <div className="text-xs font-black text-[#081C36] truncate">{user?.name || 'Administrator'}</div>
-                <div className="text-[10px] text-slate-500 font-semibold truncate">{user?.email || 'admin@ssrc.com'}</div>
+                <div className="text-[10px] text-slate-500 font-semibold truncate">{user?.email || 'shekarbabu.sabbineni@gmail.com'}</div>
               </div>
             </div>
 

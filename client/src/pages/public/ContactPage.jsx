@@ -61,8 +61,45 @@ const ContactPage = () => {
   return (
     <>
       <SEOHead
-        title="Contact Us - Sri Sai Ram Consultancy"
-        description="Get in touch with Sri Sai Ram Consultancy in LB Nagar, Hyderabad. Contact us via Call or WhatsApp for Captain, Driver, and Helper staffing."
+        title="Contact Us | Sri Sai Ram Consultancy - Call +91 9505151527 | LB Nagar Hyderabad"
+        description="Contact Sri Sai Ram Consultancy beside Reliance Market, Jama Thota Sagar Ring Road, LB Nagar, Hyderabad. Call or WhatsApp +91 95051 51527 for quick driver, helper, or captain bookings."
+        keywords="contact Sri Sai Ram Consultancy, SSRC phone number, 9505151527, LB Nagar driver consultancy office, driver hiring contact Hyderabad, helper staffing contact"
+        canonical="https://srisairamconsultancy.com/contact"
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'ContactPage',
+          '@id': 'https://srisairamconsultancy.com/contact#webpage',
+          'url': 'https://srisairamconsultancy.com/contact',
+          'name': 'Contact Sri Sai Ram Consultancy',
+          'description': '24/7 Helpline & Placement Desk for Drivers, Helpers, and Captains.',
+          'mainEntity': {
+            '@type': 'EmploymentAgency',
+            'name': 'Sri Sai Ram Consultancy',
+            'telephone': '+91 95051 51527',
+            'email': 'info@srisairamconsultancy.com',
+            'url': 'https://srisairamconsultancy.com',
+            'address': {
+              '@type': 'PostalAddress',
+              'streetAddress': 'Beside Reliance Market, Jama Thota Sagar Ring Road, LB Nagar',
+              'addressLocality': 'Hyderabad',
+              'addressRegion': 'Telangana',
+              'postalCode': '500074',
+              'addressCountry': 'IN',
+            },
+            'geo': {
+              '@type': 'GeoCoordinates',
+              'latitude': 17.3457,
+              'longitude': 78.5522,
+            },
+            'contactPoint': {
+              '@type': 'ContactPoint',
+              'telephone': '+91 95051 51527',
+              'contactType': 'customer service',
+              'areaServed': 'IN',
+              'availableLanguage': ['English', 'Telugu', 'Hindi'],
+            },
+          },
+        }}
       />
 
       {/* ─── Hero ─── */}

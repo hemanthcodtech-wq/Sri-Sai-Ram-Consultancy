@@ -190,7 +190,7 @@ const RoutesPage = () => {
 
   return (
     <>
-      <SEOHead title="Route Management - SSRC Admin" />
+      <SEOHead title="Route Management - SSRC Admin" noindex={true} />
 
       <div className="space-y-6">
         

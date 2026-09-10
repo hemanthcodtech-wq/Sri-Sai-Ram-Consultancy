@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Lock, Mail, ShieldCheck, ArrowRight, AlertCircle, ArrowLeft, Sparkles } from 'lucide-react';
+import { Lock, Mail, ArrowRight, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import SEOHead from '../../components/public/SEOHead';
 import logoImg from '../../assets/logo.png';
@@ -39,14 +39,9 @@ const AdminLogin = () => {
     }
   };
 
-  const fillDemo = () => {
-    setEmail('admin@ssrc.com');
-    setPassword('admin123');
-  };
-
   return (
     <>
-      <SEOHead title="Admin Login - SSRC Portal" />
+      <SEOHead title="Admin Login - SSRC Portal" noindex={true} />
 
       <div className="min-h-screen bg-gradient-to-br from-[#FAF6EF] via-slate-50 to-[#FFFBF0] flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden">
         
@@ -101,7 +96,7 @@ const AdminLogin = () => {
                   <input
                     type="email"
                     required
-                    placeholder="admin@ssrc.com"
+                    placeholder="shekarbabu.sabbineni@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-sm font-medium focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all placeholder-slate-400"
@@ -134,18 +129,6 @@ const AdminLogin = () => {
               </button>
 
             </form>
-
-            {/* Quick Demo Autofill Pill */}
-            <div className="pt-4 border-t border-slate-100 text-center">
-              <button
-                type="button"
-                onClick={fillDemo}
-                className="text-xs text-amber-800 font-extrabold hover:text-amber-900 bg-amber-50 hover:bg-amber-100 px-4 py-2 rounded-xl border border-amber-300 transition-all shadow-sm inline-flex items-center gap-1.5"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>Autofill Demo Credentials (admin@ssrc.com / admin123)</span>
-              </button>
-            </div>
 
           </div>
 

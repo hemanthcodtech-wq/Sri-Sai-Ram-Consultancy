@@ -109,7 +109,7 @@ const DashboardPage = () => {
 
   return (
     <>
-      <SEOHead title="Earnings & Operations Dashboard - SSRC Admin" />
+      <SEOHead title="Earnings & Operations Dashboard - SSRC Admin" noindex={true} />
 
       <div className="space-y-8">
         

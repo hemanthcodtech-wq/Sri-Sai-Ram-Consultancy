@@ -189,7 +189,7 @@ const EmployeeProfilePage = () => {
 
   return (
     <>
-      <SEOHead title={`${employee.name} - Biodata & Duty Profile - SSRC Admin`} />
+      <SEOHead title={`${employee.name} - Biodata & Duty Profile - SSRC Admin`} noindex={true} />
 
       <div className="space-y-6 max-w-5xl mx-auto">
         

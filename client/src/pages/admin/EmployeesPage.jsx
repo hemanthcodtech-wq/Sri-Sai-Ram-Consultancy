@@ -470,7 +470,7 @@ const EmployeesPage = () => {
 
   return (
     <>
-      <SEOHead title="Employee Biodata & Management - SSRC Admin" />
+      <SEOHead title="Employee Biodata & Management - SSRC Admin" noindex={true} />
 
       <div className="space-y-6">
         

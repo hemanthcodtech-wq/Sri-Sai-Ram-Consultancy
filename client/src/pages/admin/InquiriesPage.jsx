@@ -96,7 +96,7 @@ const InquiriesPage = () => {
 
   return (
     <>
-      <SEOHead title="Website Booking Inquiries - SSRC Admin" />
+      <SEOHead title="Website Booking Inquiries - SSRC Admin" noindex={true} />
 
       <div className="space-y-6">
         

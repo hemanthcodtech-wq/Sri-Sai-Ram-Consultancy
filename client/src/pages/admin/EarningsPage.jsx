@@ -104,7 +104,7 @@ const EarningsPage = () => {
 
   return (
     <>
-      <SEOHead title="Earnings & Financial Analytics - SSRC Admin" />
+      <SEOHead title="Earnings & Financial Analytics - SSRC Admin" noindex={true} />
 
       <div className="space-y-8">
         

@@ -59,8 +59,32 @@ const AboutPage = () => {
   return (
     <>
       <SEOHead
-        title="About Us - Sri Sai Ram Consultancy"
-        description="Learn about Sri Sai Ram Consultancy, our mission, 4-stage verification standard, and how we empower skilled drivers, helpers, and captains in Hyderabad."
+        title="About Us | Sri Sai Ram Consultancy - Hyderabad's Trusted Staffing Agency"
+        description="Learn about Sri Sai Ram Consultancy (SSRC), our heritage, 4-stage background verification protocol, and our mission to provide elite drivers, helpers, and captains across Hyderabad."
+        keywords="about Sri Sai Ram Consultancy, verified staffing agency Hyderabad, driver verification standard, SSRC LB Nagar, manpower consultancy Telangana"
+        canonical="https://srisairamconsultancy.com/about"
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'AboutPage',
+          '@id': 'https://srisairamconsultancy.com/about#webpage',
+          'url': 'https://srisairamconsultancy.com/about',
+          'name': 'About Sri Sai Ram Consultancy',
+          'description': 'Hyderabad leading agency for verified driver, helper, and captain placement.',
+          'mainEntity': {
+            '@type': 'EmploymentAgency',
+            'name': 'Sri Sai Ram Consultancy',
+            'url': 'https://srisairamconsultancy.com',
+            'slogan': 'Your Dreams... Our Guidance...',
+            'address': {
+              '@type': 'PostalAddress',
+              'streetAddress': 'Beside Reliance Market, Jama Thota Sagar Ring Road, LB Nagar',
+              'addressLocality': 'Hyderabad',
+              'addressRegion': 'Telangana',
+              'postalCode': '500074',
+              'addressCountry': 'IN',
+            },
+          },
+        }}
       />
 
       {/* Hero Banner */}

@@ -748,7 +748,7 @@ const TripsPage = () => {
 
   return (
     <>
-      <SEOHead title="Task Management & Multi-Staff Dispatch - SSRC Admin" />
+      <SEOHead title="Task Management & Multi-Staff Dispatch - SSRC Admin" noindex={true} />
 
       <div className="space-y-6">
         
