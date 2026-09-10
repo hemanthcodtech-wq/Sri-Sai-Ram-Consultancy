@@ -96,7 +96,7 @@ const AdminLogin = () => {
                   <input
                     type="email"
                     required
-                    placeholder="shekarbabu.sabbineni@gmail.com"
+                    placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-sm font-medium focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all placeholder-slate-400"
@@ -111,7 +111,7 @@ const AdminLogin = () => {
                   <input
                     type="password"
                     required
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-sm font-medium focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all placeholder-slate-400"
