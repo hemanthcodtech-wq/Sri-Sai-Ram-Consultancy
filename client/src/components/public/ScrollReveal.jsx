@@ -2,15 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 
 /**
  * ScrollReveal Component
- * Smooth scroll-triggered fade in, fade out, zoom, and slide animation wrapper.
+ * Smooth scroll-triggered fade in, zoom, and slide animation wrapper.
+ * Defaults to once=true to eliminate layout jitter and shaking/vibration on scroll.
  */
 const ScrollReveal = ({ 
   children, 
   direction = 'up', 
   delay = 0, 
-  duration = 650, 
+  duration = 600, 
   className = '', 
-  once = false 
+  once = true 
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef(null);
@@ -30,19 +31,19 @@ const ScrollReveal = ({
         });
       },
       {
-        threshold: 0.1,
-        rootMargin: '0px 0px -30px 0px',
+        threshold: 0.05,
+        rootMargin: '0px 0px -20px 0px',
       }
     );
 
-    const { current } = domRef;
-    if (current) {
-      observer.observe(current);
+    const el = domRef.current;
+    if (el) {
+      observer.observe(el);
     }
 
     return () => {
-      if (current) {
-        observer.unobserve(current);
+      if (el) {
+        observer.unobserve(el);
       }
     };
   }, [once]);
@@ -52,28 +53,27 @@ const ScrollReveal = ({
 
     switch (direction) {
       case 'up':
-        return 'opacity-0 translate-y-12 scale-[0.97] blur-[1px]';
+        return 'opacity-0 translate-y-6 scale-[0.98]';
       case 'down':
-        return 'opacity-0 -translate-y-12 scale-[0.97] blur-[1px]';
+        return 'opacity-0 -translate-y-6 scale-[0.98]';
       case 'left':
-        return 'opacity-0 -translate-x-12 scale-[0.98] blur-[1px]';
+        return 'opacity-0 -translate-x-6 scale-[0.98]';
       case 'right':
-        return 'opacity-0 translate-x-12 scale-[0.98] blur-[1px]';
+        return 'opacity-0 translate-x-6 scale-[0.98]';
       case 'zoom':
-        return 'opacity-0 scale-[0.92] blur-[1px]';
+        return 'opacity-0 scale-[0.95]';
       default:
-        return 'opacity-0 translate-y-10 scale-[0.97] blur-[1px]';
+        return 'opacity-0 translate-y-6 scale-[0.98]';
     }
   };
 
   return (
     <div
       ref={domRef}
-      className={`transition-all will-change-transform ${getDirectionStyles()} ${className}`}
+      className={`transition-all ease-out will-change-transform ${getDirectionStyles()} ${className}`}
       style={{
         transitionDuration: `${duration}ms`,
         transitionDelay: `${delay}ms`,
-        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
       {children}
@@ -82,4 +82,3 @@ const ScrollReveal = ({
 };
 
 export default ScrollReveal;
-

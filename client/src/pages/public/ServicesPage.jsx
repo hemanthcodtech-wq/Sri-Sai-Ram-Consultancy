@@ -335,7 +335,7 @@ const ServicesPage = () => {
               SHIFT & ENGAGEMENT OPTIONS
               ═══════════════════════════════════════════ */}
           <div className="mt-14">
-            <ScrollReveal direction="down" duration={650}>
+            <ScrollReveal direction="up" duration={600}>
               <div className="text-center mb-8">
                 <span className="text-xs font-black uppercase tracking-wider text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
                   Flexible Scheduling

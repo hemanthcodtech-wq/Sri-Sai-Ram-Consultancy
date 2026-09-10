@@ -257,7 +257,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Header */}
-          <ScrollReveal direction="down" duration={650}>
+          <ScrollReveal direction="up" duration={600}>
             <div className="text-center max-w-3xl mx-auto mb-12">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-[#7C5200] border border-amber-300 text-xs font-black uppercase tracking-wider mb-2">
                 <Zap className="w-3.5 h-3.5 text-amber-600" />
@@ -500,7 +500,7 @@ const HomePage = () => {
       <section className="py-14 sm:py-20 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <ScrollReveal direction="down" duration={650}>
+          <ScrollReveal direction="up" duration={600}>
             <div className="text-center max-w-3xl mx-auto mb-12">
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-[#7C5200] border border-amber-300 text-xs font-black uppercase tracking-wider mb-2">
                 <Clock className="w-3.5 h-3.5 text-amber-600" />
