@@ -47,6 +47,7 @@ const employeeSchema = new mongoose.Schema(
     reference: {
       name: { type: String, default: '' },
       phone: { type: String, default: '' },
+      alternateNumber: { type: String, default: '' }, // Reference person alternate phone
       relationship: { type: String, default: '' },
     },
     bankDetails: {
@@ -62,9 +63,14 @@ const employeeSchema = new mongoose.Schema(
       panNumber: { type: String, default: '' },
       panDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
       licenseNumber: { type: String, default: '' }, // For drivers/captains
-      licenseExpiryDate: { type: Date }, // License validation / expiry date
-      heavyVehicleExperience: { type: String, default: '' }, // Experience in heavy trucks, containers, etc.
       licenseDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
+      issuedByState: { type: String, default: '' }, // State that issued the licence
+      issuedRtoOffice: { type: String, default: '' }, // RTO office that issued the licence
+      licenseIssueDate: { type: Date }, // Issue date of licence (TRANS)
+      licenseExpiryDate: { type: Date }, // Validity date of licence (TRANS)
+      licenseExperience: { type: String, default: '' }, // Total experience as per licence
+      criminalBackground: { type: String, default: '' }, // Any criminal background as per licence
+      heavyVehicleExperience: { type: String, default: '' }, // Experience in heavy trucks, containers, etc.
       experienceDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
       badgeNumber: { type: String, default: '' },
       policeVerificationStatus: {

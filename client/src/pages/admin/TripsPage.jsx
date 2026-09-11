@@ -43,6 +43,7 @@ const TripsPage = () => {
   const [employees, setEmployees] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [organizers, setOrganizers] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
 
@@ -242,14 +243,16 @@ const TripsPage = () => {
 
   const fetchDependencies = async () => {
     try {
-      const [empRes, routeRes, orgRes] = await Promise.all([
+      const [empRes, routeRes, orgRes, vehicleRes] = await Promise.all([
         api.get('/employees'),
         api.get('/routes'),
         api.get('/organizers'),
+        api.get('/vehicles?status=Active'),
       ]);
       if (empRes.data.success) setEmployees(empRes.data.data);
       if (routeRes.data.success) setRoutes(routeRes.data.data);
       if (orgRes.data.success) setOrganizers(orgRes.data.data);
+      if (vehicleRes.data.success) setVehicles(vehicleRes.data.data);
     } catch (err) {
       console.error('Error loading form dependencies:', err);
     }
@@ -1254,20 +1257,30 @@ const TripsPage = () => {
                     />
                   </div>
 
-                  {/* Vehicle Number */}
+                  {/* Vehicle Number — Dropdown from saved vehicles */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
                       <Truck className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
                       Vehicle Number *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       required
-                      placeholder="e.g. AP 28 TE 4567"
                       value={formData.vehicleNumber}
-                      onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value.toUpperCase() })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-bold focus:outline-none focus:border-amber-500 uppercase placeholder:normal-case bg-white shadow-2xs"
-                    />
+                      onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-bold focus:outline-none focus:border-amber-500 uppercase bg-white shadow-2xs text-slate-900"
+                    >
+                      <option value="">— Select Vehicle Number —</option>
+                      {vehicles.map((v) => (
+                        <option key={v._id} value={v.vehicleNumber}>{v.vehicleNumber}{v.notes ? ` (${v.notes})` : ''}</option>
+                      ))}
+                      {/* If editing and current vehicle not in active list, show it anyway */}
+                      {formData.vehicleNumber && !vehicles.find((v) => v.vehicleNumber === formData.vehicleNumber) && (
+                        <option value={formData.vehicleNumber}>{formData.vehicleNumber} (saved)</option>
+                      )}
+                    </select>
+                    {vehicles.length === 0 && (
+                      <p className="text-[11px] text-amber-700 mt-1">No active vehicles found. Add vehicles in <strong>Vehicle Management</strong> first.</p>
+                    )}
                   </div>
 
                   {/* Vehicle Status (RUN / HOLD) */}

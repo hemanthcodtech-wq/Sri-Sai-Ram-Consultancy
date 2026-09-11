@@ -24,6 +24,7 @@ import TripsPage from '../pages/admin/TripsPage';
 import InquiriesPage from '../pages/admin/InquiriesPage';
 import RoutesPage from '../pages/admin/RoutesPage';
 import OrganizersPage from '../pages/admin/OrganizersPage';
+import VehiclesPage from '../pages/admin/VehiclesPage';
 
 // Public Layout Wrapper with header, footer and floating contact buttons
 const PublicLayout = ({ children }) => {
@@ -96,6 +97,7 @@ const AppRouter = () => {
         <Route path="trips" element={<TripsPage />} />
         <Route path="routes" element={<RoutesPage />} />
         <Route path="organizers" element={<OrganizersPage />} />
+        <Route path="vehicles" element={<VehiclesPage />} />
         <Route path="inquiries" element={<InquiriesPage />} />
       </Route>
 

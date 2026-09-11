@@ -65,7 +65,7 @@ const EmployeesPage = () => {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [uploadingField, setUploadingField] = useState(null); // 'photo' | 'aadhaarDoc' | 'panDoc' | 'licenseDoc' | 'experienceDoc' | null
 
-  const [formData, setFormData] = useState({
+  const emptyForm = {
     name: '',
     mobileNumber: '',
     alternateNumber: '',
@@ -84,14 +84,15 @@ const EmployeesPage = () => {
     reference: {
       name: '',
       phone: '',
+      alternateNumber: '',
       relationship: '',
     },
     bankDetails: {
+      bankName: '',
       accountNumber: '',
       accountHolderName: '',
-      bankName: '',
-      branchName: '',
       ifscCode: '',
+      branchName: '',
     },
     documents: {
       aadhaarNumber: '',
@@ -99,15 +100,22 @@ const EmployeesPage = () => {
       panNumber: '',
       panDoc: '',
       licenseNumber: '',
-      licenseExpiryDate: '',
-      heavyVehicleExperience: '',
       licenseDoc: '',
+      issuedByState: '',
+      issuedRtoOffice: '',
+      licenseIssueDate: '',
+      licenseExpiryDate: '',
+      licenseExperience: '',
+      criminalBackground: '',
+      heavyVehicleExperience: '',
       experienceDoc: '',
       policeVerificationStatus: 'Verified',
     },
     specialSkills: '',
     notes: '',
-  });
+  };
+
+  const [formData, setFormData] = useState(emptyForm);
 
   // Direct file uploader to Cloudinary (or fallback)
   const handleFileUpload = async (e, field) => {
@@ -181,15 +189,11 @@ const EmployeesPage = () => {
   const handleOpenModal = (employee = null) => {
     if (employee) {
       setEditingEmployee(employee);
-      
-      let expiryStr = '';
-      if (employee.documents?.licenseExpiryDate) {
-        try {
-          expiryStr = new Date(employee.documents.licenseExpiryDate).toISOString().slice(0, 10);
-        } catch {
-          expiryStr = '';
-        }
-      }
+
+      const toDateStr = (val) => {
+        if (!val) return '';
+        try { return new Date(val).toISOString().slice(0, 10); } catch { return ''; }
+      };
 
       setFormData({
         name: employee.name || '',
@@ -210,14 +214,15 @@ const EmployeesPage = () => {
         reference: {
           name: employee.reference?.name || '',
           phone: employee.reference?.phone || '',
+          alternateNumber: employee.reference?.alternateNumber || '',
           relationship: employee.reference?.relationship || '',
         },
         bankDetails: {
+          bankName: employee.bankDetails?.bankName || '',
           accountNumber: employee.bankDetails?.accountNumber || '',
           accountHolderName: employee.bankDetails?.accountHolderName || '',
-          bankName: employee.bankDetails?.bankName || '',
-          branchName: employee.bankDetails?.branchName || '',
           ifscCode: employee.bankDetails?.ifscCode || '',
+          branchName: employee.bankDetails?.branchName || '',
         },
         documents: {
           aadhaarNumber: employee.documents?.aadhaarNumber || '',
@@ -225,9 +230,14 @@ const EmployeesPage = () => {
           panNumber: employee.documents?.panNumber || '',
           panDoc: employee.documents?.panDoc || '',
           licenseNumber: employee.documents?.licenseNumber || '',
-          licenseExpiryDate: expiryStr,
-          heavyVehicleExperience: employee.documents?.heavyVehicleExperience || '',
           licenseDoc: employee.documents?.licenseDoc || '',
+          issuedByState: employee.documents?.issuedByState || '',
+          issuedRtoOffice: employee.documents?.issuedRtoOffice || '',
+          licenseIssueDate: toDateStr(employee.documents?.licenseIssueDate),
+          licenseExpiryDate: toDateStr(employee.documents?.licenseExpiryDate),
+          licenseExperience: employee.documents?.licenseExperience || '',
+          criminalBackground: employee.documents?.criminalBackground || '',
+          heavyVehicleExperience: employee.documents?.heavyVehicleExperience || '',
           experienceDoc: employee.documents?.experienceDoc || '',
           policeVerificationStatus: employee.documents?.policeVerificationStatus || 'Verified',
         },
@@ -236,49 +246,7 @@ const EmployeesPage = () => {
       });
     } else {
       setEditingEmployee(null);
-      setFormData({
-        name: '',
-        mobileNumber: '',
-        alternateNumber: '',
-        category: 'Driver',
-        experience: '',
-        photo: '',
-        status: 'Available',
-        isBlocked: false,
-        blockReason: '',
-        address: {
-          street: '',
-          city: '',
-          state: '',
-          fullAddress: '',
-        },
-        reference: {
-          name: '',
-          phone: '',
-          relationship: '',
-        },
-        bankDetails: {
-          accountNumber: '',
-          accountHolderName: '',
-          bankName: '',
-          branchName: '',
-          ifscCode: '',
-        },
-        documents: {
-          aadhaarNumber: '',
-          aadhaarDoc: '',
-          panNumber: '',
-          panDoc: '',
-          licenseNumber: '',
-          licenseExpiryDate: '',
-          heavyVehicleExperience: '',
-          licenseDoc: '',
-          experienceDoc: '',
-          policeVerificationStatus: 'Verified',
-        },
-        specialSkills: '',
-        notes: '',
-      });
+      setFormData(emptyForm);
     }
     setIsModalOpen(true);
   };
@@ -824,124 +792,70 @@ const EmployeesPage = () => {
               >
                 <X className="w-5 h-5" />
               </button>
-            </div>
-
-            {/* Modal Scrollable Form */}
+            </div>            {/* Modal Scrollable Form */}
             <form onSubmit={handleSaveEmployee} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
-              
-              {/* Section 1: Staff Category Selection */}
-              <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
-                  <span>1. Staff Category &amp; Designation</span>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, category: 'Driver' })}
-                    className={`p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-3 cursor-pointer ${
-                      formData.category === 'Driver'
-                        ? 'border-amber-500 bg-amber-50/60 shadow-xs'
-                        : 'border-slate-200 bg-white hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
-                        <Car className="w-5 h-5" />
-                      </div>
-                      {formData.category === 'Driver' && (
-                        <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold">
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-sm font-black text-slate-900">Driver</div>
-                      <div className="text-[11px] text-slate-500 font-medium">Commercial &amp; Chauffeur</div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, category: 'Helper' })}
-                    className={`p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-3 cursor-pointer ${
-                      formData.category === 'Helper'
-                        ? 'border-amber-500 bg-amber-50/60 shadow-xs'
-                        : 'border-slate-200 bg-white hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                        <Truck className="w-5 h-5" />
-                      </div>
-                      {formData.category === 'Helper' && (
-                        <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold">
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-sm font-black text-slate-900">Helper</div>
-                      <div className="text-[11px] text-slate-500 font-medium">Loading &amp; Relocation</div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, category: 'Captain' })}
-                    className={`p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-3 cursor-pointer ${
-                      formData.category === 'Captain'
-                        ? 'border-amber-500 bg-amber-50/60 shadow-xs'
-                        : 'border-slate-200 bg-white hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                        <Compass className="w-5 h-5" />
-                      </div>
-                      {formData.category === 'Captain' && (
-                        <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold">
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-sm font-black text-slate-900">Captain</div>
-                      <div className="text-[11px] text-slate-500 font-medium">VIP Fleet &amp; Lead Supervisor</div>
-                    </div>
-                  </button>
-
-                </div>
-              </div>
-
-              {/* Section 2: Personal & Contact Information */}
+              {/* ── Driver Basic Info ── */}
               <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-4">
                 <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
                   <User className="w-4 h-4 text-amber-500" />
-                  <span>2. Profile &amp; Contact Credentials</span>
+                  <span>Driver Basic Information</span>
+                </div>
+
+                {/* Profile Photo */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 pb-3 border-b border-slate-200/60">
+                  <div className="relative w-14 h-14 rounded-2xl bg-white border-2 border-slate-200 overflow-hidden shrink-0 flex items-center justify-center shadow-sm">
+                    {formData.photo ? (
+                      <img src={formData.photo} alt="Avatar Preview" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+                    ) : (
+                      <User className="w-7 h-7 text-slate-400" />
+                    )}
+                    {uploadingField === 'photo' && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <label className="block text-xs font-bold text-slate-700">Profile Photo</label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold cursor-pointer transition-all shadow-xs">
+                        {uploadingField === 'photo' ? (
+                          <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" /><span>Uploading...</span></>
+                        ) : (
+                          <><UploadCloud className="w-3.5 h-3.5 text-amber-700" /><span>Upload Photo File</span></>
+                        )}
+                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, 'photo')} className="hidden" disabled={uploadingField === 'photo'} />
+                      </label>
+                      {formData.photo && (
+                        <button type="button" onClick={() => setFormData({ ...formData, photo: '' })} className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-red-600 hover:bg-red-50 transition-colors">
+                          Remove Photo
+                        </button>
+                      )}
+                    </div>
+                    <input type="url" placeholder="Or paste image URL (https://...)" value={formData.photo} onChange={(e) => setFormData({ ...formData, photo: e.target.value })} className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500" />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                  {/* Driver Name */}
+                  <div className="sm:col-span-2">
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Full Name *
+                      Driver Name (As per Aadhaar) *
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Ramesh Kumar"
+                      placeholder="e.g. Ramesh Kumar (exactly as on Aadhaar)"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
                     />
                   </div>
 
+                  {/* Phone Number */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Primary Mobile Number *
-                    </label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Phone Number *</label>
                     <input
                       type="tel"
                       required
@@ -952,615 +866,377 @@ const EmployeesPage = () => {
                     />
                   </div>
 
+                  {/* Alternative Number */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Experience *
-                    </label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Alternative Number</label>
                     <input
-                      type="text"
-                      placeholder="e.g. 3 Years, 5+ Years"
-                      value={formData.experience}
-                      onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                      type="tel"
+                      placeholder="+91 98480 55443"
+                      value={formData.alternateNumber}
+                      onChange={(e) => setFormData({ ...formData, alternateNumber: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
                     />
                   </div>
+                </div>
 
+                {/* Category & Status */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200/60">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Duty Availability Status
-                    </label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-bold focus:outline-none focus:border-amber-500"
-                    >
-                      <option value="Available">🟢 Available (Ready for assignment)</option>
-                      <option value="On Duty">🟡 On Duty (Assigned)</option>
-                      <option value="Inactive">⚪ Inactive (On Leave)</option>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Staff Category</label>
+                    <div className="flex gap-2">
+                      {['Driver', 'Helper', 'Captain'].map((cat) => (
+                        <button key={cat} type="button" onClick={() => setFormData({ ...formData, category: cat })}
+                          className={`flex-1 py-2 rounded-xl border-2 text-xs font-bold transition-all cursor-pointer ${formData.category === cat ? 'border-amber-500 bg-amber-50 text-amber-900' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'}`}>
+                          {cat === 'Driver' ? '🚗' : cat === 'Helper' ? '🚛' : '🧭'} {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Duty Status</label>
+                    <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-bold focus:outline-none focus:border-amber-500">
+                      <option value="Available">🟢 Available</option>
+                      <option value="On Duty">🟡 On Duty</option>
+                      <option value="Inactive">⚪ Inactive</option>
                     </select>
                   </div>
                 </div>
-
-                {/* Profile Photo Uploader */}
-                <div className="pt-2 border-t border-slate-200/60">
-                  <label className="block text-xs font-bold text-slate-700 mb-2">
-                    Profile Photo (Direct Upload or Image URL)
-                  </label>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className="relative w-14 h-14 rounded-2xl bg-white border-2 border-slate-200 overflow-hidden shrink-0 flex items-center justify-center shadow-sm">
-                      {formData.photo ? (
-                        <img
-                          src={formData.photo}
-                          alt="Avatar Preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
-                      ) : (
-                        <User className="w-7 h-7 text-slate-400" />
-                      )}
-                      {uploadingField === 'photo' && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <Loader2 className="w-5 h-5 text-white animate-spin" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold cursor-pointer transition-all shadow-xs">
-                          {uploadingField === 'photo' ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
-                              <span>Uploading...</span>
-                            </>
-                          ) : (
-                            <>
-                              <UploadCloud className="w-3.5 h-3.5 text-amber-700" />
-                              <span>Upload Photo File</span>
-                            </>
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, 'photo')}
-                            className="hidden"
-                            disabled={uploadingField === 'photo'}
-                          />
-                        </label>
-
-                        {formData.photo && (
-                          <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, photo: '' })}
-                            className="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            Remove Photo
-                          </button>
-                        )}
-                      </div>
-
-                      <input
-                        type="url"
-                        placeholder="Or paste image URL (https://...)"
-                        value={formData.photo}
-                        onChange={(e) => setFormData({ ...formData, photo: e.target.value })}
-                        className="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
 
-              {/* Section 3: Reference Box (Refer Name & Phone Number) */}
-              <div className="bg-amber-50/40 rounded-2xl p-4 sm:p-5 border border-amber-200/80 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900">
-                  <UserCheck className="w-4 h-4 text-amber-600" />
-                  <span>3. Reference Box (Referral / Guarantor Details)</span>
+              {/* ── 1. Aadhaar Number ── */}
+              <div className="bg-blue-50/40 rounded-2xl p-4 sm:p-5 border border-blue-200/80 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-blue-900">
+                  <ShieldCheck className="w-4 h-4 text-blue-600" />
+                  <span>1. Aadhaar Number</span>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Reference Person Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. S. Narayana Rao"
-                      value={formData.reference.name}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          reference: { ...formData.reference, name: e.target.value },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Reference Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="e.g. +91 98480 55443"
-                      value={formData.reference.phone}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          reference: { ...formData.reference, phone: e.target.value },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Relationship / Designation
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Former Supervisor / Contractor"
-                      value={formData.reference.relationship}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          reference: { ...formData.reference, relationship: e.target.value },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 4: Employee Account Details (Bank Name, Acc No, IFSC, etc.) */}
-              <div className="bg-emerald-50/40 rounded-2xl p-4 sm:p-5 border border-emerald-200/80 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-900">
-                  <Building className="w-4 h-4 text-emerald-600" />
-                  <span>4. Employee Bank Account Details</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Account Number
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 38920194821"
-                      value={formData.bankDetails.accountNumber}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          bankDetails: { ...formData.bankDetails, accountNumber: e.target.value },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Account Holder Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Ramesh Kumar"
-                      value={formData.bankDetails.accountHolderName}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          bankDetails: { ...formData.bankDetails, accountHolderName: e.target.value },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Bank Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. State Bank of India / HDFC"
-                      value={formData.bankDetails.bankName}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          bankDetails: { ...formData.bankDetails, bankName: e.target.value },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Branch Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Kukatpally Main Branch"
-                      value={formData.bankDetails.branchName}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          bankDetails: { ...formData.bankDetails, branchName: e.target.value },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      IFSC Code
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. SBIN0004128"
-                      value={formData.bankDetails.ifscCode}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          bankDetails: { ...formData.bankDetails, ifscCode: e.target.value.toUpperCase() },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-mono font-bold text-slate-900 uppercase focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 5: Driving License, Validation Date & Heavy Truck Experience */}
-              <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-4">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
-                    <Car className="w-4 h-4 text-amber-600" />
-                    <span>5. Driving License, Validation Date &amp; Heavy Truck Experience</span>
-                  </div>
-                  <span className="text-[10px] text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full font-bold border border-amber-300">
-                    Task Allocation Gatekeeper
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Driving License ID / Number
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. TS092018009988"
-                      value={formData.documents.licenseNumber}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          documents: { ...formData.documents, licenseNumber: e.target.value.toUpperCase() },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-mono font-bold text-slate-900 uppercase focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                      <span>License Validation / Expiry Date *</span>
-                      <span className="text-[10px] font-normal text-rose-600 font-bold">2-Day Allocation Buffer</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.documents.licenseExpiryDate}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          documents: { ...formData.documents, licenseExpiryDate: e.target.value },
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Heavy Truck Experience Details */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Experience in Heavy Trucks &amp; Multi-Axle Commercial Vehicles</span>
-                  </label>
+                <div className="space-y-2 bg-white p-3.5 rounded-xl border border-blue-200/60">
                   <input
                     type="text"
-                    placeholder="e.g. 5 Years Experience on 10-Wheeler / 12-Wheeler Heavy Trucks, Trailers, Containers"
-                    value={formData.documents.heavyVehicleExperience}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        documents: { ...formData.documents, heavyVehicleExperience: e.target.value },
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-amber-500"
+                    placeholder="Aadhaar No: XXXX-XXXX-1234"
+                    value={formData.documents.aadhaarNumber}
+                    onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, aadhaarNumber: e.target.value } })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500"
                   />
-                </div>
-
-                {/* License Document Upload */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Driving License Document File (PDF / Image)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                      {uploadingField === 'licenseDoc' ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
-                          <span>Uploading to Cloudinary...</span>
-                        </>
+                  <div className="flex items-center gap-2 pt-1">
+                    <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
+                      {uploadingField === 'aadhaarDoc' ? (
+                        <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /><span>Uploading...</span></>
                       ) : (
-                        <>
-                          <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
-                          <span>{formData.documents.licenseDoc ? 'Replace License Document' : 'Upload Driving License (PDF/Img)'}</span>
-                        </>
+                        <><UploadCloud className="w-3.5 h-3.5 text-amber-600" /><span>{formData.documents.aadhaarDoc ? 'Replace Aadhaar Photo' : 'Upload Photo File (Aadhaar)'}</span></>
                       )}
-                      <input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileUpload(e, 'licenseDoc')}
-                        className="hidden"
-                        disabled={uploadingField === 'licenseDoc'}
-                      />
+                      <input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileUpload(e, 'aadhaarDoc')} className="hidden" disabled={uploadingField === 'aadhaarDoc'} />
                     </label>
-
-                    {formData.documents.licenseDoc && (
-                      <a
-                        href={formData.documents.licenseDoc}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition-colors border border-amber-200 flex items-center gap-1"
-                        title="View License Document"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span>View</span>
+                    {formData.documents.aadhaarDoc && (
+                      <a href={formData.documents.aadhaarDoc} target="_blank" rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors border border-emerald-200 flex items-center gap-1 shrink-0">
+                        <Eye className="w-4 h-4" /><span>View</span>
                       </a>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Section 6: Other KYC Documents & Police Verification */}
-              <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-4">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>6. Identity Verification (Aadhaar, PAN &amp; Police Clearance)</span>
-                  </div>
+              {/* ── 2. PAN Card Number ── */}
+              <div className="bg-purple-50/40 rounded-2xl p-4 sm:p-5 border border-purple-200/80 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-purple-900">
+                  <CreditCard className="w-4 h-4 text-purple-600" />
+                  <span>2. PAN Card Number</span>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Aadhaar Number & Document */}
-                  <div className="space-y-2 bg-white p-3.5 rounded-xl border border-slate-200">
-                    <label className="block text-xs font-bold text-slate-700">Aadhaar Card Details</label>
-                    <input
-                      type="text"
-                      placeholder="Aadhaar No: XXXX-XXXX-1234"
-                      value={formData.documents.aadhaarNumber}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          documents: { ...formData.documents, aadhaarNumber: e.target.value },
-                        })
-                      }
-                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-amber-500"
-                    />
-
-                    <div className="flex items-center gap-2 pt-1">
-                      <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                        {uploadingField === 'aadhaarDoc' ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
-                            <span>Uploading...</span>
-                          </>
-                        ) : (
-                          <>
-                            <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
-                            <span>{formData.documents.aadhaarDoc ? 'Replace Aadhaar Doc' : 'Upload Aadhaar (PDF/Img)'}</span>
-                          </>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          onChange={(e) => handleFileUpload(e, 'aadhaarDoc')}
-                          className="hidden"
-                          disabled={uploadingField === 'aadhaarDoc'}
-                        />
-                      </label>
-
-                      {formData.documents.aadhaarDoc && (
-                        <a
-                          href={formData.documents.aadhaarDoc}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors border border-emerald-200 flex items-center gap-1 shrink-0"
-                          title="View Aadhaar Document"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>View</span>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* PAN Card Number & Document */}
-                  <div className="space-y-2 bg-white p-3.5 rounded-xl border border-slate-200">
-                    <label className="block text-xs font-bold text-slate-700">PAN Card Details</label>
-                    <input
-                      type="text"
-                      placeholder="PAN No: ABCDE1234F"
-                      value={formData.documents.panNumber}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          documents: { ...formData.documents, panNumber: e.target.value.toUpperCase() },
-                        })
-                      }
-                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 uppercase focus:outline-none focus:border-amber-500"
-                    />
-
-                    <div className="flex items-center gap-2 pt-1">
-                      <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                        {uploadingField === 'panDoc' ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
-                            <span>Uploading...</span>
-                          </>
-                        ) : (
-                          <>
-                            <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
-                            <span>{formData.documents.panDoc ? 'Replace PAN Doc' : 'Upload PAN (PDF/Img)'}</span>
-                          </>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          onChange={(e) => handleFileUpload(e, 'panDoc')}
-                          className="hidden"
-                          disabled={uploadingField === 'panDoc'}
-                        />
-                      </label>
-
-                      {formData.documents.panDoc && (
-                        <a
-                          href={formData.documents.panDoc}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors border border-emerald-200 flex items-center gap-1 shrink-0"
-                          title="View PAN Document"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>View</span>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Police Verification Status Selector */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Police Verification &amp; Background Clearance Status
-                  </label>
-                  <select
-                    value={formData.documents.policeVerificationStatus}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        documents: { ...formData.documents, policeVerificationStatus: e.target.value },
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-bold focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="Verified">✅ Verified (100% Police &amp; Background Cleared)</option>
-                    <option value="In Progress">⏳ In Verification (Submitted to Dept)</option>
-                    <option value="Pending">⚠️ Pending Review (Documents Incomplete)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Section 7: Residential Address & Special Skills */}
-              <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
-                  <MapPin className="w-4 h-4 text-amber-500" />
-                  <span>7. Residential Address &amp; Special Skills</span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Full Residential Address
-                  </label>
-                  <textarea
-                    rows="2"
-                    placeholder="H.No, Street, Landmark, Area (e.g. LB Nagar, Hyderabad), Pincode..."
-                    value={formData.address.fullAddress}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        address: { ...formData.address, fullAddress: e.target.value },
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500 resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Special Skills &amp; Capabilities (Comma separated)
-                  </label>
+                <div className="space-y-2 bg-white p-3.5 rounded-xl border border-purple-200/60">
                   <input
                     type="text"
-                    placeholder="VIP Escort, Heavy Multi-axle, Automatic Transmission, Night Duty"
-                    value={formData.specialSkills}
-                    onChange={(e) => setFormData({ ...formData, specialSkills: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
+                    placeholder="PAN No: ABCDE1234F"
+                    value={formData.documents.panNumber}
+                    onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, panNumber: e.target.value.toUpperCase() } })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 uppercase focus:outline-none focus:border-purple-500"
                   />
+                  <div className="flex items-center gap-2 pt-1">
+                    <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
+                      {uploadingField === 'panDoc' ? (
+                        <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /><span>Uploading...</span></>
+                      ) : (
+                        <><UploadCloud className="w-3.5 h-3.5 text-amber-600" /><span>{formData.documents.panDoc ? 'Replace PAN Photo' : 'Upload Photo File (PAN Card)'}</span></>
+                      )}
+                      <input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileUpload(e, 'panDoc')} className="hidden" disabled={uploadingField === 'panDoc'} />
+                    </label>
+                    {formData.documents.panDoc && (
+                      <a href={formData.documents.panDoc} target="_blank" rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors border border-emerald-200 flex items-center gap-1 shrink-0">
+                        <Eye className="w-4 h-4" /><span>View</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Section 8: Remarks & Performance / Duty Restriction Controls */}
+              {/* ── Driving Licence Details ── */}
+              <div className="bg-amber-50/40 rounded-2xl p-4 sm:p-5 border border-amber-200/80 space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900">
+                    <Car className="w-4 h-4 text-amber-600" />
+                    <span>Driving Licence Details</span>
+                  </div>
+                  <span className="text-[10px] text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full font-bold border border-amber-300">
+                    Task Allocation Gatekeeper
+                  </span>
+                </div>
+
+                {/* 1. Licence Number + Upload */}
+                <div className="bg-white rounded-xl border border-amber-200/60 p-3.5 space-y-2">
+                  <label className="block text-xs font-bold text-slate-700">1. Licence Number</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. TS092018009988"
+                    value={formData.documents.licenseNumber}
+                    onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, licenseNumber: e.target.value.toUpperCase() } })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-mono font-bold text-slate-900 uppercase focus:outline-none focus:border-amber-500"
+                  />
+                  <div className="flex items-center gap-2 pt-1">
+                    <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
+                      {uploadingField === 'licenseDoc' ? (
+                        <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /><span>Uploading...</span></>
+                      ) : (
+                        <><UploadCloud className="w-3.5 h-3.5 text-amber-600" /><span>{formData.documents.licenseDoc ? 'Replace Licence Photo' : 'Upload Photo File (DL)'}</span></>
+                      )}
+                      <input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileUpload(e, 'licenseDoc')} className="hidden" disabled={uploadingField === 'licenseDoc'} />
+                    </label>
+                    {formData.documents.licenseDoc && (
+                      <a href={formData.documents.licenseDoc} target="_blank" rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition-colors border border-amber-200 flex items-center gap-1 shrink-0">
+                        <Eye className="w-4 h-4" /><span>View</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* 2. Issued By State */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">2. Issued By State</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Telangana"
+                      value={formData.documents.issuedByState}
+                      onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, issuedByState: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  {/* 3. Issued RTO Office */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">3. Issued RTO Office</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. RTO Hyderabad East"
+                      value={formData.documents.issuedRtoOffice}
+                      onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, issuedRtoOffice: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  {/* 4. Issue Date (TRANS) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      4. Issue Date <span className="text-amber-700 font-black">(TRANS)</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.documents.licenseIssueDate}
+                      onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, licenseIssueDate: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  {/* 5. Validity Date (TRANS) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                      <span>5. Validity Date <span className="text-amber-700 font-black">(TRANS)</span></span>
+                      <span className="text-[10px] font-bold text-rose-600">2-Day Buffer</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.documents.licenseExpiryDate}
+                      onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, licenseExpiryDate: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  {/* 6. Total Experience as per Licence */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      6. Total Experience as Per Licence
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 8 Years (as mentioned in the licence document)"
+                      value={formData.documents.licenseExperience}
+                      onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, licenseExperience: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  {/* 7. Criminal Background as per Licence */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      7. Any Criminal Background As Per Licence
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. None / Case No. 2019/TS/0023 (if any)"
+                      value={formData.documents.criminalBackground}
+                      onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, criminalBackground: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Bank Details ── */}
+              <div className="bg-emerald-50/40 rounded-2xl p-4 sm:p-5 border border-emerald-200/80 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-900">
+                  <Building className="w-4 h-4 text-emerald-600" />
+                  <span>Bank Details</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">1. Bank Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. State Bank of India"
+                      value={formData.bankDetails.bankName}
+                      onChange={(e) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, bankName: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">2. Account Number</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 38920194821"
+                      value={formData.bankDetails.accountNumber}
+                      onChange={(e) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, accountNumber: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">3. Account Holder Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Ramesh Kumar"
+                      value={formData.bankDetails.accountHolderName}
+                      onChange={(e) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, accountHolderName: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">4. IFSC Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. SBIN0004128"
+                      value={formData.bankDetails.ifscCode}
+                      onChange={(e) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, ifscCode: e.target.value.toUpperCase() } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-mono font-bold text-slate-900 uppercase focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">5. Branch</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Kukatpally Main Branch"
+                      value={formData.bankDetails.branchName}
+                      onChange={(e) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, branchName: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Reference Details ── */}
+              <div className="bg-amber-50/40 rounded-2xl p-4 sm:p-5 border border-amber-200/80 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900">
+                  <UserCheck className="w-4 h-4 text-amber-600" />
+                  <span>Reference Details</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">1. Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. S. Narayana Rao"
+                      value={formData.reference.name}
+                      onChange={(e) => setFormData({ ...formData, reference: { ...formData.reference, name: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">2. Phone Number</label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. +91 98480 55443"
+                      value={formData.reference.phone}
+                      onChange={(e) => setFormData({ ...formData, reference: { ...formData.reference, phone: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">3. Alternative Number</label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. +91 99999 12345"
+                      value={formData.reference.alternateNumber}
+                      onChange={(e) => setFormData({ ...formData, reference: { ...formData.reference, alternateNumber: e.target.value } })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Staff Remarks & Block Control ── */}
               <div className="bg-amber-50/30 rounded-2xl p-4 sm:p-5 border border-amber-200/80 space-y-4">
                 <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-950">
                   <FileText className="w-4 h-4 text-amber-600" />
-                  <span>8. Staff Remarks &amp; Performance Review</span>
+                  <span>Staff Remarks &amp; Admin Controls</span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Administrative Remarks &amp; Performance Notes
-                  </label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Administrative Remarks &amp; Notes</label>
                   <textarea
                     rows="2"
-                    placeholder="Add staff remarks, past performance feedback, vehicle handling record, customer comments..."
+                    placeholder="Add staff remarks, past performance feedback, vehicle handling record..."
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500 resize-none"
                   />
-                  <span className="text-[10px] text-slate-400">
-                    Remarks are saved directly to this employee's file and referenced during task allocations.
-                  </span>
                 </div>
 
-                {/* Performance Block Checkbox */}
+                {/* Block checkbox */}
                 <div className="bg-rose-50/70 p-4 rounded-xl border border-rose-200 space-y-3">
                   <div className="flex items-start gap-2.5">
                     <input
                       type="checkbox"
                       id="blockEmployeeModalCheck"
                       checked={formData.isBlocked}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          isBlocked: e.target.checked,
-                          status: e.target.checked ? 'Blocked' : formData.status === 'Blocked' ? 'Available' : formData.status,
-                          blockReason: e.target.checked ? (formData.blockReason || formData.notes || 'Performance / conduct restriction') : '',
-                        })
-                      }
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        isBlocked: e.target.checked,
+                        status: e.target.checked ? 'Blocked' : formData.status === 'Blocked' ? 'Available' : formData.status,
+                        blockReason: e.target.checked ? (formData.blockReason || 'Performance / conduct restriction') : '',
+                      })}
                       className="w-4 h-4 mt-0.5 text-rose-600 rounded border-rose-300 focus:ring-rose-500 cursor-pointer"
                     />
                     <div className="flex-1">
                       <label htmlFor="blockEmployeeModalCheck" className="text-xs font-bold text-rose-950 cursor-pointer block">
-                        🚫 Block this employee for further trips because of performance / conduct
+                        🚫 Block this employee from further trips (performance / conduct issue)
                       </label>
-                      <p className="text-[11px] text-rose-700 mt-0.5 leading-relaxed">
-                        When enabled, task management will automatically restrict this employee from being allotted to any new trips.
-                      </p>
+                      <p className="text-[11px] text-rose-700 mt-0.5">When enabled, task management will automatically restrict this employee from being allotted to any new trips.</p>
                     </div>
                   </div>
-
                   {formData.isBlocked && (
-                    <div className="pt-2 border-t border-rose-200 animate-in fade-in">
-                      <label className="block text-[11px] font-bold text-rose-900 mb-1">
-                        Reason for Blocking (Performance / Policy Issue) *
-                      </label>
+                    <div className="pt-2 border-t border-rose-200">
+                      <label className="block text-[11px] font-bold text-rose-900 mb-1">Reason for Blocking *</label>
                       <input
                         type="text"
                         required={formData.isBlocked}

@@ -15,6 +15,7 @@ import {
   Shield,
   Building2,
   Navigation,
+  Truck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import logoImg from '../../assets/logo.png';
@@ -41,6 +42,11 @@ const AdminLayout = () => {
       name: 'Employee Biodata',
       path: '/admin/employees',
       icon: Users,
+    },
+    {
+      name: 'Vehicle Management',
+      path: '/admin/vehicles',
+      icon: Truck,
     },
     {
       name: 'Route Management',
@@ -73,6 +79,7 @@ const AdminLayout = () => {
   const bottomNavItems = [
     { name: 'Dashboard', shortName: 'Dash', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Employees', shortName: 'Staff', path: '/admin/employees', icon: Users },
+    { name: 'Vehicles', shortName: 'Vehicles', path: '/admin/vehicles', icon: Truck },
     { name: 'Routes', shortName: 'Routes', path: '/admin/routes', icon: Navigation },
     { name: 'Organizers', shortName: 'Orgs', path: '/admin/organizers', icon: Building2 },
     { name: 'Tasks', shortName: 'Tasks', path: '/admin/tasks', icon: ClipboardList },
