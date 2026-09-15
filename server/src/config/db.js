@@ -5,7 +5,10 @@ const connectDB = async () => {
   try {
     const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ssrc_db';
     const conn = await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 2500,
+      serverSelectionTimeoutMS: 10000,  // 10s — handles Vercel cold-start latency
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      bufferCommands: false,            // fail fast instead of silently buffering
     });
     store.setMongoConnected(true);
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);

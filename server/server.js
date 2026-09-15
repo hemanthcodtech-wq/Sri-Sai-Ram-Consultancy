@@ -21,18 +21,28 @@ const app = express();
 // Connect Database
 connectDB();
 
-// CORS — allow local dev + production Vercel URL from CLIENT_URL env
+// CORS — allow local dev + all Vercel preview/production deployments + CLIENT_URL env
+// CLIENT_URL can be a comma-separated list e.g. "https://app.vercel.app,https://custom.com"
+const extraOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((u) => u.trim())
+  .filter(Boolean);
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
-  process.env.CLIENT_URL,
-].filter(Boolean);
+  ...extraOrigins,
+];
 
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. Postman, server-to-server)
       if (!origin) return callback(null, true);
+      // Allow any *.vercel.app subdomain (covers preview & production deployments)
+      if (/^https:\/\/[a-zA-Z0-9-]+(\.vercel\.app)$/.test(origin)) {
+        return callback(null, true);
+      }
       if (allowedOrigins.includes(origin)) return callback(null, true);
       callback(new Error(`CORS: origin ${origin} not allowed`));
     },
