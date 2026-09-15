@@ -30,7 +30,6 @@ const employeeSchema = new mongoose.Schema(
     },
     experience: {
       type: String, // e.g., "5 Years", "3 Years 6 Months"
-      required: true,
       default: '1 Year',
     },
     photo: {
