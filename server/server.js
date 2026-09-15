@@ -18,20 +18,8 @@ const vehicleRoutes = require('./src/routes/vehicleRoutes');
 // Initialize app
 const app = express();
 
-// Connect Database — called once at startup, then cached for warm invocations
+// Connect Database
 connectDB();
-
-// Middleware: ensure DB connection is live before each API request.
-// On Vercel, the first cold-start attempt might fail due to TLS latency.
-// This retry middleware reconnects automatically on subsequent requests.
-app.use('/api', async (req, res, next) => {
-  const store = require('./src/config/store');
-  if (!store.isMongo()) {
-    // Silently attempt to reconnect — won't block the request
-    connectDB().catch(() => {});
-  }
-  next();
-});
 
 // CORS — allow local dev + all Vercel preview/production deployments + CLIENT_URL env
 // CLIENT_URL can be a comma-separated list e.g. "https://app.vercel.app,https://custom.com"
