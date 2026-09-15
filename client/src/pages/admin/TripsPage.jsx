@@ -36,6 +36,43 @@ import {
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
 import { exportToExcel } from '../../utils/excelExport';
+import Select from 'react-select';
+
+// Custom styles for React Select to match Tailwind styling
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    borderRadius: '0.75rem',
+    borderWidth: '1px',
+    borderColor: state.isFocused ? '#f59e0b' : '#cbd5e1',
+    boxShadow: state.isFocused ? '0 0 0 1px #f59e0b' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    padding: '0.15rem 0.25rem',
+    fontSize: '0.875rem',
+    fontWeight: '600',
+    backgroundColor: 'white',
+    '&:hover': {
+      borderColor: state.isFocused ? '#f59e0b' : '#cbd5e1'
+    }
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    fontSize: '0.875rem',
+    fontWeight: '600',
+    backgroundColor: state.isSelected ? '#fef3c7' : state.isFocused ? '#fffbeb' : 'white',
+    color: state.isSelected ? '#92400e' : '#0f172a',
+    cursor: 'pointer',
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: '#0f172a',
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: '0.75rem',
+    overflow: 'hidden',
+    zIndex: 9999,
+  })
+};
 
 const TripsPage = () => {
   const [searchParams] = useSearchParams();
@@ -934,13 +971,9 @@ const TripsPage = () => {
                           <div className="font-semibold text-slate-600 flex items-center gap-1 mt-0.5 text-[11px]">
                             <Calendar className="w-3 h-3 text-amber-600 shrink-0" />
                             <span>
-                              {sDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                              {isMultiDay && <> – {eDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</>}
+                              {sDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                             </span>
                           </div>
-                          <span className="inline-block mt-1 px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
-                            {task.totalDays || 1} Day Duty
-                          </span>
                         </td>
 
                         {/* Vehicle & Route */}
@@ -1263,21 +1296,20 @@ const TripsPage = () => {
                       <Truck className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
                       Vehicle Number *
                     </label>
-                    <select
-                      required
-                      value={formData.vehicleNumber}
-                      onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-bold focus:outline-none focus:border-amber-500 uppercase bg-white shadow-2xs text-slate-900"
-                    >
-                      <option value="">— Select Vehicle Number —</option>
-                      {vehicles.map((v) => (
-                        <option key={v._id} value={v.vehicleNumber}>{v.vehicleNumber}{v.notes ? ` (${v.notes})` : ''}</option>
-                      ))}
-                      {/* If editing and current vehicle not in active list, show it anyway */}
-                      {formData.vehicleNumber && !vehicles.find((v) => v.vehicleNumber === formData.vehicleNumber) && (
-                        <option value={formData.vehicleNumber}>{formData.vehicleNumber} (saved)</option>
-                      )}
-                    </select>
+                    <Select
+                      options={[
+                        ...vehicles.map(v => ({ value: v.vehicleNumber, label: `${v.vehicleNumber}${v.notes ? ` (${v.notes})` : ''}` })),
+                        ...(formData.vehicleNumber && !vehicles.find(v => v.vehicleNumber === formData.vehicleNumber)
+                          ? [{ value: formData.vehicleNumber, label: `${formData.vehicleNumber} (saved)` }]
+                          : [])
+                      ]}
+                      value={formData.vehicleNumber ? { value: formData.vehicleNumber, label: vehicles.find(v => v.vehicleNumber === formData.vehicleNumber) ? `${formData.vehicleNumber}${vehicles.find(v => v.vehicleNumber === formData.vehicleNumber).notes ? ` (${vehicles.find(v => v.vehicleNumber === formData.vehicleNumber).notes})` : ''}` : `${formData.vehicleNumber} (saved)` } : null}
+                      onChange={(selected) => setFormData({ ...formData, vehicleNumber: selected ? selected.value : '' })}
+                      placeholder="— Select Vehicle Number —"
+                      isSearchable
+                      isClearable
+                      styles={customSelectStyles}
+                    />
                     {vehicles.length === 0 && (
                       <p className="text-[11px] text-amber-700 mt-1">No active vehicles found. Add vehicles in <strong>Vehicle Management</strong> first.</p>
                     )}
@@ -1305,20 +1337,23 @@ const TripsPage = () => {
                       <MapPin className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
                       Route Corridor *
                     </label>
-                    <select
-                      required
-                      value={formData.route}
-                      onChange={(e) => handleRouteChange(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white shadow-2xs"
-                    >
-                      <option value="">-- Choose Route Corridor --</option>
-                      {routes.map((r) => (
-                        <option key={r._id} value={r._id}>
-                          {r.routeName ? `${r.routeName} (${r.fromCity} → ${r.toCity})` : `${r.fromCity} → ${r.toCity}`}
-                          {r.status === 'Inactive' ? ' [Inactive]' : ''}
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      options={routes.map(r => ({
+                        value: r._id,
+                        label: `${r.routeName ? `${r.routeName} (${r.fromCity} → ${r.toCity})` : `${r.fromCity} → ${r.toCity}`}${r.status === 'Inactive' ? ' [Inactive]' : ''}`
+                      }))}
+                      value={formData.route ? {
+                        value: formData.route,
+                        label: routes.find(r => r._id === formData.route)
+                          ? `${routes.find(r => r._id === formData.route).routeName ? `${routes.find(r => r._id === formData.route).routeName} (${routes.find(r => r._id === formData.route).fromCity} → ${routes.find(r => r._id === formData.route).toCity})` : `${routes.find(r => r._id === formData.route).fromCity} → ${routes.find(r => r._id === formData.route).toCity}`}${routes.find(r => r._id === formData.route).status === 'Inactive' ? ' [Inactive]' : ''}`
+                          : 'Selected Route'
+                      } : null}
+                      onChange={(selected) => handleRouteChange(selected ? selected.value : '')}
+                      placeholder="-- Choose Route Corridor --"
+                      isSearchable
+                      isClearable
+                      styles={customSelectStyles}
+                    />
                   </div>
 
                   {/* Operator / Organizer */}
@@ -1327,19 +1362,23 @@ const TripsPage = () => {
                       <Building className="w-3.5 h-3.5 inline text-amber-600 mr-1" />
                       Operator / Organizer *
                     </label>
-                    <select
-                      required
-                      value={formData.operator}
-                      onChange={(e) => handleOperatorChange(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white shadow-2xs"
-                    >
-                      <option value="">-- Choose Operator / Organizer --</option>
-                      {organizers.map((org) => (
-                        <option key={org._id} value={org._id}>
-                          {org.name} {org.company ? `(${org.company})` : ''} - {org.phone}
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      options={organizers.map(org => ({
+                        value: org._id,
+                        label: `${org.name} ${org.company ? `(${org.company})` : ''} - ${org.phone}`
+                      }))}
+                      value={formData.operator ? {
+                        value: formData.operator,
+                        label: organizers.find(org => org._id === formData.operator)
+                          ? `${organizers.find(org => org._id === formData.operator).name} ${organizers.find(org => org._id === formData.operator).company ? `(${organizers.find(org => org._id === formData.operator).company})` : ''} - ${organizers.find(org => org._id === formData.operator).phone}`
+                          : 'Selected Operator'
+                      } : null}
+                      onChange={(selected) => handleOperatorChange(selected ? selected.value : '')}
+                      placeholder="-- Choose Operator / Organizer --"
+                      isSearchable
+                      isClearable
+                      styles={customSelectStyles}
+                    />
                   </div>
                 </div>
               </div>
@@ -1374,28 +1413,30 @@ const TripsPage = () => {
                     <label className="block text-xs font-bold text-slate-800 mb-1.5">
                       Select Driver 1 Employee *
                     </label>
-                    <select
-                      required
-                      value={formData.driver1.employee}
-                      onChange={(e) => handleDriver1Select(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-amber-500 bg-white shadow-2xs"
-                    >
-                      <option value="">-- Select Driver 1 --</option>
-                      {employees.map((emp) => {
+                    <Select
+                      options={employees.map(emp => {
                         const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
-                        return (
-                          <option 
-                            key={emp._id} 
-                            value={emp._id}
-                            disabled={lic.blocked}
-                            className={lic.blocked ? 'text-rose-600 bg-rose-50 font-bold' : ''}
-                          >
-                            {lic.blocked ? '🚫 ' : ''}{emp.name} ({emp.employeeId} - {emp.category})
-                            {lic.blocked ? ` [BLOCKED: ${lic.reason}]` : lic.formatted ? ` [Valid till ${lic.formatted}]` : ''}
-                          </option>
-                        );
+                        return {
+                          value: emp._id,
+                          label: `${lic.blocked ? '🚫 ' : ''}${emp.name} (${emp.employeeId} - ${emp.category})${lic.blocked ? ` [BLOCKED: ${lic.reason}]` : lic.formatted ? ` [Valid till ${lic.formatted}]` : ''}`,
+                          isDisabled: lic.blocked,
+                        };
                       })}
-                    </select>
+                      value={formData.driver1.employee ? {
+                        value: formData.driver1.employee,
+                        label: employees.find(e => e._id === formData.driver1.employee) ? 
+                          (() => {
+                            const emp = employees.find(e => e._id === formData.driver1.employee);
+                            const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
+                            return `${lic.blocked ? '🚫 ' : ''}${emp.name} (${emp.employeeId} - ${emp.category})${lic.blocked ? ` [BLOCKED: ${lic.reason}]` : lic.formatted ? ` [Valid till ${lic.formatted}]` : ''}`;
+                          })() : 'Selected Employee'
+                      } : null}
+                      onChange={(selected) => handleDriver1Select(selected ? selected.value : '')}
+                      placeholder="-- Select Driver 1 --"
+                      isSearchable
+                      isClearable
+                      styles={customSelectStyles}
+                    />
                   </div>
 
                   {/* DUTY FINANCIALS & SPLIT PAYMENTS Card - Driver 1 (Salary First, Advance Second) */}
@@ -1558,29 +1599,32 @@ const TripsPage = () => {
                     <label className="block text-xs font-bold text-slate-800 mb-1.5">
                       Select Driver 2 Employee
                     </label>
-                    <select
-                      value={formData.driver2.employee}
-                      onChange={(e) => handleDriver2Select(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-blue-500 bg-white shadow-2xs"
-                    >
-                      <option value="">-- None (Single Driver Duty) --</option>
-                      {employees
+                    <Select
+                      options={employees
                         .filter((emp) => String(emp._id) !== String(formData.driver1.employee))
-                        .map((emp) => {
+                        .map(emp => {
                           const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
-                          return (
-                            <option 
-                              key={emp._id} 
-                              value={emp._id}
-                              disabled={lic.blocked}
-                              className={lic.blocked ? 'text-rose-600 bg-rose-50 font-bold' : ''}
-                            >
-                              {lic.blocked ? '🚫 ' : ''}{emp.name} ({emp.employeeId} - {emp.category})
-                              {lic.blocked ? ` [BLOCKED: ${lic.reason}]` : lic.formatted ? ` [Valid till ${lic.formatted}]` : ''}
-                            </option>
-                          );
-                        })}
-                    </select>
+                          return {
+                            value: emp._id,
+                            label: `${lic.blocked ? '🚫 ' : ''}${emp.name} (${emp.employeeId} - ${emp.category})${lic.blocked ? ` [BLOCKED: ${lic.reason}]` : lic.formatted ? ` [Valid till ${lic.formatted}]` : ''}`,
+                            isDisabled: lic.blocked,
+                          };
+                      })}
+                      value={formData.driver2.employee ? {
+                        value: formData.driver2.employee,
+                        label: employees.find(e => e._id === formData.driver2.employee) ? 
+                          (() => {
+                            const emp = employees.find(e => e._id === formData.driver2.employee);
+                            const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
+                            return `${lic.blocked ? '🚫 ' : ''}${emp.name} (${emp.employeeId} - ${emp.category})${lic.blocked ? ` [BLOCKED: ${lic.reason}]` : lic.formatted ? ` [Valid till ${lic.formatted}]` : ''}`;
+                          })() : 'Selected Employee'
+                      } : null}
+                      onChange={(selected) => handleDriver2Select(selected ? selected.value : '')}
+                      placeholder="-- None (Single Driver Duty) --"
+                      isSearchable
+                      isClearable
+                      styles={customSelectStyles}
+                    />
                   </div>
 
                   {formData.driver2.employee && (
@@ -1743,33 +1787,36 @@ const TripsPage = () => {
                     <label className="block text-xs font-bold text-slate-800 mb-1.5">
                       Select Helper Employee
                     </label>
-                    <select
-                      value={formData.helper.employee}
-                      onChange={(e) => handleHelperSelect(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 bg-white shadow-2xs"
-                    >
-                      <option value="">-- None (No Helper Required) --</option>
-                      {employees
+                    <Select
+                      options={employees
                         .filter(
                           (emp) =>
                             String(emp._id) !== String(formData.driver1.employee) &&
                             String(emp._id) !== String(formData.driver2.employee)
                         )
-                        .map((emp) => {
+                        .map(emp => {
                           const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
-                          return (
-                            <option 
-                              key={emp._id} 
-                              value={emp._id}
-                              disabled={lic.blocked}
-                              className={lic.blocked ? 'text-rose-600 bg-rose-50 font-bold' : ''}
-                            >
-                              {lic.blocked ? '🚫 ' : ''}{emp.name} ({emp.employeeId} - {emp.category})
-                              {lic.blocked ? ` [BLOCKED: ${lic.reason}]` : ''}
-                            </option>
-                          );
-                        })}
-                    </select>
+                          return {
+                            value: emp._id,
+                            label: `${lic.blocked ? '🚫 ' : ''}${emp.name} (${emp.employeeId} - ${emp.category})${lic.blocked ? ` [BLOCKED: ${lic.reason}]` : ''}`,
+                            isDisabled: lic.blocked,
+                          };
+                      })}
+                      value={formData.helper.employee ? {
+                        value: formData.helper.employee,
+                        label: employees.find(e => e._id === formData.helper.employee) ? 
+                          (() => {
+                            const emp = employees.find(e => e._id === formData.helper.employee);
+                            const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
+                            return `${lic.blocked ? '🚫 ' : ''}${emp.name} (${emp.employeeId} - ${emp.category})${lic.blocked ? ` [BLOCKED: ${lic.reason}]` : ''}`;
+                          })() : 'Selected Employee'
+                      } : null}
+                      onChange={(selected) => handleHelperSelect(selected ? selected.value : '')}
+                      placeholder="-- None (No Helper Required) --"
+                      isSearchable
+                      isClearable
+                      styles={customSelectStyles}
+                    />
                   </div>
 
                   {formData.helper.employee && (
