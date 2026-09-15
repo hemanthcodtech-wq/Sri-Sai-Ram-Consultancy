@@ -70,8 +70,14 @@ const DashboardPage = () => {
     e.preventDefault();
     setSavingEmp(true);
     try {
+      const expNum = empFormData.experience === '' ? 1 : Number(empFormData.experience);
       const payload = {
         ...empFormData,
+        experience: expNum,
+        documents: {
+          ...empFormData.documents,
+          licenseExperience: empFormData.experience ? `${empFormData.experience} Years` : '',
+        },
       };
       await api.post('/employees', payload);
       setIsAddEmpModalOpen(false);

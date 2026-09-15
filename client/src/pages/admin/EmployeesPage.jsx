@@ -195,12 +195,19 @@ const EmployeesPage = () => {
         try { return new Date(val).toISOString().slice(0, 10); } catch { return ''; }
       };
 
+      const parseExpNum = (val) => {
+        if (val === undefined || val === null || val === '') return '';
+        const match = String(val).match(/\d+/);
+        return match ? Number(match[0]) : '';
+      };
+      const expNum = parseExpNum(employee.documents?.licenseExperience ?? employee.experience);
+
       setFormData({
         name: employee.name || '',
         mobileNumber: employee.mobileNumber || '',
         alternateNumber: employee.alternateNumber || '',
         category: employee.category || 'Driver',
-        experience: employee.experience || 0,
+        experience: typeof expNum === 'number' ? expNum : 0,
         photo: employee.photo || '',
         status: employee.status || 'Available',
         isBlocked: employee.isBlocked || employee.status === 'Blocked',
@@ -235,7 +242,7 @@ const EmployeesPage = () => {
           issuedRtoOffice: employee.documents?.issuedRtoOffice || '',
           licenseIssueDate: toDateStr(employee.documents?.licenseIssueDate),
           licenseExpiryDate: toDateStr(employee.documents?.licenseExpiryDate),
-          licenseExperience: employee.documents?.licenseExperience || '',
+          licenseExperience: expNum !== '' ? expNum : '',
           criminalBackground: employee.documents?.criminalBackground || '',
           heavyVehicleExperience: employee.documents?.heavyVehicleExperience || '',
           experienceDoc: employee.documents?.experienceDoc || '',
@@ -254,8 +261,16 @@ const EmployeesPage = () => {
   const handleSaveEmployee = async (e) => {
     e.preventDefault();
     try {
+      const expNum = Number(formData.documents.licenseExperience) || Number(formData.experience) || 0;
       const payload = {
         ...formData,
+        experience: expNum,
+        documents: {
+          ...formData.documents,
+          licenseExperience: formData.documents.licenseExperience !== '' && formData.documents.licenseExperience !== null
+            ? String(formData.documents.licenseExperience)
+            : '',
+        },
         specialSkills: typeof formData.specialSkills === 'string'
           ? formData.specialSkills.split(',').map((s) => s.trim()).filter(Boolean)
           : formData.specialSkills,
@@ -904,23 +919,6 @@ const EmployeesPage = () => {
                 </div>
               </div>
 
-              {/* ── Experience ── */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Years of Experience</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="0"
-                    max="50"
-                    placeholder="e.g. 5"
-                    value={formData.experience || ''}
-                    onChange={(e) => setFormData({ ...formData, experience: e.target.value === '' ? 0 : Number(e.target.value) })}
-                    className="w-full px-3.5 py-2.5 pr-16 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
-                  />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-semibold pointer-events-none">Years</span>
-                </div>
-              </div>
-
 
               <div className="bg-blue-50/40 rounded-2xl p-4 sm:p-5 border border-blue-200/80 space-y-3">
                 <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-blue-900">
@@ -1081,16 +1079,33 @@ const EmployeesPage = () => {
 
                   {/* 6. Total Experience as per Licence */}
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      6. Total Experience as Per Licence
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                      <span>6. Total Experience as Per Licence</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Enter in years</span>
                     </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 8 Years (as mentioned in the licence document)"
-                      value={formData.documents.licenseExperience}
-                      onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, licenseExperience: e.target.value } })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-amber-500"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        placeholder="e.g. 5"
+                        value={formData.documents.licenseExperience !== undefined ? formData.documents.licenseExperience : ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const num = val === '' ? 0 : Number(val);
+                          setFormData({
+                            ...formData,
+                            experience: num,
+                            documents: {
+                              ...formData.documents,
+                              licenseExperience: val,
+                            },
+                          });
+                        }}
+                        className="w-full px-3.5 py-2.5 pr-16 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-amber-500"
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-semibold pointer-events-none">Years</span>
+                    </div>
                   </div>
 
                   {/* 7. Criminal Background as per Licence */}
