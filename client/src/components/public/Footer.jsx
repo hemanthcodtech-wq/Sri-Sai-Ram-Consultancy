@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Phone, MapPin, Clock, Shield, ArrowUpRight, MessageCircle } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, Shield, ArrowUpRight, MessageCircle } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 
 const Footer = () => {
@@ -129,6 +129,16 @@ const Footer = () => {
             <div className="flex items-center gap-3 text-xs text-slate-400">
               <Clock className="w-4 h-4 text-[#C8960C] shrink-0" />
               <span>Available 24/7 for Calls &amp; WhatsApp</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Mail className="w-4 h-4 text-[#C8960C] shrink-0" />
+              <a
+                href="mailto:srisairamconsultancy2026@gmail.com"
+                className="text-slate-300 hover:text-[#C8960C] transition-colors text-xs font-semibold break-all"
+              >
+                srisairamconsultancy2026@gmail.com
+              </a>
             </div>
           </div>
 

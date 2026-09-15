@@ -76,7 +76,7 @@ const ContactPage = () => {
             '@type': 'EmploymentAgency',
             'name': 'Sri Sai Ram Consultancy',
             'telephone': '+91 95051 51527',
-            'email': 'info@srisairamconsultancy.com',
+            'email': 'srisairamconsultancy2026@gmail.com',
             'url': 'https://srisairamconsultancy.com',
             'address': {
               '@type': 'PostalAddress',
@@ -216,7 +216,12 @@ const ContactPage = () => {
                     <Mail className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                     <div>
                       <span className="text-slate-400 text-[9px] font-bold uppercase block">Email</span>
-                      <p className="font-semibold text-white mt-0.5 break-all">info@srisairamconsultancy.com</p>
+                      <a
+                        href="mailto:srisairamconsultancy2026@gmail.com"
+                        className="font-semibold text-amber-400 hover:text-amber-300 transition-colors mt-0.5 break-all block"
+                      >
+                        srisairamconsultancy2026@gmail.com
+                      </a>
                     </div>
                   </div>
 
