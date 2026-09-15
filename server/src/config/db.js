@@ -8,7 +8,6 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 10000,  // 10s — handles Vercel cold-start latency
       connectTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      bufferCommands: false,            // fail fast instead of silently buffering
     });
     store.setMongoConnected(true);
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);

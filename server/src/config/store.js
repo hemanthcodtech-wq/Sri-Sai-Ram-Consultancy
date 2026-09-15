@@ -20,6 +20,7 @@ const initialData = {
   inquiries: [],
   organizers: [],
   routes: [],
+  vehicles: [],
 };
 
 const store = {
