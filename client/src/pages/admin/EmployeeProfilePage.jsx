@@ -302,7 +302,7 @@ const EmployeeProfilePage = () => {
                   </span>
 
                   <span className="text-slate-400 font-medium pl-1">
-                    Experience: <strong className="text-slate-700">{employee.experience || '1 Year'}</strong>
+                    Experience: <strong className="text-slate-700">{employee.experience != null ? `${employee.experience} ${employee.experience === 1 ? 'Year' : 'Years'}` : '1 Year'}</strong>
                   </span>
                 </div>
               </div>

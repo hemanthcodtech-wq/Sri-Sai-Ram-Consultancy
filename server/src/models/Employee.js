@@ -29,8 +29,8 @@ const employeeSchema = new mongoose.Schema(
       default: 'Driver',
     },
     experience: {
-      type: String, // e.g., "5 Years", "3 Years 6 Months"
-      default: '1 Year',
+      type: Number, // Years of experience as a number e.g. 5
+      default: 1,
     },
     photo: {
       type: String, // URL or base64 or placeholder

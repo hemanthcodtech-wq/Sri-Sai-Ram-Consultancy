@@ -70,7 +70,7 @@ const EmployeesPage = () => {
     mobileNumber: '',
     alternateNumber: '',
     category: 'Driver',
-    experience: '',
+    experience: 0,
     photo: '',
     status: 'Available',
     isBlocked: false,
@@ -200,7 +200,7 @@ const EmployeesPage = () => {
         mobileNumber: employee.mobileNumber || '',
         alternateNumber: employee.alternateNumber || '',
         category: employee.category || 'Driver',
-        experience: employee.experience || '',
+        experience: employee.experience || 0,
         photo: employee.photo || '',
         status: employee.status || 'Available',
         isBlocked: employee.isBlocked || employee.status === 'Blocked',
@@ -401,7 +401,7 @@ const EmployeesPage = () => {
         'Category': emp.category || 'Driver',
         'Mobile Number': emp.mobileNumber || '',
         'Alternate Number': emp.alternateNumber || 'N/A',
-        'Experience': emp.experience ? `${emp.experience} Years` : 'N/A',
+        'Experience': emp.experience != null ? `${emp.experience} ${emp.experience === 1 ? 'Year' : 'Years'}` : 'N/A',
         'Duty Status': emp.status || 'Available',
         'Is Blocked': emp.isBlocked || emp.status === 'Blocked' ? 'YES (Blocked)' : 'NO (Active)',
         'Block Reason': emp.blockReason || 'N/A',
@@ -608,7 +608,7 @@ const EmployeesPage = () => {
                       <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
                         <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                           <span className="text-[10px] text-slate-400 font-bold uppercase block">Experience</span>
-                          <span className="font-bold text-slate-800">{emp.experience || '1 Year'}</span>
+                          <span className="font-bold text-slate-800">{emp.experience != null ? `${emp.experience} ${emp.experience === 1 ? 'Year' : 'Years'}` : '1 Year'}</span>
                         </div>
                         <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                           <span className="text-[10px] text-slate-400 font-bold uppercase block">Duty Status</span>
@@ -904,7 +904,24 @@ const EmployeesPage = () => {
                 </div>
               </div>
 
-              {/* ── 1. Aadhaar Number ── */}
+              {/* ── Experience ── */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Years of Experience</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    placeholder="e.g. 5"
+                    value={formData.experience || ''}
+                    onChange={(e) => setFormData({ ...formData, experience: e.target.value === '' ? 0 : Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 pr-16 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-semibold pointer-events-none">Years</span>
+                </div>
+              </div>
+
+
               <div className="bg-blue-50/40 rounded-2xl p-4 sm:p-5 border border-blue-200/80 space-y-3">
                 <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-blue-900">
                   <ShieldCheck className="w-4 h-4 text-blue-600" />
