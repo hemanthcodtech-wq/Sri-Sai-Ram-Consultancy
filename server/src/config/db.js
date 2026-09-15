@@ -2,8 +2,6 @@ const mongoose = require('mongoose');
 const store = require('./store');
 
 // ─── Connection cache (survives warm Vercel invocations) ─────────────────────
-// Vercel serverless functions reuse the same Node.js process for warm starts.
-// Caching the connection prevents a new TLS handshake on every request.
 let cached = global._mongooseCache;
 if (!cached) {
   cached = global._mongooseCache = { conn: null, promise: null };
@@ -24,15 +22,18 @@ const connectDB = async () => {
     return null;
   }
 
-  // If a connection is already in progress, wait for it (prevents duplicate connections)
+  // If a connection is already in progress, wait for it
   if (!cached.promise) {
     cached.promise = mongoose
       .connect(mongoUri, {
-        serverSelectionTimeoutMS: 15000,
-        connectTimeoutMS: 15000,
-        socketTimeoutMS: 45000,
+        serverSelectionTimeoutMS: 30000, // 30s — generous for cross-region cold starts
+        connectTimeoutMS: 30000,
+        socketTimeoutMS: 60000,
         maxPoolSize: 10,
         minPoolSize: 1,
+        heartbeatFrequencyMS: 10000,
+        retryWrites: true,
+        retryReads: true,
       })
       .then((conn) => {
         console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
@@ -41,6 +42,7 @@ const connectDB = async () => {
       })
       .catch((error) => {
         cached.promise = null; // allow retry on next request
+        cached.conn = null;
         store.setMongoConnected(false);
         console.log(`ℹ️ Running with built-in in-memory data store (${error.message}). To use MongoDB, ensure mongod service is started or set MONGO_URI in .env.`);
         return null;
