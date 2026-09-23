@@ -14,6 +14,10 @@ const uploadRoutes = require('./src/routes/uploadRoutes');
 const organizerRoutes = require('./src/routes/organizerRoutes');
 const routeRoutes = require('./src/routes/routeRoutes');
 const vehicleRoutes = require('./src/routes/vehicleRoutes');
+const mileageRoutes = require('./src/routes/mileageRoutes');
+const tyreMaintenanceRoutes = require('./src/routes/tyreMaintenanceRoutes');
+const productRoutes = require('./src/routes/productRoutes');
+const cleaningPaymentRoutes = require('./src/routes/cleaningPaymentRoutes');
 
 // Initialize app
 const app = express();
@@ -74,6 +78,10 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/organizers', organizerRoutes);
 app.use('/api/routes', routeRoutes);
 app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/mileage', mileageRoutes);
+app.use('/api/tyre-maintenance', tyreMaintenanceRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cleaning-payments', cleaningPaymentRoutes);
 
 // Root greeting
 app.get('/', (req, res) => {

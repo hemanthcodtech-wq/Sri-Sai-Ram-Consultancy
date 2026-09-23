@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-  Car,
   ClipboardList,
   TrendingUp,
   LogOut,
@@ -16,12 +15,19 @@ import {
   Building2,
   Navigation,
   Truck,
+  Fuel,
+  CircleDot,
+  Crown,
+  Package,
+  Droplets,
+  MoreHorizontal,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import logoImg from '../../assets/logo.png';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -49,6 +55,26 @@ const AdminLayout = () => {
       icon: Truck,
     },
     {
+      name: 'Mileage & Fueling',
+      path: '/admin/mileage',
+      icon: Fuel,
+    },
+    {
+      name: 'Tyre Maintenance',
+      path: '/admin/tyre-maintenance',
+      icon: CircleDot,
+    },
+    {
+      name: 'Product Management',
+      path: '/admin/products',
+      icon: Package,
+    },
+    {
+      name: 'Cleaning Management',
+      path: '/admin/cleaning-management',
+      icon: Droplets,
+    },
+    {
       name: 'Route Management',
       path: '/admin/routes',
       icon: Navigation,
@@ -62,6 +88,11 @@ const AdminLayout = () => {
       name: 'Task Management',
       path: '/admin/tasks',
       icon: ClipboardList,
+    },
+    {
+      name: 'Captain Management',
+      path: '/admin/captain-management',
+      icon: Crown,
     },
     {
       name: 'Earnings',
@@ -80,16 +111,25 @@ const AdminLayout = () => {
     { name: 'Dashboard', shortName: 'Dash', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Employees', shortName: 'Staff', path: '/admin/employees', icon: Users },
     { name: 'Vehicles', shortName: 'Vehicles', path: '/admin/vehicles', icon: Truck },
+    { name: 'Mileage', shortName: 'Fuel', path: '/admin/mileage', icon: Fuel },
+    { name: 'Tyres', shortName: 'Tyres', path: '/admin/tyre-maintenance', icon: CircleDot },
+    { name: 'Products', shortName: 'Parts', path: '/admin/products', icon: Package },
+    { name: 'Cleaning', shortName: 'Clean', path: '/admin/cleaning-management', icon: Droplets },
     { name: 'Routes', shortName: 'Routes', path: '/admin/routes', icon: Navigation },
     { name: 'Organizers', shortName: 'Orgs', path: '/admin/organizers', icon: Building2 },
     { name: 'Tasks', shortName: 'Tasks', path: '/admin/tasks', icon: ClipboardList },
+    { name: 'Captains', shortName: 'Captains', path: '/admin/captain-management', icon: Crown },
     { name: 'Earnings', shortName: 'Money', path: '/admin/earnings', icon: TrendingUp },
     { name: 'Inquiries', shortName: 'Inbox', path: '/admin/inquiries', icon: Bell },
   ];
+  const primaryBottomNavItems = bottomNavItems.slice(0, 4);
+  const moreBottomNavItems = bottomNavItems.slice(4);
 
   const isActive = (path) => {
     return location.pathname === path || (path !== '/admin/dashboard' && location.pathname.startsWith(path));
   };
+
+  const moreActive = moreBottomNavItems.some((item) => isActive(item.path));
 
   const currentPage = location.pathname.replace('/admin/', '').replace(/-/g, ' ') || 'Dashboard';
 
@@ -299,8 +339,29 @@ const AdminLayout = () => {
 
       {/* ── Mobile Sticky Bottom Nav Bar (Light Theme) ──── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#F0E0C8] shadow-[0_-2px_16px_rgba(0,0,0,0.08)]">
-        <div className="flex items-stretch h-[60px]">
-          {bottomNavItems.map((item) => {
+        {moreOpen && (
+          <div className="absolute bottom-[60px] right-2 left-2 max-h-[min(60vh,420px)] overflow-y-auto rounded-2xl border border-[#F0E0C8] bg-white p-2 shadow-[0_-8px_24px_rgba(15,23,42,0.14)]">
+            <div className="grid grid-cols-2 gap-1.5">
+              {moreBottomNavItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMoreOpen(false)}
+                    className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold ${active ? 'bg-amber-50 text-[#C8960C] border border-amber-200' : 'text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    <Icon className={`h-4 w-4 ${active ? 'text-[#C8960C]' : 'text-slate-400'}`} />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        <div className="flex h-[60px] items-stretch">
+          {primaryBottomNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
             return (
@@ -327,6 +388,17 @@ const AdminLayout = () => {
               </Link>
             );
           })}
+          <button
+            type="button"
+            onClick={() => setMoreOpen(!moreOpen)}
+            aria-expanded={moreOpen}
+            className="relative flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-bold tracking-wide transition-all duration-200"
+          >
+            {(moreActive || moreOpen) && <span className="absolute inset-x-1 inset-y-1.5 rounded-xl border border-amber-200 bg-amber-50" />}
+            {(moreActive || moreOpen) && <span className="absolute top-0 left-1/2 h-[2px] w-8 -translate-x-1/2 rounded-full bg-[#C8960C]" />}
+            <MoreHorizontal className={`relative z-10 h-5 w-5 ${moreActive || moreOpen ? 'text-[#C8960C]' : 'text-slate-400'}`} />
+            <span className={`relative z-10 ${moreActive || moreOpen ? 'text-[#C8960C]' : 'text-slate-500'}`}>More</span>
+          </button>
         </div>
       </nav>
 

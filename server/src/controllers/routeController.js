@@ -12,6 +12,7 @@ const getRoutes = async (req, res) => {
         query.$or = [
           { fromCity: { $regex: search, $options: 'i' } },
           { toCity: { $regex: search, $options: 'i' } },
+          { serviceId: { $regex: search, $options: 'i' } },
           { routeName: { $regex: search, $options: 'i' } },
           { notes: { $regex: search, $options: 'i' } },
         ];
@@ -32,6 +33,7 @@ const getRoutes = async (req, res) => {
         (r) =>
           (r.fromCity && r.fromCity.toLowerCase().includes(s)) ||
           (r.toCity && r.toCity.toLowerCase().includes(s)) ||
+          (r.serviceId && r.serviceId.toLowerCase().includes(s)) ||
           (r.routeName && r.routeName.toLowerCase().includes(s)) ||
           (r.notes && r.notes.toLowerCase().includes(s))
       );
@@ -64,8 +66,11 @@ const getRouteById = async (req, res) => {
 
 const createRoute = async (req, res) => {
   try {
-    const { fromCity, toCity } = req.body;
+    const { serviceId, fromCity, toCity, type } = req.body;
 
+    if (!serviceId || !serviceId.trim()) {
+      return res.status(400).json({ success: false, message: 'Service ID is required' });
+    }
     if (!fromCity || !fromCity.trim()) {
       return res.status(400).json({ success: false, message: 'Starting city (From) is required' });
     }
@@ -75,6 +80,8 @@ const createRoute = async (req, res) => {
 
     const routeName = req.body.routeName?.trim() || `${fromCity.trim()} → ${toCity.trim()}`;
     const payload = {
+      serviceId: serviceId.trim(),
+      type: type || 'Full Sleeper',
       fromCity: fromCity.trim(),
       toCity: toCity.trim(),
       routeName,

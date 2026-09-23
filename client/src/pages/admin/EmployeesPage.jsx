@@ -569,11 +569,20 @@ const EmployeesPage = () => {
                       {/* Header with Photo, ID, Category */}
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={emp.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80'}
-                            alt={emp.name}
-                            className="w-13 h-13 rounded-2xl object-cover border-2 border-slate-100 shadow-sm"
-                          />
+                          <div className="relative flex h-13 w-13 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-slate-100 bg-slate-100 shadow-sm">
+                            {emp.photo && (
+                              <img
+                                src={emp.photo}
+                                alt={emp.name}
+                                onError={(event) => {
+                                  event.currentTarget.classList.add('hidden');
+                                  event.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                }}
+                                className="absolute inset-0 h-full w-full object-cover"
+                              />
+                            )}
+                            <User className={`h-7 w-7 text-slate-400 ${emp.photo ? 'hidden' : ''}`} aria-hidden="true" />
+                          </div>
                           <div>
                             <h3 className="font-extrabold text-slate-900 text-base leading-tight">
                               {emp.name}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   TrendingUp, 
-  DollarSign, 
+  IndianRupee,
   Calendar, 
   Users, 
   Car, 
@@ -30,6 +30,14 @@ const EarningsPage = () => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('month'); // 'today', 'week', 'month', 'year', 'all'
   const [categoryFilter, setCategoryFilter] = useState('All'); // 'All', 'Driver', 'Helper', 'Captain'
+  const [organizers, setOrganizers] = useState([]);
+  const [isOrganizerAmountOpen, setIsOrganizerAmountOpen] = useState(false);
+  const [organizerAmountForm, setOrganizerAmountForm] = useState({
+    organizerId: '',
+    amount: '',
+    dateReceived: new Date().toISOString().slice(0, 10),
+    notes: '',
+  });
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,6 +61,19 @@ const EarningsPage = () => {
     fetchEarningsData();
   }, [timeRange]);
 
+  const fetchOrganizers = async () => {
+    try {
+      const res = await api.get('/organizers');
+      if (res.data.success) setOrganizers(res.data.data);
+    } catch (err) {
+      console.error('Error fetching organizer amounts:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrganizers();
+  }, []);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [timeRange, categoryFilter, itemsPerPage]);
@@ -67,6 +88,64 @@ const EarningsPage = () => {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const isInSelectedRange = (dateValue) => {
+    if (timeRange === 'all') return true;
+    const date = new Date(dateValue);
+    const now = new Date();
+    if (timeRange === 'today') return date.toDateString() === now.toDateString();
+    const start = new Date(now);
+    if (timeRange === 'week') start.setDate(now.getDate() - 7);
+    if (timeRange === 'month') start.setMonth(now.getMonth(), 1);
+    if (timeRange === 'year') start.setMonth(0, 1);
+    start.setHours(0, 0, 0, 0);
+    return date >= start;
+  };
+
+  const organizerRevenue = organizers.reduce((total, organizer) => (
+    total + (organizer.monthlyIncome || [])
+      .filter((income) => isInSelectedRange(income.dateReceived))
+      .reduce((sum, income) => sum + Number(income.amount || 0), 0)
+  ), 0);
+
+  const resetOrganizerAmountForm = () => {
+    setOrganizerAmountForm({
+      organizerId: '',
+      amount: '',
+      dateReceived: new Date().toISOString().slice(0, 10),
+      notes: '',
+    });
+  };
+
+  const handleSaveOrganizerAmount = async (event) => {
+    event.preventDefault();
+    const organizer = organizers.find((item) => item._id === organizerAmountForm.organizerId);
+    if (!organizer || !organizerAmountForm.amount || Number(organizerAmountForm.amount) <= 0) {
+      alert('Select an organizer and enter a valid amount.');
+      return;
+    }
+
+    try {
+      const currentIncomes = [...(organizer.monthlyIncome || [])];
+      const receivedDate = new Date(organizerAmountForm.dateReceived);
+      currentIncomes.push({
+        month: receivedDate.toLocaleString('default', { month: 'short', year: 'numeric' }),
+        amount: Number(organizerAmountForm.amount),
+        dateReceived: receivedDate,
+        notes: organizerAmountForm.notes.trim(),
+      });
+      await api.put(`/organizers/${organizer._id}`, {
+        ...organizer,
+        monthlyIncome: currentIncomes,
+      });
+      setIsOrganizerAmountOpen(false);
+      resetOrganizerAmountForm();
+      fetchOrganizers();
+    } catch (err) {
+      console.error('Error saving organizer amount:', err);
+      alert(err.response?.data?.message || 'Failed to save organizer amount.');
+    }
   };
 
   const handleExportExcel = () => {
@@ -109,41 +188,46 @@ const EarningsPage = () => {
       <div className="space-y-8">
         
         {/* Top Title & Filter Bar */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-              <span>Financial & Earnings Analytics</span>
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300">
-                Revenue & Margins
-              </span>
+        <div className="grid gap-5 border-b border-slate-200/80 pb-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+          <div className="max-w-2xl">
+            <h1 className="text-3xl font-black leading-[1.08] tracking-tight text-slate-900 sm:text-4xl">
+              Financial &amp; Earnings Analytics
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
               Detailed financial breakdown of company commissions, staff payouts, and category margins.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Export Excel Ledger Button */}
-            <button
-              onClick={handleExportExcel}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold shadow-2xs hover:scale-[1.01] active:scale-95 transition-all cursor-pointer"
-              title="Download Financial Ledger as Excel"
-            >
-              <Download className="w-4 h-4 text-emerald-600" />
-              <span>Export Excel ({filteredEmployees.length})</span>
-            </button>
+          <div className="flex min-w-0 flex-col items-stretch gap-3 lg:items-end">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-3 py-2 text-xs font-black text-amber-900">
+                Revenue &amp; Margins
+              </span>
+              <button
+                onClick={() => setIsOrganizerAmountOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-black text-slate-950 shadow-sm hover:bg-amber-300"
+              >
+                <IndianRupee className="h-4 w-4" />
+                <span>Record Organizer Amount</span>
+              </button>
+              <button
+                onClick={handleExportExcel}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-800 shadow-sm transition-all hover:bg-slate-50"
+                title="Download Financial Ledger as Excel"
+              >
+                <Download className="h-4 w-4 text-emerald-600" />
+                <span>Export Excel ({filteredEmployees.length})</span>
+              </button>
+              <button
+                onClick={handlePrint}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+              >
+                <Printer className="h-4 w-4 text-slate-500" />
+                <span>Print Report</span>
+              </button>
+            </div>
 
-            {/* Print / Export Report Button */}
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 text-xs font-bold shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
-            >
-              <Printer className="w-4 h-4 text-slate-500" />
-              <span>Print Report</span>
-            </button>
-
-            {/* Time Filter Buttons */}
-            <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-slate-200 shadow-2xs">
+            <div className="flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
               {[
                 { id: 'today', label: 'Today' },
                 { id: 'week', label: 'Week' },
@@ -154,10 +238,10 @@ const EarningsPage = () => {
                 <button
                   key={t.id}
                   onClick={() => setTimeRange(t.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                  className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
                     timeRange === t.id
-                      ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-amber-500 text-slate-950 shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
                   {t.label}
@@ -175,44 +259,42 @@ const EarningsPage = () => {
         ) : (
           <>
             {/* Financial Overview Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               
-              {/* 1. Total Staff Salary Obligations */}
+              {/* 1. Amount Received from Organizers */}
               <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FFF9EE] to-[#FFF5DC] rounded-3xl p-5 sm:p-6 text-slate-900 shadow-sm border-2 border-[#E6CD98]">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] sm:text-xs font-black text-[#A66E00] uppercase tracking-wider">Total Staff Salary</span>
+                  <span className="text-[11px] sm:text-xs font-black text-[#A66E00] uppercase tracking-wider">Organizer Amount Received</span>
                   <div className="w-8 h-8 rounded-lg bg-amber-100 text-[#C8960C] flex items-center justify-center font-bold">
                     <Users className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-[#081C36] mt-3">
-                  {formatCurrency(stats?.summary?.totalSalary || stats?.summary?.totalPayout)}
+                  {formatCurrency(organizerRevenue)}
                 </div>
-                <p className="text-[11px] sm:text-xs text-slate-500 mt-1 font-medium">Total staff earnings billed</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-1 font-medium">Collections from organizers</p>
               </div>
 
-              {/* 2. Total Advance Paid */}
+              {/* 2. Task Spend */}
               <div className="bg-gradient-to-br from-amber-50 via-amber-100/40 to-yellow-50 rounded-3xl p-5 sm:p-6 text-slate-900 shadow-sm border-2 border-amber-300">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] sm:text-xs font-black text-amber-900 uppercase tracking-wider">Advance Paid</span>
+                  <span className="text-[11px] sm:text-xs font-black text-amber-900 uppercase tracking-wider">Task Spend</span>
                   <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs">
-                    <DollarSign className="w-4 h-4" />
+                    <IndianRupee className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-amber-950 mt-3">
-                  {formatCurrency(stats?.summary?.totalAdvance)}
+                  {formatCurrency(stats?.summary?.totalSalary || stats?.summary?.totalPayout)}
                 </div>
                 <div className="flex items-center gap-2 mt-1 text-[10px] font-bold text-amber-800">
-                  <span>Cash: {formatCurrency(stats?.summary?.advanceCash)}</span>
-                  <span>•</span>
-                  <span>Online: {formatCurrency(stats?.summary?.advanceOnline)}</span>
+                  <span>Salary allocated to tasks</span>
                 </div>
               </div>
 
               {/* 3. Pending Payment Dues */}
               <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border-2 border-rose-300">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] sm:text-xs font-bold text-rose-700 uppercase tracking-wider">Pending Dues</span>
+                  <span className="text-[11px] sm:text-xs font-bold text-rose-700 uppercase tracking-wider">Pending Task Payments</span>
                   <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
                     <Clock className="w-4 h-4" />
                   </div>
@@ -223,10 +305,10 @@ const EarningsPage = () => {
                 <p className="text-[11px] sm:text-xs text-rose-500 mt-1 font-medium">Salary balance to pay</p>
               </div>
 
-              {/* 4. Total Settled Amount */}
+              {/* 4. Total Paid for Tasks */}
               <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border-2 border-emerald-300">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] sm:text-xs font-bold text-emerald-800 uppercase tracking-wider">Settled Payouts</span>
+                  <span className="text-[11px] sm:text-xs font-bold text-emerald-800 uppercase tracking-wider">Paid for Tasks</span>
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
@@ -234,21 +316,7 @@ const EarningsPage = () => {
                 <div className="text-2xl sm:text-3xl font-black text-emerald-700 mt-3">
                   {formatCurrency(stats?.summary?.totalPaid || stats?.summary?.paidRevenue)}
                 </div>
-                <p className="text-[11px] sm:text-xs text-emerald-800 font-semibold mt-1">Paid in full + Advance</p>
-              </div>
-
-              {/* 5. Agency Margin */}
-              <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Agency Margin</span>
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-3">
-                  {formatCurrency(stats?.summary?.totalCommission)}
-                </div>
-                <p className="text-[11px] sm:text-xs text-slate-500 mt-1 font-medium">SSRC consultancy fee</p>
+                <p className="text-[11px] sm:text-xs text-emerald-800 font-semibold mt-1">Employee task payments</p>
               </div>
 
             </div>
@@ -504,6 +572,87 @@ const EarningsPage = () => {
         )}
 
       </div>
+
+      {isOrganizerAmountOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-amber-50">
+              <h2 className="font-black text-lg text-slate-900">Record Organizer Amount</h2>
+              <button
+                onClick={() => { setIsOrganizerAmountOpen(false); resetOrganizerAmountForm(); }}
+                className="p-1 hover:bg-amber-100 rounded-lg"
+                title="Close"
+              >
+                <span className="text-xl leading-none">&times;</span>
+              </button>
+            </div>
+            <form onSubmit={handleSaveOrganizerAmount} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Organizer</label>
+                <select
+                  required
+                  value={organizerAmountForm.organizerId}
+                  onChange={(event) => setOrganizerAmountForm({ ...organizerAmountForm, organizerId: event.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                >
+                  <option value="">Select organizer</option>
+                  {organizers.map((organizer) => (
+                    <option key={organizer._id} value={organizer._id}>
+                      {organizer.name}{organizer.company ? ` - ${organizer.company}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Amount Received (Rs.)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={organizerAmountForm.amount}
+                    onChange={(event) => setOrganizerAmountForm({ ...organizerAmountForm, amount: event.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="e.g. 50000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Received Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={organizerAmountForm.dateReceived}
+                    onChange={(event) => setOrganizerAmountForm({ ...organizerAmountForm, dateReceived: event.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Notes</label>
+                <input
+                  type="text"
+                  value={organizerAmountForm.notes}
+                  onChange={(event) => setOrganizerAmountForm({ ...organizerAmountForm, notes: event.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="Optional reference"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setIsOrganizerAmountOpen(false); resetOrganizerAmountForm(); }}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 text-sm font-black">
+                  Save Amount
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };

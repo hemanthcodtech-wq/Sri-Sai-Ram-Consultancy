@@ -12,6 +12,24 @@ const employeeSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    gender: {
+      type: String,
+      enum: ['Male', 'Female', 'Other', ''],
+      default: '',
+    },
+    email: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    dateOfBirth: {
+      type: Date,
+    },
+    nationality: {
+      type: String,
+      trim: true,
+      default: 'Indian',
+    },
     mobileNumber: {
       type: String,
       required: true,
@@ -118,6 +136,14 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    paymentHistory: [
+      {
+        amount: { type: Number, required: true },
+        date: { type: Date, default: Date.now },
+        mode: { type: String, enum: ['Cash', 'Online', 'UPI', 'Bank Transfer'], default: 'Cash' },
+        notes: { type: String, default: '' },
+      },
+    ],
   },
   {
     timestamps: true,

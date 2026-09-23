@@ -96,15 +96,6 @@ const tripSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    advanceAmount: {
-      type: Number,
-      default: 0,
-    },
-    advancePaymentMode: {
-      type: String,
-      enum: ['Cash', 'Online', 'UPI', 'Bank Transfer', 'None'],
-      default: 'Cash',
-    },
     salaryAmount: {
       type: Number,
       default: 0,
@@ -156,8 +147,8 @@ const tripSchema = new mongoose.Schema(
       category: { type: String, default: 'Driver' },
       salaryAmount: { type: Number, default: 0 },
       advanceAmount: { type: Number, default: 0 },
-      advancePaymentMode: { type: String, default: 'Cash' },
       salaryPaymentMode: { type: String, default: 'Online' },
+      paidAmount: { type: Number, default: 0 },
       dueAmount: { type: Number, default: 0 },
       paymentStatus: { type: String, default: 'Pending' },
     },
@@ -167,8 +158,8 @@ const tripSchema = new mongoose.Schema(
       category: { type: String, default: 'Driver' },
       salaryAmount: { type: Number, default: 0 },
       advanceAmount: { type: Number, default: 0 },
-      advancePaymentMode: { type: String, default: 'Cash' },
       salaryPaymentMode: { type: String, default: 'Online' },
+      paidAmount: { type: Number, default: 0 },
       dueAmount: { type: Number, default: 0 },
       paymentStatus: { type: String, default: 'Pending' },
     },
@@ -178,8 +169,8 @@ const tripSchema = new mongoose.Schema(
       category: { type: String, default: 'Helper' },
       salaryAmount: { type: Number, default: 0 },
       advanceAmount: { type: Number, default: 0 },
-      advancePaymentMode: { type: String, default: 'Cash' },
       salaryPaymentMode: { type: String, default: 'Online' },
+      paidAmount: { type: Number, default: 0 },
       dueAmount: { type: Number, default: 0 },
       paymentStatus: { type: String, default: 'Pending' },
     },
@@ -212,39 +203,37 @@ tripSchema.pre('save', async function () {
   // Calculate crew dues
   if (this.driver1?.employee) {
     const sal = Number(this.driver1.salaryAmount || 0);
-    const adv = Number(this.driver1.advanceAmount || 0);
-    this.driver1.dueAmount = this.driver1.paymentStatus === 'Paid' ? 0 : Math.max(0, sal - adv);
+    if (this.driver1.paymentStatus === 'Paid') this.driver1.paidAmount = sal;
+    else if (this.driver1.paymentStatus !== 'Partial') this.driver1.paidAmount = Number(this.driver1.advanceAmount || 0);
+    this.driver1.dueAmount = Math.max(0, sal - Number(this.driver1.paidAmount || 0));
   }
   if (this.driver2?.employee) {
     const sal = Number(this.driver2.salaryAmount || 0);
-    const adv = Number(this.driver2.advanceAmount || 0);
-    this.driver2.dueAmount = this.driver2.paymentStatus === 'Paid' ? 0 : Math.max(0, sal - adv);
+    if (this.driver2.paymentStatus === 'Paid') this.driver2.paidAmount = sal;
+    else if (this.driver2.paymentStatus !== 'Partial') this.driver2.paidAmount = Number(this.driver2.advanceAmount || 0);
+    this.driver2.dueAmount = Math.max(0, sal - Number(this.driver2.paidAmount || 0));
   }
   if (this.helper?.employee) {
     const sal = Number(this.helper.salaryAmount || 0);
-    const adv = Number(this.helper.advanceAmount || 0);
-    this.helper.dueAmount = this.helper.paymentStatus === 'Paid' ? 0 : Math.max(0, sal - adv);
+    if (this.helper.paymentStatus === 'Paid') this.helper.paidAmount = sal;
+    else if (this.helper.paymentStatus !== 'Partial') this.helper.paidAmount = Number(this.helper.advanceAmount || 0);
+    this.helper.dueAmount = Math.max(0, sal - Number(this.helper.paidAmount || 0));
   }
 
-  // Total Salary & Advance from crew if provided
+  // Total Salary from crew if provided
   const crewSalary = (Number(this.driver1?.salaryAmount || 0) + Number(this.driver2?.salaryAmount || 0) + Number(this.helper?.salaryAmount || 0));
-  const crewAdvance = (Number(this.driver1?.advanceAmount || 0) + Number(this.driver2?.advanceAmount || 0) + Number(this.helper?.advanceAmount || 0));
   
   if (crewSalary > 0) {
     this.salaryAmount = crewSalary;
     this.employeePayout = crewSalary;
-    this.advanceAmount = crewAdvance;
   } else {
     this.salaryAmount = Number(this.salaryAmount !== undefined ? this.salaryAmount : this.employeePayout || 0);
     this.employeePayout = this.salaryAmount;
-    this.advanceAmount = Number(this.advanceAmount || 0);
   }
 
-  if (this.paymentStatus === 'Paid') {
-    this.dueAmount = 0;
-  } else {
-    this.dueAmount = Math.max(0, (this.salaryAmount || 0) - (this.advanceAmount || 0));
-  }
+  if (this.paymentStatus === 'Paid') this.paidAmount = this.salaryAmount;
+  else if (this.paymentStatus !== 'Partial') this.paidAmount = Number(this.advanceAmount || 0);
+  this.dueAmount = Math.max(0, Number(this.salaryAmount || 0) - Number(this.paidAmount || 0));
 
   // Commission = Trip Amount - Employee Payout
   if (this.tripAmount && this.employeePayout) {

@@ -33,7 +33,11 @@ const getVehicles = async (req, res) => {
 // @access Protected
 const createVehicle = async (req, res) => {
   try {
-    const { vehicleNumber, status, notes } = req.body;
+    const { 
+      vehicleNumber, status, notes,
+      registrationDate, fitnessValidUpto, taxValidUpto,
+      insuranceValidUpto, puccValidUpto, permitValidUpto, aitpValidUpto
+    } = req.body;
     if (!vehicleNumber || !vehicleNumber.trim()) {
       return res.status(400).json({ success: false, message: 'Vehicle number is required.' });
     }
@@ -48,6 +52,8 @@ const createVehicle = async (req, res) => {
         vehicleNumber: vNum,
         status: status || 'Active',
         notes: notes || '',
+        registrationDate, fitnessValidUpto, taxValidUpto,
+        insuranceValidUpto, puccValidUpto, permitValidUpto, aitpValidUpto
       });
       return res.status(201).json({ success: true, data: vehicle, message: 'Vehicle added successfully.' });
     }
@@ -63,6 +69,8 @@ const createVehicle = async (req, res) => {
       vehicleNumber: vNum,
       status: status || 'Active',
       notes: notes || '',
+      registrationDate, fitnessValidUpto, taxValidUpto,
+      insuranceValidUpto, puccValidUpto, permitValidUpto, aitpValidUpto,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -82,7 +90,11 @@ const createVehicle = async (req, res) => {
 // @access Protected
 const updateVehicle = async (req, res) => {
   try {
-    const { vehicleNumber, status, notes } = req.body;
+    const { 
+      vehicleNumber, status, notes,
+      registrationDate, fitnessValidUpto, taxValidUpto,
+      insuranceValidUpto, puccValidUpto, permitValidUpto, aitpValidUpto
+    } = req.body;
     const updateData = {};
 
     if (store.isMongo()) {
@@ -99,6 +111,13 @@ const updateVehicle = async (req, res) => {
       }
       if (status !== undefined) updateData.status = status;
       if (notes !== undefined) updateData.notes = notes;
+      if (registrationDate !== undefined) updateData.registrationDate = registrationDate;
+      if (fitnessValidUpto !== undefined) updateData.fitnessValidUpto = fitnessValidUpto;
+      if (taxValidUpto !== undefined) updateData.taxValidUpto = taxValidUpto;
+      if (insuranceValidUpto !== undefined) updateData.insuranceValidUpto = insuranceValidUpto;
+      if (puccValidUpto !== undefined) updateData.puccValidUpto = puccValidUpto;
+      if (permitValidUpto !== undefined) updateData.permitValidUpto = permitValidUpto;
+      if (aitpValidUpto !== undefined) updateData.aitpValidUpto = aitpValidUpto;
 
       const vehicle = await Vehicle.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
       if (!vehicle) return res.status(404).json({ success: false, message: 'Vehicle not found.' });
@@ -118,6 +137,13 @@ const updateVehicle = async (req, res) => {
     }
     if (status !== undefined) updateData.status = status;
     if (notes !== undefined) updateData.notes = notes;
+    if (registrationDate !== undefined) updateData.registrationDate = registrationDate;
+    if (fitnessValidUpto !== undefined) updateData.fitnessValidUpto = fitnessValidUpto;
+    if (taxValidUpto !== undefined) updateData.taxValidUpto = taxValidUpto;
+    if (insuranceValidUpto !== undefined) updateData.insuranceValidUpto = insuranceValidUpto;
+    if (puccValidUpto !== undefined) updateData.puccValidUpto = puccValidUpto;
+    if (permitValidUpto !== undefined) updateData.permitValidUpto = permitValidUpto;
+    if (aitpValidUpto !== undefined) updateData.aitpValidUpto = aitpValidUpto;
 
     store.data.vehicles[index] = { ...store.data.vehicles[index], ...updateData, updatedAt: new Date() };
     res.json({ success: true, data: store.data.vehicles[index], message: 'Vehicle updated successfully.' });

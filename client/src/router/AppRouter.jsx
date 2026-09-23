@@ -25,6 +25,11 @@ import InquiriesPage from '../pages/admin/InquiriesPage';
 import RoutesPage from '../pages/admin/RoutesPage';
 import OrganizersPage from '../pages/admin/OrganizersPage';
 import VehiclesPage from '../pages/admin/VehiclesPage';
+import MileagePage from '../pages/admin/MileagePage';
+import TyreMaintenancePage from '../pages/admin/TyreMaintenancePage';
+import CaptainManagementPage from '../pages/admin/CaptainManagementPage';
+import ProductManagementPage from '../pages/admin/ProductManagementPage';
+import CleaningManagementPage from '../pages/admin/CleaningManagementPage';
 
 // Public Layout Wrapper with header, footer and floating contact buttons
 const PublicLayout = ({ children }) => {
@@ -95,9 +100,14 @@ const AppRouter = () => {
         <Route path="employees/:id" element={<EmployeeProfilePage />} />
         <Route path="tasks" element={<TripsPage />} />
         <Route path="trips" element={<TripsPage />} />
+        <Route path="captain-management" element={<CaptainManagementPage />} />
         <Route path="routes" element={<RoutesPage />} />
         <Route path="organizers" element={<OrganizersPage />} />
         <Route path="vehicles" element={<VehiclesPage />} />
+        <Route path="mileage" element={<MileagePage />} />
+        <Route path="tyre-maintenance" element={<TyreMaintenancePage />} />
+        <Route path="products" element={<ProductManagementPage />} />
+        <Route path="cleaning-management" element={<CleaningManagementPage />} />
         <Route path="inquiries" element={<InquiriesPage />} />
       </Route>
 

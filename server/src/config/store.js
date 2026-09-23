@@ -21,6 +21,8 @@ const initialData = {
   organizers: [],
   routes: [],
   vehicles: [],
+  products: [],
+  cleaningPayments: [],
 };
 
 const store = {

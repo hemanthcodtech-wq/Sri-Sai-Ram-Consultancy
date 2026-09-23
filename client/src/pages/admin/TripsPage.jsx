@@ -124,6 +124,7 @@ const TripsPage = () => {
       advanceAmount: '',
       advancePaymentMode: 'Cash',
       salaryPaymentMode: 'Online',
+      paidAmount: 0,
       dueAmount: 0,
       paymentStatus: 'Pending',
     },
@@ -136,6 +137,7 @@ const TripsPage = () => {
       advanceAmount: '',
       advancePaymentMode: 'Cash',
       salaryPaymentMode: 'Online',
+      paidAmount: 0,
       dueAmount: 0,
       paymentStatus: 'Pending',
     },
@@ -148,6 +150,7 @@ const TripsPage = () => {
       advanceAmount: '',
       advancePaymentMode: 'Cash',
       salaryPaymentMode: 'Online',
+      paidAmount: 0,
       dueAmount: 0,
       paymentStatus: 'Pending',
     },
@@ -353,6 +356,7 @@ const TripsPage = () => {
           advanceAmount: d1Adv,
           advancePaymentMode: trip.driver1?.advancePaymentMode || trip.advancePaymentMode || 'Cash',
           salaryPaymentMode: trip.driver1?.salaryPaymentMode || trip.salaryPaymentMode || 'Online',
+          paidAmount: trip.driver1?.paidAmount !== undefined ? trip.driver1.paidAmount : d1Adv,
           dueAmount: trip.driver1?.dueAmount !== undefined ? trip.driver1.dueAmount : calculateComputedDue(d1Sal, d1Adv, trip.paymentStatus),
           paymentStatus: trip.driver1?.paymentStatus || trip.paymentStatus || 'Pending',
         },
@@ -365,6 +369,7 @@ const TripsPage = () => {
           advanceAmount: trip.driver2?.advanceAmount !== undefined ? trip.driver2.advanceAmount : '',
           advancePaymentMode: trip.driver2?.advancePaymentMode || 'Cash',
           salaryPaymentMode: trip.driver2?.salaryPaymentMode || 'Online',
+          paidAmount: trip.driver2?.paidAmount !== undefined ? trip.driver2.paidAmount : trip.driver2?.advanceAmount || 0,
           dueAmount: trip.driver2?.dueAmount !== undefined ? trip.driver2.dueAmount : 0,
           paymentStatus: trip.driver2?.paymentStatus || 'Pending',
         },
@@ -377,6 +382,7 @@ const TripsPage = () => {
           advanceAmount: trip.helper?.advanceAmount !== undefined ? trip.helper.advanceAmount : '',
           advancePaymentMode: trip.helper?.advancePaymentMode || 'Cash',
           salaryPaymentMode: trip.helper?.salaryPaymentMode || 'Online',
+          paidAmount: trip.helper?.paidAmount !== undefined ? trip.helper.paidAmount : trip.helper?.advanceAmount || 0,
           dueAmount: trip.helper?.dueAmount !== undefined ? trip.helper.dueAmount : 0,
           paymentStatus: trip.helper?.paymentStatus || 'Pending',
         },
@@ -531,17 +537,20 @@ const TripsPage = () => {
     const d1Sal = Number(formData.driver1.salaryAmount || 0);
     const d1Adv = Number(formData.driver1.advanceAmount || 0);
     const d1Status = formData.driver1.paymentStatus || 'Pending';
-    const d1Due = d1Status === 'Paid' ? 0 : Math.max(0, d1Sal - d1Adv);
+    const d1Paid = d1Status === 'Paid' ? d1Sal : d1Status === 'Partial' ? Number(formData.driver1.paidAmount || 0) : d1Adv;
+    const d1Due = Math.max(0, d1Sal - d1Paid);
 
     const d2Sal = Number(formData.driver2.salaryAmount || 0);
     const d2Adv = Number(formData.driver2.advanceAmount || 0);
     const d2Status = formData.driver2.paymentStatus || 'Pending';
-    const d2Due = d2Status === 'Paid' ? 0 : Math.max(0, d2Sal - d2Adv);
+    const d2Paid = d2Status === 'Paid' ? d2Sal : d2Status === 'Partial' ? Number(formData.driver2.paidAmount || 0) : d2Adv;
+    const d2Due = Math.max(0, d2Sal - d2Paid);
 
     const helperSal = Number(formData.helper.salaryAmount || 0);
     const helperAdv = Number(formData.helper.advanceAmount || 0);
     const helperStatus = formData.helper.paymentStatus || 'Pending';
-    const helperDue = helperStatus === 'Paid' ? 0 : Math.max(0, helperSal - helperAdv);
+    const helperPaid = helperStatus === 'Paid' ? helperSal : helperStatus === 'Partial' ? Number(formData.helper.paidAmount || 0) : helperAdv;
+    const helperDue = Math.max(0, helperSal - helperPaid);
 
     const totalSalaryCalc = d1Sal + (formData.driver2.employee ? d2Sal : 0) + (formData.helper.employee ? helperSal : 0);
     const totalAdvanceCalc = d1Adv + (formData.driver2.employee ? d2Adv : 0) + (formData.helper.employee ? helperAdv : 0);
@@ -563,6 +572,7 @@ const TripsPage = () => {
         ...formData.driver1,
         salaryAmount: d1Sal,
         advanceAmount: d1Adv,
+        paidAmount: d1Paid,
         dueAmount: d1Due,
         paymentStatus: d1Status,
       },
@@ -570,6 +580,7 @@ const TripsPage = () => {
         ...formData.driver2,
         salaryAmount: d2Sal,
         advanceAmount: d2Adv,
+        paidAmount: d2Paid,
         dueAmount: d2Due,
         paymentStatus: d2Status,
       } : undefined,
@@ -577,6 +588,7 @@ const TripsPage = () => {
         ...formData.helper,
         salaryAmount: helperSal,
         advanceAmount: helperAdv,
+        paidAmount: helperPaid,
         dueAmount: helperDue,
         paymentStatus: helperStatus,
       } : undefined,
@@ -667,6 +679,7 @@ const TripsPage = () => {
         category,
         salary,
         advance,
+        paid: task.driver1?.paidAmount !== undefined ? task.driver1.paidAmount : advance,
         advanceMode: task.driver1?.advancePaymentMode || task.advancePaymentMode || 'Cash',
         salaryMode: task.driver1?.salaryPaymentMode || task.salaryPaymentMode || 'Online',
         photo: emp?.photo,
@@ -688,6 +701,7 @@ const TripsPage = () => {
         category,
         salary,
         advance,
+        paid: task.driver2?.paidAmount !== undefined ? task.driver2.paidAmount : advance,
         advanceMode: task.driver2.advancePaymentMode || 'Cash',
         salaryMode: task.driver2.salaryPaymentMode || 'Online',
         photo: emp?.photo,
@@ -709,6 +723,7 @@ const TripsPage = () => {
         category,
         salary,
         advance,
+        paid: task.helper?.paidAmount !== undefined ? task.helper.paidAmount : advance,
         advanceMode: task.helper.advancePaymentMode || 'Cash',
         salaryMode: task.helper.salaryPaymentMode || 'Online',
         photo: emp?.photo,
@@ -725,49 +740,23 @@ const TripsPage = () => {
       return;
     }
 
-    const exportData = trips.map((task, idx) => {
+    const exportData = trips.map((task) => {
       const crewList = getTaskCrewList(task);
-      const d1 = crewList.find((c) => c.role === 'Driver 1');
-      const d2 = crewList.find((c) => c.role === 'Driver 2');
-      const helper = crewList.find((c) => c.role === 'Helper');
 
       const sDateObj = task.startDate ? new Date(task.startDate) : (task.tripDate ? new Date(task.tripDate) : null);
-      const eDateObj = task.endDate ? new Date(task.endDate) : sDateObj;
       const sDateStr = sDateObj ? sDateObj.toLocaleDateString('en-IN') : '';
-      const eDateStr = eDateObj ? eDateObj.toLocaleDateString('en-IN') : '';
 
-      const isPaid = task.paymentStatus === 'Paid';
-      const due = isPaid ? 0 : (task.dueAmount !== undefined ? task.dueAmount : Math.max(0, (task.salaryAmount || 0) - (task.advanceAmount || 0)));
+      const total = task.salaryAmount || task.employeePayout || 0;
+      const assignedCrew = crewList.map((member) => `${member.role}: ${member.name}`).join(', ');
 
       return {
-        'S.No': idx + 1,
-        'Task #': task.tripNumber || '',
-        'Start Date': sDateStr,
-        'End Date': eDateStr,
-        'Duty Days': task.totalDays || 1,
+        'Date': sDateStr,
         'Vehicle Number': task.vehicleNumber || 'N/A',
         'Vehicle Status': task.vehicleStatus || 'RUN',
-        'Route Corridor': task.routeName || (task.pickupLocation ? `${task.pickupLocation} → ${task.dropLocation || ''}` : 'N/A'),
-        'Operator / Organizer': task.operatorName || task.operator?.name || task.clientName || 'N/A',
-        'Driver 1 Name': d1 ? d1.name : 'N/A',
-        'Driver 1 Category': d1 ? d1.category : '',
-        'Driver 1 Salary (₹)': d1 ? d1.salary : 0,
-        'Driver 1 Advance (₹)': d1 ? d1.advance : 0,
-        'Driver 1 Advance Mode': d1 ? d1.advanceMode : '',
-        'Driver 2 Name': d2 ? d2.name : 'N/A',
-        'Driver 2 Salary (₹)': d2 ? d2.salary : 0,
-        'Driver 2 Advance (₹)': d2 ? d2.advance : 0,
-        'Driver 2 Advance Mode': d2 ? d2.advanceMode : '',
-        'Helper Name': helper ? helper.name : 'N/A',
-        'Helper Salary (₹)': helper ? helper.salary : 0,
-        'Helper Advance (₹)': helper ? helper.advance : 0,
-        'Helper Advance Mode': helper ? helper.advanceMode : '',
-        'Total Crew Salary (₹)': task.salaryAmount || task.employeePayout || 0,
-        'Total Advance Paid (₹)': task.advanceAmount || 0,
-        'Remaining Due (₹)': due,
-        'Payment Status': task.paymentStatus || 'Pending',
-        'Task Status': task.tripStatus || 'Scheduled',
-        'Remarks': task.remarks || '',
+        'Route': task.routeName || (task.pickupLocation ? `${task.pickupLocation} → ${task.dropLocation || ''}` : 'N/A'),
+        'Operator': task.operatorName || task.operator?.name || task.clientName || 'N/A',
+        'Assigned Crew': assignedCrew || 'N/A',
+        'Total (₹)': total,
       };
     });
 
@@ -835,11 +824,7 @@ const TripsPage = () => {
               <span className="text-[10px] text-slate-500 font-medium">Billed to Crew Members</span>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-              <span className="text-[10px] text-amber-700 font-bold uppercase block">Advance Paid</span>
-              <div className="text-xl font-black text-amber-700 mt-0.5">₹{summary.totalAdvance || 0}</div>
-              <span className="text-[10px] text-amber-600 font-medium">Initial Given Amount</span>
-            </div>
+
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
               <span className="text-[10px] text-rose-600 font-bold uppercase block">Pending Due</span>
@@ -940,14 +925,13 @@ const TripsPage = () => {
               <table className="w-full text-left text-xs text-slate-700">
                 <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200">
                   <tr>
-                    <th className="py-3.5 px-4">Task # &amp; Date</th>
-                    <th className="py-3.5 px-4">Vehicle &amp; Route</th>
-                    <th className="py-3.5 px-4">Operator / Client</th>
-                    <th className="py-3.5 px-4">Assigned Crew (3 Members)</th>
-                    <th className="py-3.5 px-4">Advance Records</th>
-                    <th className="py-3.5 px-4">Salary &amp; Due</th>
-                    <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4">Remarks</th>
+                    <th className="py-3.5 px-4">Date</th>
+                    <th className="py-3.5 px-4">Vehicle No.</th>
+                    <th className="py-3.5 px-4">Vehicle Status</th>
+                    <th className="py-3.5 px-4">Route</th>
+                    <th className="py-3.5 px-4">Operator</th>
+                    <th className="py-3.5 px-4">Assigned Crew</th>
+                    <th className="py-3.5 px-4">Total</th>
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -961,14 +945,15 @@ const TripsPage = () => {
                     const isPaid = task.paymentStatus === 'Paid';
                     const isCompleted = task.tripStatus === 'Completed';
                     const due = isPaid ? 0 : (task.dueAmount !== undefined ? task.dueAmount : Math.max(0, (task.salaryAmount || task.employeePayout || 0) - (task.advanceAmount || 0)));
+                    const totalSalary = task.salaryAmount || task.employeePayout || 0;
+                    const paid = Math.max(0, totalSalary - due);
 
                     return (
                       <tr key={task._id} className="hover:bg-slate-50/80 transition-colors">
                         
-                        {/* Task # & Date */}
+                        {/* Date */}
                         <td className="py-3.5 px-4 whitespace-nowrap">
-                          <span className="font-mono font-bold text-slate-900 block">{task.tripNumber}</span>
-                          <div className="font-semibold text-slate-600 flex items-center gap-1 mt-0.5 text-[11px]">
+                          <div className="font-semibold text-slate-600 flex items-center gap-1 text-[11px]">
                             <Calendar className="w-3 h-3 text-amber-600 shrink-0" />
                             <span>
                               {sDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -976,40 +961,41 @@ const TripsPage = () => {
                           </div>
                         </td>
 
-                        {/* Vehicle & Route */}
+                        {/* Vehicle Number */}
                         <td className="py-3.5 px-4">
                           {task.vehicleNumber ? (
-                            <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                              <span className="font-mono font-extrabold text-slate-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-xs inline-block">
-                                {task.vehicleNumber}
-                              </span>
-                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
-                                task.vehicleStatus === 'HOLD'
-                                  ? 'bg-rose-100 text-rose-800 border-rose-300'
-                                  : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                              }`}>
-                                {task.vehicleStatus || 'RUN'}
-                              </span>
-                            </div>
+                            <span className="font-mono font-extrabold text-slate-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-xs inline-block">
+                              {task.vehicleNumber}
+                            </span>
                           ) : (
-                            <span className="text-slate-400 text-[11px] block italic mb-1">Vehicle Not Set</span>
+                            <span className="text-slate-400 text-[11px] italic">Not Set</span>
                           )}
-                          <div className="font-bold text-slate-800 text-xs">
-                            {task.routeName || (task.pickupLocation ? `${task.pickupLocation} → ${task.dropLocation || 'City'}` : 'Corridor Not Selected')}
-                          </div>
                         </td>
 
-                        {/* Operator / Client */}
+                        {/* Vehicle Status */}
                         <td className="py-3.5 px-4">
+                          <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider border ${
+                            task.vehicleStatus === 'HOLD'
+                              ? 'bg-rose-100 text-rose-800 border-rose-300'
+                              : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                          }`}>
+                            {task.vehicleStatus || 'RUN'}
+                          </span>
+                        </td>
+
+                        {/* Route */}
+                        <td className="py-3.5 px-4 min-w-[190px] font-bold text-slate-800">
+                          {task.routeName || (task.pickupLocation ? `${task.pickupLocation} → ${task.dropLocation || 'City'}` : 'Not Selected')}
+                        </td>
+
+                        {/* Operator */}
+                        <td className="py-3.5 px-4 min-w-[140px]">
                           <div className="font-bold text-slate-900">
                             {task.operatorName || task.operator?.name || task.clientName || 'General Operator'}
                           </div>
-                          <div className="text-[11px] text-slate-400">
-                            {task.clientPhone || task.operator?.phone || '—'}
-                          </div>
                         </td>
 
-                        {/* Assigned Crew (Driver 1, Driver 2, Helper) */}
+                        {/* Assigned Crew */}
                         <td className="py-3.5 px-4 min-w-[200px]">
                           <div className="space-y-1.5">
                             {crewList.map((member, idx) => (
@@ -1025,34 +1011,22 @@ const TripsPage = () => {
                                   <span className="font-bold text-slate-900 truncate">{member.name}</span>
                                 </div>
                                 <span className="text-[10px] font-mono font-bold text-slate-600 shrink-0 ml-1">
-                                  ₹{member.salary}
+                                  ₹{member.salary} / ₹{member.paid} paid
                                 </span>
                               </div>
                             ))}
                           </div>
                         </td>
 
-                        {/* Advance Amount Records per member */}
-                        <td className="py-3.5 px-4">
-                          <div className="font-extrabold text-amber-800 text-sm">
-                            ₹{task.advanceAmount || 0}
-                          </div>
-                          <div className="space-y-0.5 mt-1">
-                            {crewList.map((member, idx) => (
-                              <div key={idx} className="text-[10px] text-slate-500 font-medium flex items-center justify-between gap-1">
-                                <span>{member.role}:</span>
-                                <span className="font-bold text-amber-900">₹{member.advance} ({member.advanceMode})</span>
-                              </div>
-                            ))}
-                          </div>
-                        </td>
 
-                        {/* Salary Amount & Due */}
+
+                        {/* Total */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-baseline gap-1">
-                            <span className="font-black text-slate-900 text-sm">₹{task.salaryAmount || task.employeePayout || 0}</span>
+                            <span className="font-black text-slate-900 text-sm">₹{totalSalary}</span>
                             <span className="text-[10px] text-slate-400 font-medium">(Total Crew)</span>
                           </div>
+                          <div className="text-[11px] font-bold text-emerald-700 mt-1">Paid: ₹{paid}</div>
                           <div className="mt-1">
                             {isPaid ? (
                               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
@@ -1065,39 +1039,6 @@ const TripsPage = () => {
                               </span>
                             )}
                           </div>
-                        </td>
-
-                        {/* Status (Trip Status & Payment Status) */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div className="flex flex-col gap-1">
-                            <span className={`inline-block px-2.5 py-0.5 rounded-full font-bold text-[10px] text-center ${
-                              isCompleted
-                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                                : task.tripStatus === 'In Progress'
-                                ? 'bg-blue-100 text-blue-900 border border-blue-300'
-                                : 'bg-amber-100 text-amber-900 border border-amber-300'
-                            }`}>
-                              {task.tripStatus || 'Scheduled'}
-                            </span>
-                            <span className={`inline-block px-2.5 py-0.5 rounded-full font-bold text-[10px] text-center ${
-                              isPaid
-                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                : 'bg-rose-50 text-rose-800 border border-rose-200'
-                            }`}>
-                              {isPaid ? 'Paid' : 'Pending Due'}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Trip Remarks */}
-                        <td className="py-3.5 px-4 max-w-xs">
-                          {task.remarks ? (
-                            <p className="text-xs text-slate-700 bg-slate-50 p-2 rounded-xl border border-slate-200 line-clamp-2" title={task.remarks}>
-                              {task.remarks}
-                            </p>
-                          ) : (
-                            <span className="text-[11px] text-slate-400 italic">—</span>
-                          )}
                         </td>
 
                         {/* Actions */}
@@ -1478,49 +1419,7 @@ const TripsPage = () => {
                         </p>
                       </div>
 
-                      {/* 2. Advance Amount (Given) */}
-                      <div className="bg-amber-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                            2. Advance Amount (Given) ₹
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            placeholder="e.g. 500"
-                            value={formData.driver1.advanceAmount}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                driver1: { ...formData.driver1, advanceAmount: e.target.value },
-                              })
-                            }
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
-                          />
-                        </div>
 
-                        <div>
-                          <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
-                            ADVANCE PAYMENT MODE
-                          </label>
-                          <select
-                            value={formData.driver1.advancePaymentMode}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                driver1: { ...formData.driver1, advancePaymentMode: e.target.value },
-                              })
-                            }
-                            className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-amber-500"
-                          >
-                            <option value="Cash">Cash</option>
-                            <option value="Online">Online / UPI</option>
-                            <option value="UPI">UPI</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Cheque">Cheque</option>
-                          </select>
-                        </div>
-                      </div>
                     </div>
 
                     {/* Bottom Status & Remaining Due */}
@@ -1665,49 +1564,7 @@ const TripsPage = () => {
                           </p>
                         </div>
 
-                        {/* 2. Advance Amount (Given) */}
-                        <div className="bg-blue-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                              2. Advance Amount (Given) ₹
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="e.g. 500"
-                              value={formData.driver2.advanceAmount}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  driver2: { ...formData.driver2, advanceAmount: e.target.value },
-                                })
-                              }
-                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500 bg-white"
-                            />
-                          </div>
 
-                          <div>
-                            <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
-                              ADVANCE PAYMENT MODE
-                            </label>
-                            <select
-                              value={formData.driver2.advancePaymentMode}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  driver2: { ...formData.driver2, advancePaymentMode: e.target.value },
-                                })
-                              }
-                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-blue-500"
-                            >
-                              <option value="Cash">Cash</option>
-                              <option value="Online">Online / UPI</option>
-                              <option value="UPI">UPI</option>
-                              <option value="Bank Transfer">Bank Transfer</option>
-                              <option value="Cheque">Cheque</option>
-                            </select>
-                          </div>
-                        </div>
                       </div>
 
                       {/* Bottom Status & Remaining Due */}
@@ -1857,49 +1714,7 @@ const TripsPage = () => {
                           </p>
                         </div>
 
-                        {/* 2. Advance Amount (Given) */}
-                        <div className="bg-emerald-50/20 p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                          <div>
-                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                              2. Advance Amount (Given) ₹
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="e.g. 500"
-                              value={formData.helper.advanceAmount}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  helper: { ...formData.helper, advanceAmount: e.target.value },
-                                })
-                              }
-                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 bg-white"
-                            />
-                          </div>
 
-                          <div>
-                            <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
-                              ADVANCE PAYMENT MODE
-                            </label>
-                            <select
-                              value={formData.helper.advancePaymentMode}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  helper: { ...formData.helper, advancePaymentMode: e.target.value },
-                                })
-                              }
-                              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-emerald-500"
-                            >
-                              <option value="Cash">Cash</option>
-                              <option value="Online">Online / UPI</option>
-                              <option value="UPI">UPI</option>
-                              <option value="Bank Transfer">Bank Transfer</option>
-                              <option value="Cheque">Cheque</option>
-                            </select>
-                          </div>
-                        </div>
                       </div>
 
                       {/* Bottom Status & Remaining Due */}

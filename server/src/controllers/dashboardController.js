@@ -10,7 +10,7 @@ const getEmpTripStats = (trip, empId) => {
     const adv = Number(trip.driver1.advanceAmount || 0);
     const isPaid = trip.driver1.paymentStatus === 'Paid' || trip.paymentStatus === 'Paid';
     const due = isPaid ? 0 : (trip.driver1.dueAmount !== undefined ? trip.driver1.dueAmount : Math.max(0, sal - adv));
-    const paid = isPaid ? sal : adv;
+    const paid = Math.max(0, sal - due);
     return { salary: sal, advance: adv, due, paid };
   }
   if (trip.driver2?.employee && String(trip.driver2.employee._id || trip.driver2.employee) === strId) {
@@ -18,7 +18,7 @@ const getEmpTripStats = (trip, empId) => {
     const adv = Number(trip.driver2.advanceAmount || 0);
     const isPaid = trip.driver2.paymentStatus === 'Paid' || trip.paymentStatus === 'Paid';
     const due = isPaid ? 0 : (trip.driver2.dueAmount !== undefined ? trip.driver2.dueAmount : Math.max(0, sal - adv));
-    const paid = isPaid ? sal : adv;
+    const paid = Math.max(0, sal - due);
     return { salary: sal, advance: adv, due, paid };
   }
   if (trip.helper?.employee && String(trip.helper.employee._id || trip.helper.employee) === strId) {
@@ -26,14 +26,14 @@ const getEmpTripStats = (trip, empId) => {
     const adv = Number(trip.helper.advanceAmount || 0);
     const isPaid = trip.helper.paymentStatus === 'Paid' || trip.paymentStatus === 'Paid';
     const due = isPaid ? 0 : (trip.helper.dueAmount !== undefined ? trip.helper.dueAmount : Math.max(0, sal - adv));
-    const paid = isPaid ? sal : adv;
+    const paid = Math.max(0, sal - due);
     return { salary: sal, advance: adv, due, paid };
   }
   const sal = Number(trip.salaryAmount !== undefined ? trip.salaryAmount : trip.employeePayout || 0);
   const adv = Number(trip.advanceAmount || 0);
   const isPaid = trip.paymentStatus === 'Paid';
   const due = isPaid ? 0 : (trip.dueAmount !== undefined ? trip.dueAmount : Math.max(0, sal - adv));
-  const paid = isPaid ? sal : adv;
+  const paid = Math.max(0, sal - due);
   return { salary: sal, advance: adv, due, paid };
 };
 
@@ -65,8 +65,9 @@ const getDashboardStats = async (req, res) => {
         return sum + (t.dueAmount !== undefined ? t.dueAmount : Math.max(0, (t.salaryAmount || t.employeePayout || 0) - (t.advanceAmount || 0)));
       }, 0);
       const totalPaid = allTrips.reduce((sum, t) => {
-        if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
-        return sum + (t.advanceAmount || 0);
+        const salary = Number(t.salaryAmount || t.employeePayout || 0);
+        const due = Number(t.dueAmount || 0);
+        return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
       }, 0);
       const totalCommission = allTrips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
 
@@ -98,8 +99,9 @@ const getDashboardStats = async (req, res) => {
           return sum + (t.dueAmount !== undefined ? t.dueAmount : Math.max(0, (t.salaryAmount || t.employeePayout || 0) - (t.advanceAmount || 0)));
         }, 0);
         const catPaid = catTrips.reduce((sum, t) => {
-          if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
-          return sum + (t.advanceAmount || 0);
+          const salary = Number(t.salaryAmount || t.employeePayout || 0);
+          const due = Number(t.dueAmount || 0);
+          return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
         }, 0);
         const catCommission = catTrips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
 
@@ -229,8 +231,9 @@ const getDashboardStats = async (req, res) => {
       return sum + (t.dueAmount !== undefined ? t.dueAmount : Math.max(0, (t.salaryAmount || t.employeePayout || 0) - (t.advanceAmount || 0)));
     }, 0);
     const totalPaid = trips.reduce((sum, t) => {
-      if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
-      return sum + (t.advanceAmount || 0);
+      const salary = Number(t.salaryAmount || t.employeePayout || 0);
+      const due = Number(t.dueAmount || 0);
+      return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
     }, 0);
     const totalCommission = trips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
 
@@ -261,8 +264,9 @@ const getDashboardStats = async (req, res) => {
         return sum + (t.dueAmount !== undefined ? t.dueAmount : Math.max(0, (t.salaryAmount || t.employeePayout || 0) - (t.advanceAmount || 0)));
       }, 0);
       const catPaid = catTrips.reduce((sum, t) => {
-        if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
-        return sum + (t.advanceAmount || 0);
+        const salary = Number(t.salaryAmount || t.employeePayout || 0);
+        const due = Number(t.dueAmount || 0);
+        return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
       }, 0);
       const catCommission = catTrips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
 

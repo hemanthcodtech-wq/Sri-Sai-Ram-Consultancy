@@ -37,6 +37,14 @@ const organizerSchema = new mongoose.Schema(
       enum: ['Active', 'Inactive'],
       default: 'Active',
     },
+    monthlyIncome: [
+      {
+        month: { type: String, required: true },
+        amount: { type: Number, required: true },
+        dateReceived: { type: Date, required: true },
+        notes: { type: String, default: '' },
+      }
+    ],
   },
   {
     timestamps: true,

@@ -2,6 +2,16 @@ const mongoose = require('mongoose');
 
 const routeSchema = new mongoose.Schema(
   {
+    serviceId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    type: {
+      type: String,
+      enum: ['Full Sleeper', 'Seating/Sleeper'],
+      default: 'Full Sleeper',
+    },
     fromCity: {
       type: String,
       required: true,

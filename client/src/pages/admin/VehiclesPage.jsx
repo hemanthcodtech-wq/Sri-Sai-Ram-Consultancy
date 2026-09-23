@@ -11,6 +11,8 @@ import {
   ToggleRight,
   Car,
   AlertTriangle,
+  AlertOctagon,
+  Calendar,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -20,6 +22,70 @@ import {
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
 
+const formatDateForInput = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+};
+
+const formatDateForDisplay = (dateStr) => {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const getDateStatus = (dateStr) => {
+  if (!dateStr) return 'none';
+  const vDate = new Date(dateStr);
+  if (isNaN(vDate.getTime())) return 'none';
+  
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const twoDaysFromNow = new Date(now);
+  twoDaysFromNow.setDate(now.getDate() + 2);
+  
+  if (vDate < now) return 'expired';
+  if (vDate <= twoDaysFromNow) return 'warning';
+  return 'ok';
+};
+
+const getExpirationStatus = (vehicle) => {
+  const dates = [
+    { label: 'Fitness', value: vehicle.fitnessValidUpto },
+    { label: 'Tax', value: vehicle.taxValidUpto },
+    { label: 'Insurance', value: vehicle.insuranceValidUpto },
+    { label: 'PUCC', value: vehicle.puccValidUpto },
+    { label: 'Permit', value: vehicle.permitValidUpto },
+    { label: 'AITP', value: vehicle.aitpValidUpto },
+  ];
+  
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const twoDaysFromNow = new Date(now);
+  twoDaysFromNow.setDate(now.getDate() + 2);
+  
+  let isExpired = false;
+  let isExpiringSoon = false;
+  let expiringDetails = [];
+  
+  dates.forEach(d => {
+    if (d.value) {
+      const vDate = new Date(d.value);
+      if (vDate < now) {
+        isExpired = true;
+        expiringDetails.push(`${d.label} Expired`);
+      } else if (vDate <= twoDaysFromNow) {
+        isExpiringSoon = true;
+        expiringDetails.push(`${d.label} Expiring Soon`);
+      }
+    }
+  });
+  
+  if (isExpired) return { status: 'expired', details: expiringDetails };
+  if (isExpiringSoon) return { status: 'warning', details: expiringDetails };
+  return { status: 'ok', details: [] };
+};
+
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +94,7 @@ const VehiclesPage = () => {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20);
+  const [itemsPerPage] = useState(12);
 
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,6 +105,13 @@ const VehiclesPage = () => {
     vehicleNumber: '',
     status: 'Active',
     notes: '',
+    registrationDate: '',
+    fitnessValidUpto: '',
+    taxValidUpto: '',
+    insuranceValidUpto: '',
+    puccValidUpto: '',
+    permitValidUpto: '',
+    aitpValidUpto: ''
   });
 
   const fetchVehicles = async () => {
@@ -70,10 +143,21 @@ const VehiclesPage = () => {
         vehicleNumber: vehicle.vehicleNumber || '',
         status: vehicle.status || 'Active',
         notes: vehicle.notes || '',
+        registrationDate: formatDateForInput(vehicle.registrationDate),
+        fitnessValidUpto: formatDateForInput(vehicle.fitnessValidUpto),
+        taxValidUpto: formatDateForInput(vehicle.taxValidUpto),
+        insuranceValidUpto: formatDateForInput(vehicle.insuranceValidUpto),
+        puccValidUpto: formatDateForInput(vehicle.puccValidUpto),
+        permitValidUpto: formatDateForInput(vehicle.permitValidUpto),
+        aitpValidUpto: formatDateForInput(vehicle.aitpValidUpto)
       });
     } else {
       setEditingVehicle(null);
-      setFormData({ vehicleNumber: '', status: 'Active', notes: '' });
+      setFormData({ 
+        vehicleNumber: '', status: 'Active', notes: '',
+        registrationDate: '', fitnessValidUpto: '', taxValidUpto: '',
+        insuranceValidUpto: '', puccValidUpto: '', permitValidUpto: '', aitpValidUpto: ''
+      });
     }
     setIsModalOpen(true);
   };
@@ -181,6 +265,19 @@ const VehiclesPage = () => {
           ))}
         </div>
 
+        {/* Expiration Alert */}
+        {vehicles.some(v => getExpirationStatus(v).status !== 'ok') && (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-2xl flex items-start gap-3">
+            <AlertOctagon className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+            <div>
+              <h4 className="text-sm font-black text-red-900">Action Required: Documents Expiring Soon</h4>
+              <p className="text-xs font-medium text-red-700 mt-0.5">
+                Some vehicles have documents that are expired or expiring within 2 days. Please review the highlighted vehicles below.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Search & Filter */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -239,32 +336,60 @@ const VehiclesPage = () => {
                     vehicle.status === 'Active' ? 'border-emerald-200' : 'border-slate-200 opacity-70'
                   }`}
                 >
-                  {/* Vehicle Number */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        vehicle.status === 'Active' ? 'bg-emerald-50' : 'bg-slate-100'
-                      }`}>
-                        <Truck className={`w-5 h-5 ${vehicle.status === 'Active' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                      </div>
-                      <div>
-                        <div className="font-black text-slate-900 text-base font-mono tracking-wider">
+                  {/* Vehicle Number & Info */}
+                  <div className="flex items-start gap-3">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${
+                      vehicle.status === 'Active' ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-100 border-slate-200'
+                    }`}>
+                      <Truck className={`w-5 h-5 ${vehicle.status === 'Active' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="font-black text-slate-900 text-[15px] font-mono tracking-widest break-words leading-tight">
                           {vehicle.vehicleNumber}
                         </div>
-                        {vehicle.notes && (
-                          <div className="text-[10px] text-slate-500 mt-0.5 truncate max-w-[120px]">{vehicle.notes}</div>
-                        )}
+                        <div className="shrink-0 flex items-center gap-1 mt-0.5">
+                          {getExpirationStatus(vehicle).status === 'expired' && <AlertOctagon className="w-4 h-4 text-red-600" title="Documents Expired" />}
+                          {getExpirationStatus(vehicle).status === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-500" title="Documents Expiring Soon" />}
+                        </div>
                       </div>
+                      
+                      {vehicle.notes && (
+                        <div className="text-[11px] font-medium text-slate-500 mt-1 truncate" title={vehicle.notes}>
+                          {vehicle.notes}
+                        </div>
+                      )}
                     </div>
-
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
-                      vehicle.status === 'Active'
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                        : 'bg-slate-100 text-slate-600 border border-slate-200'
-                    }`}>
-                      {vehicle.status}
-                    </span>
                   </div>
+
+                  {/* Document Validities Grid */}
+                  <div className="grid grid-cols-2 gap-1.5 mt-1">
+                    {[
+                      { label: 'Registration', val: vehicle.registrationDate, skipWarning: true },
+                      { label: 'Fitness', val: vehicle.fitnessValidUpto },
+                      { label: 'Tax', val: vehicle.taxValidUpto },
+                      { label: 'Insurance', val: vehicle.insuranceValidUpto },
+                      { label: 'PUCC', val: vehicle.puccValidUpto },
+                      { label: 'Permit', val: vehicle.permitValidUpto },
+                      { label: 'AITP', val: vehicle.aitpValidUpto },
+                    ].map((doc, idx) => {
+                      const status = doc.skipWarning ? 'ok' : getDateStatus(doc.val);
+                      let colorClass = 'text-slate-700 bg-slate-50 border-slate-100';
+                      if (status === 'expired') colorClass = 'text-red-700 bg-red-50 border-red-200';
+                      if (status === 'warning') colorClass = 'text-amber-700 bg-amber-50 border-amber-200';
+                      
+                      return (
+                        <div key={idx} className={`flex flex-col p-1.5 rounded-lg border ${colorClass} ${idx === 6 ? 'col-span-2' : ''}`}>
+                          <span className="text-[9px] opacity-70 font-bold uppercase tracking-wider">{doc.label}</span>
+                          <span className="text-[10px] font-black">{formatDateForDisplay(doc.val)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Spacer to push actions to bottom if card grows */}
+                  <div className="flex-1" />
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
@@ -421,6 +546,36 @@ const VehiclesPage = () => {
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
                 />
+              </div>
+
+              {/* Document Validity Dates */}
+              <div>
+                <h4 className="text-xs font-black text-slate-800 mb-3 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                  <Calendar className="w-3.5 h-3.5" /> Document Validity Dates (Optional)
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Registration Date', key: 'registrationDate' },
+                    { label: 'Fitness Valid Upto', key: 'fitnessValidUpto' },
+                    { label: 'Tax Valid Upto', key: 'taxValidUpto' },
+                    { label: 'Insurance Valid Upto', key: 'insuranceValidUpto' },
+                    { label: 'PUCC Valid Upto', key: 'puccValidUpto' },
+                    { label: 'Permit Valid Upto', key: 'permitValidUpto' },
+                    { label: 'AITP Valid Upto', key: 'aitpValidUpto' },
+                  ].map((field) => (
+                    <div key={field.key}>
+                      <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                        {field.label}
+                      </label>
+                      <input
+                        type="date"
+                        value={formData[field.key]}
+                        onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Actions */}

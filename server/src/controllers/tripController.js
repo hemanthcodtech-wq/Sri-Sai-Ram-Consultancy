@@ -2,6 +2,16 @@ const Trip = require('../models/Trip');
 const Employee = require('../models/Employee');
 const store = require('../config/store');
 
+const getTripPaidAmount = (trip) => {
+  const salary = Number(trip.salaryAmount || trip.employeePayout || 0);
+  const due = Number(trip.dueAmount || 0);
+  return Math.max(
+    Number(trip.paidAmount || 0),
+    Number(trip.advanceAmount || 0),
+    Math.max(0, salary - due)
+  );
+};
+
 const getTrips = async (req, res) => {
   try {
     const {
@@ -74,10 +84,7 @@ const getTrips = async (req, res) => {
       }, 0);
       const totalPayout = totalSalary;
       const totalCommission = trips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
-      const totalPaid = trips.reduce((sum, t) => {
-        if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
-        return sum + (t.advanceAmount || 0);
-      }, 0);
+      const totalPaid = trips.reduce((sum, t) => sum + getTripPaidAmount(t), 0);
       const totalPending = totalDue;
 
       return res.json({
@@ -144,10 +151,7 @@ const getTrips = async (req, res) => {
     }, 0);
     const totalPayout = totalSalary;
     const totalCommission = filtered.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
-    const totalPaid = filtered.reduce((sum, t) => {
-      if (t.paymentStatus === 'Paid') return sum + (t.salaryAmount || t.employeePayout || 0);
-      return sum + (t.advanceAmount || 0);
-    }, 0);
+    const totalPaid = filtered.reduce((sum, t) => sum + getTripPaidAmount(t), 0);
     const totalPending = totalDue;
 
     res.json({

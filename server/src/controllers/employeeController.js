@@ -9,7 +9,7 @@ const getEmpTripStats = (trip, empId) => {
     const adv = Number(trip.driver1.advanceAmount || 0);
     const isPaid = trip.driver1.paymentStatus === 'Paid' || trip.paymentStatus === 'Paid';
     const due = isPaid ? 0 : (trip.driver1.dueAmount !== undefined ? trip.driver1.dueAmount : Math.max(0, sal - adv));
-    const paid = isPaid ? sal : adv;
+    const paid = Math.max(0, sal - due);
     return { salary: sal, advance: adv, due, paid };
   }
   if (trip.driver2?.employee && String(trip.driver2.employee._id || trip.driver2.employee) === strId) {
@@ -17,7 +17,7 @@ const getEmpTripStats = (trip, empId) => {
     const adv = Number(trip.driver2.advanceAmount || 0);
     const isPaid = trip.driver2.paymentStatus === 'Paid' || trip.paymentStatus === 'Paid';
     const due = isPaid ? 0 : (trip.driver2.dueAmount !== undefined ? trip.driver2.dueAmount : Math.max(0, sal - adv));
-    const paid = isPaid ? sal : adv;
+    const paid = Math.max(0, sal - due);
     return { salary: sal, advance: adv, due, paid };
   }
   if (trip.helper?.employee && String(trip.helper.employee._id || trip.helper.employee) === strId) {
@@ -25,14 +25,14 @@ const getEmpTripStats = (trip, empId) => {
     const adv = Number(trip.helper.advanceAmount || 0);
     const isPaid = trip.helper.paymentStatus === 'Paid' || trip.paymentStatus === 'Paid';
     const due = isPaid ? 0 : (trip.helper.dueAmount !== undefined ? trip.helper.dueAmount : Math.max(0, sal - adv));
-    const paid = isPaid ? sal : adv;
+    const paid = Math.max(0, sal - due);
     return { salary: sal, advance: adv, due, paid };
   }
   const sal = Number(trip.salaryAmount !== undefined ? trip.salaryAmount : trip.employeePayout || 0);
   const adv = Number(trip.advanceAmount || 0);
   const isPaid = trip.paymentStatus === 'Paid';
   const due = isPaid ? 0 : (trip.dueAmount !== undefined ? trip.dueAmount : Math.max(0, sal - adv));
-  const paid = isPaid ? sal : adv;
+  const paid = Math.max(0, sal - due);
   return { salary: sal, advance: adv, due, paid };
 };
 
@@ -317,10 +317,102 @@ const deleteEmployee = async (req, res) => {
   }
 };
 
+const payEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, date, mode, notes } = req.body;
+    const paymentAmount = Number(amount);
+
+    if (isNaN(paymentAmount) || paymentAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Valid payment amount is required' });
+    }
+
+    if (!store.isMongo()) {
+      return res.status(400).json({ success: false, message: 'Not supported in fallback store mode' });
+    }
+
+    const employee = await Employee.findById(id);
+    if (!employee) return res.status(404).json({ success: false, message: 'Employee not found' });
+
+    // Add to history
+    employee.paymentHistory.push({
+      amount: paymentAmount,
+      date: date || new Date(),
+      mode: mode || 'Cash',
+      notes: notes || '',
+    });
+    await employee.save();
+
+    // Find pending trips for this employee
+    const trips = await Trip.find({
+      $or: [
+        { assignedEmployee: employee._id },
+        { 'driver1.employee': employee._id },
+        { 'driver2.employee': employee._id },
+        { 'helper.employee': employee._id },
+      ],
+    }).sort({ tripDate: 1 });
+
+    let remainingAmount = paymentAmount;
+
+    for (let trip of trips) {
+      if (remainingAmount <= 0) break;
+
+      const strId = String(employee._id);
+      let roleDue = getEmpTripStats(trip, strId).due;
+      let rolePrefix = '';
+
+      if (trip.driver1?.employee && String(trip.driver1.employee) === strId) {
+        rolePrefix = 'driver1';
+      } else if (trip.driver2?.employee && String(trip.driver2.employee) === strId) {
+        rolePrefix = 'driver2';
+      } else if (trip.helper?.employee && String(trip.helper.employee) === strId) {
+        rolePrefix = 'helper';
+      } else if (String(trip.assignedEmployee) === strId) {
+        rolePrefix = 'main';
+      }
+
+      if (roleDue > 0) {
+        let deduction = Math.min(roleDue, remainingAmount);
+        remainingAmount -= deduction;
+        
+        let newDue = roleDue - deduction;
+        let newStatus = newDue <= 0 ? 'Paid' : 'Partial';
+
+        if (rolePrefix === 'main') {
+          trip.paidAmount = Math.max(0, Number(trip.salaryAmount || trip.employeePayout || 0) - newDue);
+          trip.dueAmount = newDue;
+          trip.paymentStatus = newStatus;
+        } else {
+          trip[rolePrefix].paidAmount = Math.max(0, Number(trip[rolePrefix].salaryAmount || 0) - newDue);
+          trip[rolePrefix].dueAmount = newDue;
+          trip[rolePrefix].paymentStatus = newStatus;
+
+          // Recalculate the top-level dueAmount as sum of all crew member dues
+          const d1Due = trip.driver1?.employee ? (trip.driver1.dueAmount || 0) : 0;
+          const d2Due = trip.driver2?.employee ? (trip.driver2.dueAmount || 0) : 0;
+          const helperDue = trip.helper?.employee ? (trip.helper.dueAmount || 0) : 0;
+          const totalCrewDue = d1Due + d2Due + helperDue;
+          trip.dueAmount = totalCrewDue;
+          trip.paidAmount = Math.max(0, Number(trip.salaryAmount || trip.employeePayout || 0) - totalCrewDue);
+          trip.paymentStatus = totalCrewDue <= 0 ? 'Paid' : 'Partial';
+        }
+        await trip.save();
+      }
+    }
+
+    res.json({ success: true, message: 'Payment recorded successfully', remainingAmount });
+  } catch (error) {
+    console.error('payEmployee error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getEmployees,
   getEmployeeById,
   createEmployee,
   updateEmployee,
   deleteEmployee,
+  payEmployee,
 };

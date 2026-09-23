@@ -19,6 +19,27 @@ const vehicleSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    registrationDate: {
+      type: Date,
+    },
+    fitnessValidUpto: {
+      type: Date,
+    },
+    taxValidUpto: {
+      type: Date,
+    },
+    insuranceValidUpto: {
+      type: Date,
+    },
+    puccValidUpto: {
+      type: Date,
+    },
+    permitValidUpto: {
+      type: Date,
+    },
+    aitpValidUpto: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
