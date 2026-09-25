@@ -30,10 +30,8 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (err) {
           console.error('Session check error:', err);
-          if (err.response && err.response.status === 401) {
-            if (isMounted) {
-              logout();
-            }
+          if (isMounted) {
+            logout();
           }
         }
       }
@@ -85,7 +83,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
-        isAuthenticated: !!(user || token || localStorage.getItem('ssrc_token')),
+        isAuthenticated: !!user,
       }}
     >
       {children}

@@ -107,38 +107,6 @@ const EmployeeProfilePage = () => {
 
   const formatPrintDate = (value) => (value ? new Date(value).toLocaleDateString('en-IN') : 'Not Provided');
   const printValue = (value) => value || 'Not Provided';
-  const isPdfAttachment = (url) => /\.pdf(?:$|[?#])/i.test(String(url || ''));
-
-  const PrintAttachmentContent = ({ label, url }) => (
-    url ? (
-      isPdfAttachment(url) ? (
-        <div className="print-pdf-reference">
-          <p>PDF document attached.</p>
-          <a href={url} target="_blank" rel="noopener noreferrer">Open PDF document to print</a>
-        </div>
-      ) : (
-        <img src={url} alt={label} className="print-attachment-image" />
-      )
-    ) : (
-      <p className="print-attachment-missing">No document attached</p>
-    )
-  );
-
-  const PrintAttachmentPair = ({ label, front, back }) => (
-    <div className="print-attachment-pair">
-      <h3>{label}</h3>
-      <div className="print-attachment-grid">
-        <div className="print-attachment-side">
-          <h4>Front</h4>
-          <PrintAttachmentContent label={`${label} Front`} url={front} />
-        </div>
-        <div className="print-attachment-side">
-          <h4>Back</h4>
-          <PrintAttachmentContent label={`${label} Back`} url={back} />
-        </div>
-      </div>
-    </div>
-  );
 
   // Print Signatures Component
   const PrintSignatures = () => (
@@ -248,59 +216,6 @@ const EmployeeProfilePage = () => {
             padding: 10px;
             color: #6b7280;
           }
-          .print-attachments {
-            page-break-before: always;
-          }
-          .print-attachment-pair {
-            page-break-after: always;
-            min-height: 240px;
-          }
-          .print-attachment-pair:last-child {
-            page-break-after: auto;
-          }
-          .print-attachment-pair h3 {
-            border-bottom: 1px solid #111827;
-            font-size: 13px;
-            margin: 0 0 12px;
-            padding-bottom: 6px;
-            text-transform: uppercase;
-          }
-          .print-attachment-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-          }
-          .print-attachment-side h4 {
-            font-size: 10px;
-            margin: 0 0 5px;
-            text-transform: uppercase;
-          }
-          .print-attachment-image,
-          .print-attachment-pdf {
-            display: block;
-            width: 100%;
-            max-height: 620px;
-            object-fit: contain;
-            border: 1px solid #374151;
-          }
-          .print-pdf-reference {
-            border: 1px solid #374151;
-            padding: 18px;
-          }
-          .print-pdf-reference p {
-            margin: 0 0 8px;
-            font-weight: 700;
-          }
-          .print-pdf-reference a {
-            color: #111827;
-            text-decoration: underline;
-          }
-          .print-attachment-missing {
-            border-bottom: 1px solid #374151;
-            padding: 8px 0;
-            font-style: italic;
-          }
-
           .print-profile-sheet .print-profile-section {
             background: #fff !important;
             border: 0 !important;
@@ -548,15 +463,6 @@ const EmployeeProfilePage = () => {
                   <tr><th>E MAIL</th><td>{printValue(employee.email)}</td></tr>
                   <tr><th>Phone Number</th><td>{printValue(employee.mobileNumber)}</td></tr>
                   <tr><th>Alternative Number</th><td>{printValue(employee.alternateNumber)}</td></tr>
-                  <tr><th>Aadhaar Number</th><td>{printValue(employee.documents?.aadhaarNumber)}</td></tr>
-                  <tr><th>PAN Card Number</th><td>{printValue(employee.documents?.panNumber)}</td></tr>
-                  <tr><th>Driving Licence Details</th><td>{printValue(employee.documents?.licenseNumber)}</td></tr>
-                  <tr><th>Issued By State</th><td>{printValue(employee.documents?.issuedByState)}</td></tr>
-                  <tr><th>Issued RTO Office</th><td>{printValue(employee.documents?.issuedRtoOffice)}</td></tr>
-                  <tr><th>Issue Date (TRANS)</th><td>{formatPrintDate(employee.documents?.licenseIssueDate)}</td></tr>
-                  <tr><th>Validity Date (TRANS)</th><td>{formatPrintDate(employee.documents?.licenseExpiryDate)}</td></tr>
-                  <tr><th>Total Experience as Per Licence</th><td>{printValue(employee.documents?.licenseExperience || employee.experience)}</td></tr>
-                  <tr><th>Any Criminal Background As Per Licence</th><td>{printValue(employee.documents?.criminalBackground)}</td></tr>
                   <tr><th>Bank Name</th><td>{printValue(employee.bankDetails?.bankName)}</td></tr>
                   <tr><th>Account Holder Name</th><td>{printValue(employee.bankDetails?.accountHolderName || employee.name)}</td></tr>
                   <tr><th>Account Number</th><td>{printValue(employee.bankDetails?.accountNumber)}</td></tr>
@@ -569,11 +475,6 @@ const EmployeeProfilePage = () => {
                 </tbody>
               </table>
 
-              <div className="print-attachments">
-                <PrintAttachmentPair label="Aadhaar Document" front={employee.documents?.aadhaarDoc} back={employee.documents?.aadhaarDocBack} />
-                <PrintAttachmentPair label="PAN Card Document" front={employee.documents?.panDoc} back={employee.documents?.panDocBack} />
-                <PrintAttachmentPair label="Driving Licence Document" front={employee.documents?.licenseDoc} back={employee.documents?.licenseDocBack} />
-              </div>
               <PrintSignatures />
             </div>
 

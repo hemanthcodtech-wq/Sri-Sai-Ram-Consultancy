@@ -80,6 +80,13 @@ const getWhatsAppNumber = (phone) => {
   return digits.length === 10 ? `91${digits}` : digits;
 };
 
+const formatRouteOptionLabel = (route) => {
+  const corridor = `${route.fromCity || ''} → ${route.toCity || ''}`.trim();
+  const serviceId = route.serviceId ? `${route.serviceId} - ` : '';
+  const inactiveLabel = route.status === 'Inactive' ? ' [Inactive]' : '';
+  return `${serviceId}${corridor}${inactiveLabel}`;
+};
+
 const openDutyWhatsAppMessages = (task, assignments) => {
   assignments.forEach(({ role, employee }) => {
     const number = getWhatsAppNumber(employee?.mobileNumber);
@@ -1318,12 +1325,12 @@ const TripsPage = () => {
                     <Select
                       options={routes.map(r => ({
                         value: r._id,
-                        label: `${r.routeName ? `${r.routeName} (${r.fromCity} → ${r.toCity})` : `${r.fromCity} → ${r.toCity}`}${r.status === 'Inactive' ? ' [Inactive]' : ''}`
+                        label: formatRouteOptionLabel(r)
                       }))}
                       value={formData.route ? {
                         value: formData.route,
                         label: routes.find(r => r._id === formData.route)
-                          ? `${routes.find(r => r._id === formData.route).routeName ? `${routes.find(r => r._id === formData.route).routeName} (${routes.find(r => r._id === formData.route).fromCity} → ${routes.find(r => r._id === formData.route).toCity})` : `${routes.find(r => r._id === formData.route).fromCity} → ${routes.find(r => r._id === formData.route).toCity}`}${routes.find(r => r._id === formData.route).status === 'Inactive' ? ' [Inactive]' : ''}`
+                          ? formatRouteOptionLabel(routes.find(r => r._id === formData.route))
                           : 'Selected Route'
                       } : null}
                       onChange={(selected) => handleRouteChange(selected ? selected.value : '')}

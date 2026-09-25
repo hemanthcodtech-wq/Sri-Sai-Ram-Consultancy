@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, token, loading } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -16,10 +16,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  const storedToken = localStorage.getItem('ssrc_token');
-  const isAuthed = !!(user || token || storedToken);
-
-  if (!isAuthed) {
+  if (!user) {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 

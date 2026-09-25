@@ -10,6 +10,12 @@ const getWhatsAppNumber = (phone) => {
   return digits.length === 10 ? `91${digits}` : digits;
 };
 
+const formatRouteOptionLabel = (route) => {
+  const corridor = `${route.fromCity || ''} → ${route.toCity || ''}`.trim();
+  const serviceId = route.serviceId ? `${route.serviceId} - ` : '';
+  return `${serviceId}${corridor}${route.status === 'Inactive' ? ' [Inactive]' : ''}`;
+};
+
 const openCaptainDutyWhatsApp = (task, captain) => {
   const number = getWhatsAppNumber(captain?.mobileNumber);
   if (!number) return;
@@ -266,7 +272,7 @@ const CaptainManagementPage = () => {
   const paidAmount = tasks.reduce((sum, task) => sum + (task.paymentStatus === 'Paid' ? Number(task.salaryAmount || task.employeePayout || 0) : 0), 0);
 
   const vehicleOptions = vehicles.map((vehicle) => ({ value: vehicle.vehicleNumber, label: vehicle.vehicleNumber, searchText: `${vehicle.vehicleNumber} ${vehicle.notes || ''}` }));
-  const routeOptions = routes.map((route) => ({ value: route.routeName || `${route.fromCity} → ${route.toCity}`, label: route.routeName || `${route.fromCity} → ${route.toCity}`, id: route._id, searchText: `${route.routeName || ''} ${route.fromCity || ''} ${route.toCity || ''} ${route.serviceId || ''}` }));
+  const routeOptions = routes.map((route) => ({ value: formatRouteOptionLabel(route), label: formatRouteOptionLabel(route), id: route._id, searchText: `${route.routeName || ''} ${route.fromCity || ''} ${route.toCity || ''} ${route.serviceId || ''}` }));
   const organizerOptions = organizers.map((organizer) => ({ value: organizer.name, label: organizer.company ? `${organizer.name} (${organizer.company})` : organizer.name, id: organizer._id, searchText: `${organizer.name} ${organizer.company || ''} ${organizer.phone || ''}` }));
   const captainOptions = captains.map((captain) => ({ value: captain._id, label: `${captain.name} (${captain.employeeId})`, searchText: `${captain.name} ${captain.employeeId || ''} ${captain.mobileNumber || ''}` }));
 

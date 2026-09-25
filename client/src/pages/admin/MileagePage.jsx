@@ -13,9 +13,15 @@ const getMileageMetrics = (record) => {
   return { lastFuelKm, endTripKm, totalKm, fuelQuantity, mileage };
 };
 
+const getTaskRoute = (task) => ({
+  from: task.route?.fromCity || task.pickupLocation || '',
+  to: task.route?.toCity || task.dropLocation || '',
+});
+
 const MileagePage = () => {
   const [records, setRecords] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Search & Filters
@@ -49,11 +55,13 @@ const MileagePage = () => {
     try {
       setLoading(true);
       // Fetch both mileage records and active vehicles
-      const [mileageRes, vehiclesRes] = await Promise.all([
+      const [mileageRes, vehiclesRes, tasksRes] = await Promise.all([
         api.get('/mileage', { params: { startDate, endDate } }),
-        api.get('/vehicles')
+        api.get('/vehicles'),
+        api.get('/trips')
       ]);
       setRecords(mileageRes.data);
+      setTasks(tasksRes.data.success ? tasksRes.data.data : tasksRes.data);
       // Only show active vehicles in the dropdown
       const vehiclesList = vehiclesRes.data.success ? vehiclesRes.data.data : vehiclesRes.data;
       setVehicles(vehiclesList.filter(v => v.status === 'Active'));
@@ -63,6 +71,37 @@ const MileagePage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getAssignedTaskRoute = (vehicleNumber, date) => {
+    const vehicleTasks = tasks
+      .filter((task) => task.vehicleNumber === vehicleNumber)
+      .sort((first, second) => new Date(second.tripDate || second.startDate) - new Date(first.tripDate || first.startDate));
+    const matchingTask = vehicleTasks.find((task) => {
+      const taskDate = new Date(task.tripDate || task.startDate).toISOString().slice(0, 10);
+      return taskDate === date;
+    }) || vehicleTasks[0];
+
+    return matchingTask ? getTaskRoute(matchingTask) : { from: '', to: '' };
+  };
+
+  const handleVehicleChange = (vehicleNumber) => {
+    const route = getAssignedTaskRoute(vehicleNumber, formData.date);
+    setFormData((previous) => ({
+      ...previous,
+      vehicleNumber,
+      roundTripFrom: route.from,
+      roundTripTo: route.to,
+    }));
+  };
+
+  const handleDateChange = (date) => {
+    const route = getAssignedTaskRoute(formData.vehicleNumber, date);
+    setFormData((previous) => ({
+      ...previous,
+      date,
+      ...(route.from || route.to ? { roundTripFrom: route.from, roundTripTo: route.to } : {}),
+    }));
   };
 
   const handleOpenModal = (record = null) => {
@@ -431,7 +470,7 @@ const MileagePage = () => {
                     <select
                       required
                       value={formData.vehicleNumber}
-                      onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
+                      onChange={(e) => handleVehicleChange(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500 bg-slate-50"
                     >
                       <option value="">Select Vehicle</option>
@@ -446,7 +485,7 @@ const MileagePage = () => {
                       type="date"
                       required
                       value={formData.date}
-                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      onChange={(e) => handleDateChange(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500 bg-slate-50"
                     />
                   </div>
@@ -454,22 +493,22 @@ const MileagePage = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Round Trip From *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Round Trip From * <span className="text-[10px] text-amber-700">(From assigned task)</span></label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Hyderabad"
+                      placeholder="Select a vehicle with an assigned task"
                       value={formData.roundTripFrom}
                       onChange={(e) => setFormData({ ...formData, roundTripFrom: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Round Trip To *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Round Trip To * <span className="text-[10px] text-amber-700">(From assigned task)</span></label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Nellore"
+                      placeholder="Select a vehicle with an assigned task"
                       value={formData.roundTripTo}
                       onChange={(e) => setFormData({ ...formData, roundTripTo: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500"

@@ -36,6 +36,7 @@ const DashboardPage = () => {
     dateOfBirth: '',
     bloodGroup: '',
     mobileNumber: '',
+    email: '',
     category: 'Driver',
     experience: '',
     status: 'Available',
@@ -88,6 +89,7 @@ const DashboardPage = () => {
         dateOfBirth: '',
         bloodGroup: '',
         mobileNumber: '',
+        email: '',
         category: 'Driver',
         experience: '',
         status: 'Available',
@@ -521,6 +523,17 @@ const DashboardPage = () => {
                     placeholder="+91 98480 12345"
                     value={empFormData.mobileNumber}
                     onChange={(e) => setEmpFormData({ ...empFormData, mobileNumber: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="employee@example.com"
+                    value={empFormData.email}
+                    onChange={(e) => setEmpFormData({ ...empFormData, email: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
                   />
                 </div>
