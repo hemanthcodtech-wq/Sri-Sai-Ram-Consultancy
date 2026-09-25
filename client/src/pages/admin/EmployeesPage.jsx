@@ -63,10 +63,12 @@ const EmployeesPage = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [uploadingField, setUploadingField] = useState(null); // 'photo' | 'aadhaarDoc' | 'panDoc' | 'licenseDoc' | 'experienceDoc' | null
+  const [uploadingField, setUploadingField] = useState(null);
 
   const emptyForm = {
     name: '',
+    dateOfBirth: '',
+    bloodGroup: '',
     mobileNumber: '',
     alternateNumber: '',
     category: 'Driver',
@@ -97,10 +99,13 @@ const EmployeesPage = () => {
     documents: {
       aadhaarNumber: '',
       aadhaarDoc: '',
+      aadhaarDocBack: '',
       panNumber: '',
       panDoc: '',
+      panDocBack: '',
       licenseNumber: '',
       licenseDoc: '',
+      licenseDocBack: '',
       issuedByState: '',
       issuedRtoOffice: '',
       licenseIssueDate: '',
@@ -204,6 +209,8 @@ const EmployeesPage = () => {
 
       setFormData({
         name: employee.name || '',
+        dateOfBirth: toDateStr(employee.dateOfBirth),
+        bloodGroup: employee.bloodGroup || '',
         mobileNumber: employee.mobileNumber || '',
         alternateNumber: employee.alternateNumber || '',
         category: employee.category || 'Driver',
@@ -234,10 +241,13 @@ const EmployeesPage = () => {
         documents: {
           aadhaarNumber: employee.documents?.aadhaarNumber || '',
           aadhaarDoc: employee.documents?.aadhaarDoc || '',
+          aadhaarDocBack: employee.documents?.aadhaarDocBack || '',
           panNumber: employee.documents?.panNumber || '',
           panDoc: employee.documents?.panDoc || '',
+          panDocBack: employee.documents?.panDocBack || '',
           licenseNumber: employee.documents?.licenseNumber || '',
           licenseDoc: employee.documents?.licenseDoc || '',
+          licenseDocBack: employee.documents?.licenseDocBack || '',
           issuedByState: employee.documents?.issuedByState || '',
           issuedRtoOffice: employee.documents?.issuedRtoOffice || '',
           licenseIssueDate: toDateStr(employee.documents?.licenseIssueDate),
@@ -877,6 +887,30 @@ const EmployeesPage = () => {
                     />
                   </div>
 
+                  {/* Date of Birth */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Date of Birth</label>
+                    <input
+                      type="date"
+                      value={formData.dateOfBirth}
+                      onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  {/* Blood Group */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Blood Group</label>
+                    <select
+                      value={formData.bloodGroup}
+                      onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 font-medium focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="">Select blood group</option>
+                      {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((group) => <option key={group} value={group}>{group}</option>)}
+                    </select>
+                  </div>
+
                   {/* Phone Number */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">Phone Number *</label>
@@ -942,21 +976,16 @@ const EmployeesPage = () => {
                     onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, aadhaarNumber: e.target.value } })}
                     className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-500"
                   />
-                  <div className="flex items-center gap-2 pt-1">
-                    <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                      {uploadingField === 'aadhaarDoc' ? (
-                        <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /><span>Uploading...</span></>
-                      ) : (
-                        <><UploadCloud className="w-3.5 h-3.5 text-amber-600" /><span>{formData.documents.aadhaarDoc ? 'Replace Aadhaar Photo' : 'Upload Photo File (Aadhaar)'}</span></>
-                      )}
-                      <input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileUpload(e, 'aadhaarDoc')} className="hidden" disabled={uploadingField === 'aadhaarDoc'} />
-                    </label>
-                    {formData.documents.aadhaarDoc && (
-                      <a href={formData.documents.aadhaarDoc} target="_blank" rel="noopener noreferrer"
-                        className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors border border-emerald-200 flex items-center gap-1 shrink-0">
-                        <Eye className="w-4 h-4" /><span>View</span>
-                      </a>
-                    )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {['aadhaarDoc', 'aadhaarDocBack'].map((field, index) => (
+                      <div key={field} className="flex items-center gap-2">
+                        <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
+                          {uploadingField === field ? <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /><span>Uploading...</span></> : <><UploadCloud className="w-3.5 h-3.5 text-amber-600" /><span>{formData.documents[field] ? `Replace Aadhaar ${index === 0 ? 'Front' : 'Back'}` : `Upload Aadhaar ${index === 0 ? 'Front' : 'Back'}`}</span></>}
+                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, field)} className="hidden" disabled={uploadingField === field} />
+                        </label>
+                        {formData.documents[field] && <a href={formData.documents[field]} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200"><Eye className="w-4 h-4" /></a>}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -975,21 +1004,16 @@ const EmployeesPage = () => {
                     onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, panNumber: e.target.value.toUpperCase() } })}
                     className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 uppercase focus:outline-none focus:border-purple-500"
                   />
-                  <div className="flex items-center gap-2 pt-1">
-                    <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                      {uploadingField === 'panDoc' ? (
-                        <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /><span>Uploading...</span></>
-                      ) : (
-                        <><UploadCloud className="w-3.5 h-3.5 text-amber-600" /><span>{formData.documents.panDoc ? 'Replace PAN Photo' : 'Upload Photo File (PAN Card)'}</span></>
-                      )}
-                      <input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileUpload(e, 'panDoc')} className="hidden" disabled={uploadingField === 'panDoc'} />
-                    </label>
-                    {formData.documents.panDoc && (
-                      <a href={formData.documents.panDoc} target="_blank" rel="noopener noreferrer"
-                        className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors border border-emerald-200 flex items-center gap-1 shrink-0">
-                        <Eye className="w-4 h-4" /><span>View</span>
-                      </a>
-                    )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {['panDoc', 'panDocBack'].map((field, index) => (
+                      <div key={field} className="flex items-center gap-2">
+                        <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
+                          {uploadingField === field ? <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /><span>Uploading...</span></> : <><UploadCloud className="w-3.5 h-3.5 text-amber-600" /><span>{formData.documents[field] ? `Replace PAN ${index === 0 ? 'Front' : 'Back'}` : `Upload PAN ${index === 0 ? 'Front' : 'Back'}`}</span></>}
+                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, field)} className="hidden" disabled={uploadingField === field} />
+                        </label>
+                        {formData.documents[field] && <a href={formData.documents[field]} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200"><Eye className="w-4 h-4" /></a>}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1016,21 +1040,16 @@ const EmployeesPage = () => {
                     onChange={(e) => setFormData({ ...formData, documents: { ...formData.documents, licenseNumber: e.target.value.toUpperCase() } })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-mono font-bold text-slate-900 uppercase focus:outline-none focus:border-amber-500"
                   />
-                  <div className="flex items-center gap-2 pt-1">
-                    <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
-                      {uploadingField === 'licenseDoc' ? (
-                        <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /><span>Uploading...</span></>
-                      ) : (
-                        <><UploadCloud className="w-3.5 h-3.5 text-amber-600" /><span>{formData.documents.licenseDoc ? 'Replace Licence Photo' : 'Upload Photo File (DL)'}</span></>
-                      )}
-                      <input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileUpload(e, 'licenseDoc')} className="hidden" disabled={uploadingField === 'licenseDoc'} />
-                    </label>
-                    {formData.documents.licenseDoc && (
-                      <a href={formData.documents.licenseDoc} target="_blank" rel="noopener noreferrer"
-                        className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition-colors border border-amber-200 flex items-center gap-1 shrink-0">
-                        <Eye className="w-4 h-4" /><span>View</span>
-                      </a>
-                    )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {['licenseDoc', 'licenseDocBack'].map((field, index) => (
+                      <div key={field} className="flex items-center gap-2">
+                        <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition-colors border border-slate-300">
+                          {uploadingField === field ? <><Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /><span>Uploading...</span></> : <><UploadCloud className="w-3.5 h-3.5 text-amber-600" /><span>{formData.documents[field] ? `Replace Licence ${index === 0 ? 'Front' : 'Back'}` : `Upload Licence ${index === 0 ? 'Front' : 'Back'}`}</span></>}
+                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, field)} className="hidden" disabled={uploadingField === field} />
+                        </label>
+                        {formData.documents[field] && <a href={formData.documents[field]} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200"><Eye className="w-4 h-4" /></a>}
+                      </div>
+                    ))}
                   </div>
                 </div>
 

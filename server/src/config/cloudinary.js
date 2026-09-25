@@ -26,20 +26,37 @@ if (isCloudinaryConfigured) {
 const uploadBuffer = (fileBuffer, originalName = 'document', folder = 'ssrc_employee_docs', mimeType = 'image/jpeg') => {
   return new Promise((resolve, reject) => {
     if (isCloudinaryConfigured) {
+      // Cloudinary serves PDFs publicly as image resources in this account;
+      // raw PDF delivery returns 401 even when the upload itself succeeds.
+      const isPdf = mimeType === 'application/pdf';
+      const isImage = mimeType.startsWith('image/') || isPdf;
+      const resourceType = isImage ? 'image' : 'raw';
+      const safeName = originalName.replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const publicId = `${Date.now()}-${safeName.replace(/\.[^/.]+$/, '')}${isImage ? '' : safeName.match(/\.[^/.]+$/)?.[0] || ''}`;
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder,
-          resource_type: 'auto', // Automatically detects images (jpg/png) and raw documents (pdf)
-          public_id: `${Date.now()}-${originalName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_')}`,
+          resource_type: resourceType,
+          public_id: publicId,
         },
         (error, result) => {
           if (error) {
             console.error('Cloudinary upload error:', error);
             return reject(error);
           }
+          const deliveryUrl = isPdf
+            ? cloudinary.url(result.public_id, {
+              resource_type: 'image',
+              type: 'upload',
+              secure: true,
+              sign_url: true,
+              version: result.version,
+              format: 'pdf',
+            })
+            : result.secure_url;
           resolve({
             success: true,
-            url: result.secure_url,
+            url: deliveryUrl,
             public_id: result.public_id,
             format: result.format,
             bytes: result.bytes,

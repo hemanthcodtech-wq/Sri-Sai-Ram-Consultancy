@@ -105,6 +105,41 @@ const EmployeeProfilePage = () => {
   const currentTrips = trips.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.max(1, Math.ceil(trips.length / itemsPerPage));
 
+  const formatPrintDate = (value) => (value ? new Date(value).toLocaleDateString('en-IN') : 'Not Provided');
+  const printValue = (value) => value || 'Not Provided';
+  const isPdfAttachment = (url) => /\.pdf(?:$|[?#])/i.test(String(url || ''));
+
+  const PrintAttachmentContent = ({ label, url }) => (
+    url ? (
+      isPdfAttachment(url) ? (
+        <div className="print-pdf-reference">
+          <p>PDF document attached.</p>
+          <a href={url} target="_blank" rel="noopener noreferrer">Open PDF document to print</a>
+        </div>
+      ) : (
+        <img src={url} alt={label} className="print-attachment-image" />
+      )
+    ) : (
+      <p className="print-attachment-missing">No document attached</p>
+    )
+  );
+
+  const PrintAttachmentPair = ({ label, front, back }) => (
+    <div className="print-attachment-pair">
+      <h3>{label}</h3>
+      <div className="print-attachment-grid">
+        <div className="print-attachment-side">
+          <h4>Front</h4>
+          <PrintAttachmentContent label={`${label} Front`} url={front} />
+        </div>
+        <div className="print-attachment-side">
+          <h4>Back</h4>
+          <PrintAttachmentContent label={`${label} Back`} url={back} />
+        </div>
+      </div>
+    </div>
+  );
+
   // Print Signatures Component
   const PrintSignatures = () => (
     <div className="hidden print:block mt-24 w-full">
@@ -164,6 +199,152 @@ const EmployeeProfilePage = () => {
           }
           .page-break {
             page-break-before: always;
+          }
+
+          .print-document-sheet {
+            color: #111827;
+            font-size: 11px;
+          }
+          .print-document-intro {
+            border-bottom: 2px solid #111827;
+            padding: 0 0 8px;
+            margin-bottom: 10px;
+          }
+          .print-document-intro h2 {
+            font-size: 18px;
+            margin: 0;
+            text-transform: uppercase;
+          }
+          .print-document-intro p {
+            margin: 4px 0 0;
+            font-weight: 700;
+          }
+          .print-document-table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          .print-document-table th,
+          .print-document-table td {
+            border: 0;
+            padding: 6px 6px;
+            text-align: left;
+            vertical-align: middle;
+          }
+          .print-document-table th {
+            width: 42%;
+            font-weight: 700;
+          }
+          .print-document-table td {
+            font-weight: 600;
+          }
+          .print-document-photo,
+          .print-document-user-icon {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border: 1px solid #374151;
+          }
+          .print-document-user-icon {
+            padding: 10px;
+            color: #6b7280;
+          }
+          .print-attachments {
+            page-break-before: always;
+          }
+          .print-attachment-pair {
+            page-break-after: always;
+            min-height: 240px;
+          }
+          .print-attachment-pair:last-child {
+            page-break-after: auto;
+          }
+          .print-attachment-pair h3 {
+            border-bottom: 1px solid #111827;
+            font-size: 13px;
+            margin: 0 0 12px;
+            padding-bottom: 6px;
+            text-transform: uppercase;
+          }
+          .print-attachment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+          }
+          .print-attachment-side h4 {
+            font-size: 10px;
+            margin: 0 0 5px;
+            text-transform: uppercase;
+          }
+          .print-attachment-image,
+          .print-attachment-pdf {
+            display: block;
+            width: 100%;
+            max-height: 620px;
+            object-fit: contain;
+            border: 1px solid #374151;
+          }
+          .print-pdf-reference {
+            border: 1px solid #374151;
+            padding: 18px;
+          }
+          .print-pdf-reference p {
+            margin: 0 0 8px;
+            font-weight: 700;
+          }
+          .print-pdf-reference a {
+            color: #111827;
+            text-decoration: underline;
+          }
+          .print-attachment-missing {
+            border-bottom: 1px solid #374151;
+            padding: 8px 0;
+            font-style: italic;
+          }
+
+          .print-profile-sheet .print-profile-section {
+            background: #fff !important;
+            border: 0 !important;
+            border-bottom: 1px solid #1f2937 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+          }
+          .print-profile-sheet .print-profile-photo,
+          .print-profile-sheet .print-profile-call {
+            display: none !important;
+          }
+          .print-profile-sheet .print-profile-identity {
+            display: block !important;
+            padding: 14px 16px !important;
+          }
+          .print-profile-sheet .print-profile-identity > div:first-child {
+            display: block !important;
+          }
+          .print-profile-sheet .print-profile-identity h2 {
+            font-size: 18px !important;
+          }
+          .print-profile-sheet .print-profile-identity .flex-wrap {
+            margin-top: 6px !important;
+          }
+          .print-profile-sheet .print-profile-personal {
+            border-bottom-color: #1f2937 !important;
+            border-radius: 0 !important;
+            background: #fff !important;
+          }
+          .print-profile-sheet .print-profile-personal > div {
+            border-color: #d1d5db !important;
+          }
+          .print-profile-sheet .print-profile-section h3 {
+            color: #111827 !important;
+          }
+          .print-profile-sheet .print-profile-section svg {
+            display: none !important;
+          }
+          .print-profile-sheet .rounded-full {
+            background: #fff !important;
+            color: #111827 !important;
+            border: 0 !important;
           }
         }
       `}</style>
@@ -241,6 +422,7 @@ const EmployeeProfilePage = () => {
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Gender:</span> <span className="font-semibold text-slate-900">{employee.gender || '-'}</span></div>
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Email:</span> <span className="font-semibold text-slate-900">{employee.email || '-'}</span></div>
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Date of Birth:</span> <span className="font-semibold text-slate-900">{employee.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString() : '-'}</span></div>
+                <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Blood Group:</span> <span className="font-semibold text-slate-900">{employee.bloodGroup || '-'}</span></div>
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Nationality:</span> <span className="font-semibold text-slate-900">{employee.nationality || '-'}</span></div>
                 <div className="col-span-2 flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Residential Address:</span> <span className="font-semibold text-slate-900">{employee.address?.fullAddress || employee.address?.street || '-'}</span></div>
               </div>
@@ -349,14 +531,66 @@ const EmployeeProfilePage = () => {
               <PrintSignatures />
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-7 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            <>
+            <div className="hidden print:block print-document-sheet">
+              <div className="print-document-intro">
+                <h2>{printValue(employee.name)}</h2>
+                <p>{printValue(employee.employeeId)} | {printValue(employee.category)}</p>
+              </div>
+
+              <table className="print-document-table">
+                <tbody>
+                  <tr><th>Profile Photo</th><td>{employee.photo ? <img src={employee.photo} alt={employee.name} className="print-document-photo" /> : <User className="print-document-user-icon" />}</td></tr>
+                  <tr><th>Gender</th><td>{printValue(employee.gender)}</td></tr>
+                  <tr><th>Driver Name (As per Aadhaar)</th><td>{printValue(employee.name)}</td></tr>
+                  <tr><th>DOB</th><td>{formatPrintDate(employee.dateOfBirth)}</td></tr>
+                  <tr><th>Blood Group</th><td>{printValue(employee.bloodGroup)}</td></tr>
+                  <tr><th>E MAIL</th><td>{printValue(employee.email)}</td></tr>
+                  <tr><th>Phone Number</th><td>{printValue(employee.mobileNumber)}</td></tr>
+                  <tr><th>Alternative Number</th><td>{printValue(employee.alternateNumber)}</td></tr>
+                  <tr><th>Aadhaar Number</th><td>{printValue(employee.documents?.aadhaarNumber)}</td></tr>
+                  <tr><th>PAN Card Number</th><td>{printValue(employee.documents?.panNumber)}</td></tr>
+                  <tr><th>Driving Licence Details</th><td>{printValue(employee.documents?.licenseNumber)}</td></tr>
+                  <tr><th>Issued By State</th><td>{printValue(employee.documents?.issuedByState)}</td></tr>
+                  <tr><th>Issued RTO Office</th><td>{printValue(employee.documents?.issuedRtoOffice)}</td></tr>
+                  <tr><th>Issue Date (TRANS)</th><td>{formatPrintDate(employee.documents?.licenseIssueDate)}</td></tr>
+                  <tr><th>Validity Date (TRANS)</th><td>{formatPrintDate(employee.documents?.licenseExpiryDate)}</td></tr>
+                  <tr><th>Total Experience as Per Licence</th><td>{printValue(employee.documents?.licenseExperience || employee.experience)}</td></tr>
+                  <tr><th>Any Criminal Background As Per Licence</th><td>{printValue(employee.documents?.criminalBackground)}</td></tr>
+                  <tr><th>Bank Name</th><td>{printValue(employee.bankDetails?.bankName)}</td></tr>
+                  <tr><th>Account Holder Name</th><td>{printValue(employee.bankDetails?.accountHolderName || employee.name)}</td></tr>
+                  <tr><th>Account Number</th><td>{printValue(employee.bankDetails?.accountNumber)}</td></tr>
+                  <tr><th>IFSC Code</th><td>{printValue(employee.bankDetails?.ifscCode)}</td></tr>
+                  <tr><th>Branch</th><td>{printValue(employee.bankDetails?.branchName)}</td></tr>
+                  <tr><th>Reference Details</th><td>{printValue(employee.reference?.name)}</td></tr>
+                  <tr><th>Name</th><td>{printValue(employee.reference?.name)}</td></tr>
+                  <tr><th>Phone Number</th><td>{printValue(employee.reference?.phone)}</td></tr>
+                  <tr><th>Alternative Number</th><td>{printValue(employee.reference?.alternateNumber)}</td></tr>
+                </tbody>
+              </table>
+
+              <div className="print-attachments">
+                <PrintAttachmentPair label="Aadhaar Document" front={employee.documents?.aadhaarDoc} back={employee.documents?.aadhaarDocBack} />
+                <PrintAttachmentPair label="PAN Card Document" front={employee.documents?.panDoc} back={employee.documents?.panDocBack} />
+                <PrintAttachmentPair label="Driving Licence Document" front={employee.documents?.licenseDoc} back={employee.documents?.licenseDocBack} />
+              </div>
+              <PrintSignatures />
+            </div>
+
+            <div className="space-y-6 print:hidden print-profile-sheet">
+              <div className="print-profile-section print-profile-identity bg-white rounded-3xl border border-slate-200 p-5 sm:p-7 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
                 <div className="flex items-center gap-4">
-                  <img
-                    src={employee.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80'}
-                    alt={employee.name}
-                    className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm"
-                  />
+                  {employee.photo ? (
+                    <img
+                      src={employee.photo}
+                      alt={employee.name}
+                      className="print-profile-photo w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm"
+                    />
+                  ) : (
+                    <div className="print-profile-photo w-20 h-20 rounded-2xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center">
+                      <User className="w-9 h-9 text-slate-400" />
+                    </div>
+                  )}
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-2xl font-black text-slate-900">{employee.name}</h2>
@@ -369,37 +603,37 @@ const EmployeeProfilePage = () => {
                     </div>
                   </div>
                 </div>
-                <a href={`tel:${employee.mobileNumber}`} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black">
+                <a href={`tel:${employee.mobileNumber}`} className="print-profile-call inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black">
                   <Phone className="w-4 h-4" />
                   Call Primary
                 </a>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-5">
-                  <p className="text-[10px] font-black text-amber-800 uppercase">Total Salary Earned</p>
-                  <p className="text-2xl font-black text-slate-900 mt-2">₹{stats?.totalSalary || 0}</p>
-                  <p className="text-[11px] text-slate-500 mt-1">Billed staff fees</p>
+              <div className="print-profile-section print-profile-personal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Date of Birth</p>
+                  <p className="text-sm font-bold text-slate-900 mt-2">{employee.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString('en-IN') : 'Not Provided'}</p>
                 </div>
-                <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-5">
-                  <p className="text-[10px] font-black text-blue-800 uppercase">Advance Received</p>
-                  <p className="text-2xl font-black text-blue-900 mt-2">₹{stats?.totalAdvance || 0}</p>
-                  <p className="text-[11px] text-blue-700 mt-1">Given upfront</p>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Blood Group</p>
+                  <p className="text-sm font-bold text-slate-900 mt-2">{employee.bloodGroup || 'Not Provided'}</p>
                 </div>
-                <div className="rounded-2xl border-2 border-rose-200 bg-rose-50 p-5">
-                  <p className="text-[10px] font-black text-rose-800 uppercase">Pending Payment Due</p>
-                  <p className="text-2xl font-black text-rose-600 mt-2">₹{stats?.totalDue || 0}</p>
-                  <p className="text-[11px] text-rose-600 mt-1">Remaining to pay</p>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Mobile Number</p>
+                  <p className="text-sm font-bold text-slate-900 mt-2">{employee.mobileNumber || 'Not Provided'}</p>
                 </div>
-                <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-5">
-                  <p className="text-[10px] font-black text-emerald-800 uppercase">Total Settled</p>
-                  <p className="text-2xl font-black text-emerald-700 mt-2">₹{stats?.totalPaid || 0}</p>
-                  <p className="text-[11px] text-emerald-700 mt-1">Paid + advance</p>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Alternative Number</p>
+                  <p className="text-sm font-bold text-slate-900 mt-2">{employee.alternateNumber || 'Not Provided'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Employee Status</p>
+                  <p className="text-sm font-bold text-slate-900 mt-2">{employee.status || 'Available'}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <div className="rounded-2xl border-2 border-amber-200 bg-amber-50/40 p-5">
+                <div className="print-profile-section rounded-2xl border-2 border-amber-200 bg-amber-50/40 p-5">
                   <div className="flex items-center justify-between border-b border-amber-200 pb-3">
                     <h3 className="font-black text-slate-900 flex items-center gap-2"><UserCheck className="w-4 h-4 text-amber-700" />Reference / Referral Details</h3>
                     <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black">Guarantor</span>
@@ -415,7 +649,7 @@ const EmployeeProfilePage = () => {
                     ) : <p className="text-center text-sm italic text-slate-500">No reference details recorded for this employee.</p>}
                   </div>
                 </div>
-                <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-5">
+                <div className="print-profile-section rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-5">
                   <div className="flex items-center justify-between border-b border-emerald-200 pb-3">
                     <h3 className="font-black text-slate-900 flex items-center gap-2"><Building className="w-4 h-4 text-emerald-700" />Bank Account Details</h3>
                     <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">Payouts Direct</span>
@@ -433,7 +667,7 @@ const EmployeeProfilePage = () => {
                 </div>
               </div>
 
-              <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
+              <div className="print-profile-section rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-3">
                   <h3 className="font-black text-slate-900 flex items-center gap-2"><Truck className="w-5 h-5 text-amber-600" />Driving License &amp; Heavy Vehicle Experience</h3>
                   <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">{employee.documents?.licenseExpiryDate ? `License valid until ${new Date(employee.documents.licenseExpiryDate).toLocaleDateString('en-IN')}` : 'License validity not recorded'}</span>
@@ -442,6 +676,13 @@ const EmployeeProfilePage = () => {
                   <div className="bg-white rounded-xl border border-slate-200 p-4">
                     <span className="block text-[10px] font-bold text-slate-400 uppercase">License Number</span>
                     <strong className="text-sm text-slate-900">{employee.documents?.licenseNumber || 'Not Provided'}</strong>
+                    {employee.documents?.licenseDoc && (
+                      <a href={employee.documents.licenseDoc} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold hover:bg-amber-100">
+                        <Eye className="w-3.5 h-3.5" />
+                        View Licence Front
+                      </a>
+                    )}
+                    {employee.documents?.licenseDocBack && <a href={employee.documents.licenseDocBack} target="_blank" rel="noopener noreferrer" className="mt-3 ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold hover:bg-amber-100"><Eye className="w-3.5 h-3.5" />View Licence Back</a>}
                     <div className="border-t border-slate-100 my-3" />
                     <span className="block text-[10px] font-bold text-slate-400 uppercase">Expiry Date</span>
                     <strong className="text-sm text-slate-900">{employee.documents?.licenseExpiryDate ? new Date(employee.documents.licenseExpiryDate).toLocaleDateString('en-IN') : 'Not Provided'}</strong>
@@ -453,7 +694,7 @@ const EmployeeProfilePage = () => {
                 </div>
               </div>
 
-              <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
+              <div className="print-profile-section rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                   <h3 className="font-black text-slate-900 flex items-center gap-2"><BadgeCheck className="w-5 h-5 text-emerald-600" />Identity Verification Documents</h3>
                   <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">Police Clearance: {employee.documents?.policeVerificationStatus || 'Pending'}</span>
@@ -462,32 +703,45 @@ const EmployeeProfilePage = () => {
                   <div className="bg-white rounded-xl border border-slate-200 p-4">
                     <span className="block text-[10px] font-bold text-slate-400 uppercase">Aadhaar Card Record</span>
                     <strong className="text-sm text-slate-900">{employee.documents?.aadhaarNumber || 'Not Provided'}</strong>
-                    <p className="text-xs italic text-slate-400 mt-2">{employee.documents?.aadhaarDoc ? 'File uploaded' : 'No file uploaded'}</p>
+                    {employee.documents?.aadhaarDoc ? (
+                      <a href={employee.documents.aadhaarDoc} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold hover:bg-blue-100">
+                        <Eye className="w-3.5 h-3.5" />
+                        View Front
+                      </a>
+                    ) : <p className="text-xs italic text-slate-400 mt-2">No file uploaded</p>}
+                    {employee.documents?.aadhaarDocBack && <a href={employee.documents.aadhaarDocBack} target="_blank" rel="noopener noreferrer" className="mt-3 ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold hover:bg-blue-100"><Eye className="w-3.5 h-3.5" />View Back</a>}
                   </div>
                   <div className="bg-white rounded-xl border border-slate-200 p-4">
                     <span className="block text-[10px] font-bold text-slate-400 uppercase">PAN Card Record</span>
                     <strong className="text-sm text-slate-900">{employee.documents?.panNumber || 'Not Provided'}</strong>
-                    <p className="text-xs italic text-slate-400 mt-2">{employee.documents?.panDoc ? 'File uploaded' : 'No file uploaded'}</p>
+                    {employee.documents?.panDoc ? (
+                      <a href={employee.documents.panDoc} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold hover:bg-purple-100">
+                        <Eye className="w-3.5 h-3.5" />
+                        View Front
+                      </a>
+                    ) : <p className="text-xs italic text-slate-400 mt-2">No file uploaded</p>}
+                    {employee.documents?.panDocBack && <a href={employee.documents.panDocBack} target="_blank" rel="noopener noreferrer" className="mt-3 ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold hover:bg-purple-100"><Eye className="w-3.5 h-3.5" />View Back</a>}
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
+                <div className="print-profile-section rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
                   <h3 className="font-black text-slate-900 text-sm mb-2">Residential Address</h3>
                   <p className="text-sm font-semibold text-slate-700">{employee.address?.fullAddress || employee.address?.street || 'No physical address recorded.'}</p>
                 </div>
-                <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
+                <div className="print-profile-section rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
                   <h3 className="font-black text-slate-900 text-sm mb-2">Special Skills &amp; Highlights</h3>
                   <p className="text-sm font-semibold text-slate-700">{Array.isArray(employee.specialSkills) && employee.specialSkills.length ? employee.specialSkills.join(', ') : 'Standard verified staff profile.'}</p>
                 </div>
-                <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-5">
+                <div className="print-profile-section rounded-2xl border-2 border-amber-200 bg-amber-50 p-5">
                   <h3 className="font-black text-slate-900 text-sm mb-2">Administrative Remarks</h3>
                   <p className="text-sm font-semibold text-slate-700">{employee.notes || 'No administrative notes recorded.'}</p>
                 </div>
               </div>
               <PrintSignatures />
             </div>
+            </>
           )}
         </div>
 

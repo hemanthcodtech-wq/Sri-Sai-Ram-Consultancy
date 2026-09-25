@@ -4,6 +4,30 @@ import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
 import { exportToExcel } from '../../utils/excelExport';
 
+const getWhatsAppNumber = (phone) => {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return '';
+  return digits.length === 10 ? `91${digits}` : digits;
+};
+
+const openCaptainDutyWhatsApp = (task, captain) => {
+  const number = getWhatsAppNumber(captain?.mobileNumber);
+  if (!number) return;
+
+  const message = [
+    'Duty Assignment - Captain',
+    `Hello ${captain.name || 'Captain'},`,
+    `You have been assigned as Captain for task ${task.tripNumber || 'new task'}.`,
+    `Date: ${task.tripDate || 'Not specified'}`,
+    `Vehicle: ${task.vehicleNumber || 'Not specified'}`,
+    `Route: ${task.routeName || 'Not specified'}`,
+    `Operator: ${task.operatorName || 'Not specified'}`,
+    'Please report on time and confirm your duty.',
+  ].join('\n');
+
+  window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+};
+
 const emptyForm = {
   tripDate: new Date().toISOString().slice(0, 10),
   vehicleNumber: '',
@@ -176,7 +200,10 @@ const CaptainManagementPage = () => {
 
     try {
       if (editingTask) await api.put(`/trips/${editingTask._id}`, payload);
-      else await api.post('/trips', payload);
+      else {
+        await api.post('/trips', payload);
+        openCaptainDutyWhatsApp(payload, captain);
+      }
       setIsModalOpen(false);
       fetchTasks();
     } catch (error) {

@@ -175,7 +175,7 @@ const RoutesPage = () => {
       'From City / Hub': r.fromCity || '',
       'To City / Destination': r.toCity || '',
       'Distance (KM)': r.distanceKm !== undefined && r.distanceKm !== null ? r.distanceKm : 'N/A',
-      'Route Type': r.type || 'Full Sleeper',
+      'Vehicle Type': r.type || 'Full Sleeper',
       'Operational Status': r.status || 'Active',
       'Notes / Special Instructions': r.notes || '',
       'Created Date': r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN') : 'N/A',
@@ -593,7 +593,7 @@ const RoutesPage = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Route Type
+                    Vehicle Type
                   </label>
                   <select
                     value={formData.type}

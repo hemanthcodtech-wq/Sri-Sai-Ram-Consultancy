@@ -43,6 +43,11 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
     }
 
     const folder = req.body.folder || 'ssrc_employee_docs';
+    const imageOnlyFields = ['aadhaarDoc', 'aadhaarDocBack', 'panDoc', 'panDocBack', 'licenseDoc', 'licenseDocBack'];
+    const field = folder.split('/').pop();
+    if (imageOnlyFields.includes(field) && !req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({ success: false, message: 'Only image files are allowed for identity documents.' });
+    }
     const result = await uploadBuffer(
       req.file.buffer,
       req.file.originalname,
@@ -75,8 +80,11 @@ router.post(
   upload.fields([
     { name: 'photo', maxCount: 1 },
     { name: 'aadhaarDoc', maxCount: 1 },
+    { name: 'aadhaarDocBack', maxCount: 1 },
     { name: 'panDoc', maxCount: 1 },
+    { name: 'panDocBack', maxCount: 1 },
     { name: 'licenseDoc', maxCount: 1 },
+    { name: 'licenseDocBack', maxCount: 1 },
     { name: 'experienceDoc', maxCount: 1 },
   ]),
   async (req, res) => {
@@ -87,6 +95,10 @@ router.post(
       for (const [field, fileArray] of Object.entries(files)) {
         if (fileArray && fileArray.length > 0) {
           const file = fileArray[0];
+          const imageOnlyFields = ['aadhaarDoc', 'aadhaarDocBack', 'panDoc', 'panDocBack', 'licenseDoc', 'licenseDocBack'];
+          if (imageOnlyFields.includes(field) && !file.mimetype.startsWith('image/')) {
+            return res.status(400).json({ success: false, message: 'Only image files are allowed for identity documents.' });
+          }
           const result = await uploadBuffer(
             file.buffer,
             file.originalname,

@@ -3,6 +3,8 @@ const store = require('../config/store');
 
 const normalizePayload = (body) => ({
   stationName: String(body.stationName || '').trim(),
+  city: String(body.city || '').trim(),
+  helperName: String(body.helperName || '').trim(),
   month: String(body.month || '').trim(),
   amount: Number(body.amount),
   paidDate: body.paidDate,
@@ -29,7 +31,12 @@ const getCleaningPayments = async (req, res) => {
     if (store.isMongo()) {
       const query = {};
       if (month && month !== 'All') query.month = month;
-      if (search) query.stationName = { $regex: search, $options: 'i' };
+      if (search) query.$or = [
+        { stationName: { $regex: search, $options: 'i' } },
+        { city: { $regex: search, $options: 'i' } },
+        { helperName: { $regex: search, $options: 'i' } },
+        { remarks: { $regex: search, $options: 'i' } },
+      ];
       const records = await CleaningPayment.find(query).sort({ month: -1, paidDate: -1, createdAt: -1 });
       return res.json({ success: true, data: records, count: records.length });
     }
@@ -38,7 +45,7 @@ const getCleaningPayments = async (req, res) => {
     if (month && month !== 'All') records = records.filter((record) => record.month === month);
     if (search) {
       const term = search.toLowerCase();
-      records = records.filter((record) => record.stationName.toLowerCase().includes(term) || record.remarks.toLowerCase().includes(term));
+      records = records.filter((record) => [record.stationName, record.city, record.helperName, record.remarks].some((value) => String(value || '').toLowerCase().includes(term)));
     }
     records.sort((a, b) => String(b.month).localeCompare(String(a.month)) || new Date(b.paidDate) - new Date(a.paidDate));
     res.json({ success: true, data: records, count: records.length });

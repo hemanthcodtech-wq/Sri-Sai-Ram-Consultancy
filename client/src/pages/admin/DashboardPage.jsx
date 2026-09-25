@@ -33,6 +33,8 @@ const DashboardPage = () => {
   const [isAddEmpModalOpen, setIsAddEmpModalOpen] = useState(false);
   const [empFormData, setEmpFormData] = useState({
     name: '',
+    dateOfBirth: '',
+    bloodGroup: '',
     mobileNumber: '',
     category: 'Driver',
     experience: '',
@@ -83,6 +85,8 @@ const DashboardPage = () => {
       setIsAddEmpModalOpen(false);
       setEmpFormData({
         name: '',
+        dateOfBirth: '',
+        bloodGroup: '',
         mobileNumber: '',
         category: 'Driver',
         experience: '',
@@ -536,6 +540,28 @@ const DashboardPage = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Date of Birth</label>
+                  <input
+                    type="date"
+                    value={empFormData.dateOfBirth}
+                    onChange={(e) => setEmpFormData({ ...empFormData, dateOfBirth: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Blood Group</label>
+                  <select
+                    value={empFormData.bloodGroup}
+                    onChange={(e) => setEmpFormData({ ...empFormData, bloodGroup: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="">Select blood group</option>
+                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((group) => <option key={group} value={group}>{group}</option>)}
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Experience</label>
                   <div className="relative">

@@ -4,6 +4,15 @@ import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
 import * as XLSX from 'xlsx';
 
+const getMileageMetrics = (record) => {
+  const lastFuelKm = Number(record.lastFuelKm ?? record.odometerReading ?? 0);
+  const endTripKm = Number(record.endTripKm ?? (lastFuelKm + Number(record.kmsCovered || 0)));
+  const totalKm = Number(record.totalKm ?? Math.max(0, endTripKm - lastFuelKm));
+  const fuelQuantity = Number(record.fuelQuantity || 0);
+  const mileage = Number(record.mileage ?? (fuelQuantity > 0 ? totalKm / fuelQuantity : 0));
+  return { lastFuelKm, endTripKm, totalKm, fuelQuantity, mileage };
+};
+
 const MileagePage = () => {
   const [records, setRecords] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -24,10 +33,12 @@ const MileagePage = () => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     date: new Date().toISOString().split('T')[0],
-    odometerReading: '',
+    roundTripFrom: '',
+    roundTripTo: '',
+    lastFuelKm: '',
+    endTripKm: '',
     fuelQuantity: '',
-    fuelCost: '',
-    kmsCovered: ''
+    fuelCost: 0,
   });
 
   useEffect(() => {
@@ -60,20 +71,24 @@ const MileagePage = () => {
       setFormData({
         vehicleNumber: record.vehicleNumber,
         date: new Date(record.date).toISOString().split('T')[0],
-        odometerReading: record.odometerReading,
+        roundTripFrom: record.roundTripFrom || '',
+        roundTripTo: record.roundTripTo || '',
+        lastFuelKm: getMileageMetrics(record).lastFuelKm,
+        endTripKm: getMileageMetrics(record).endTripKm,
         fuelQuantity: record.fuelQuantity,
-        fuelCost: record.fuelCost,
-        kmsCovered: record.kmsCovered
+        fuelCost: record.fuelCost || 0,
       });
     } else {
       setEditingId(null);
       setFormData({
         vehicleNumber: '',
         date: new Date().toISOString().split('T')[0],
-        odometerReading: '',
+        roundTripFrom: '',
+        roundTripTo: '',
+        lastFuelKm: '',
+        endTripKm: '',
         fuelQuantity: '',
-        fuelCost: '',
-        kmsCovered: ''
+        fuelCost: 0,
       });
     }
     setIsModalOpen(true);
@@ -114,11 +129,14 @@ const MileagePage = () => {
 
     const exportData = filteredRecords.map(r => ({
       'Date': new Date(r.date).toLocaleDateString('en-IN'),
-      'Vehicle': r.vehicleNumber,
-      'Odometer (km)': r.odometerReading,
-      'Fuel Quantity (L)': r.fuelQuantity,
-      'Fuel Cost (₹)': r.fuelCost,
-      'KMS Covered': r.kmsCovered
+      'Vehicle No': r.vehicleNumber,
+      'Round Trip From': r.roundTripFrom || '',
+      'Round Trip To': r.roundTripTo || '',
+      'Last Fuel KM': getMileageMetrics(r).lastFuelKm,
+      'End Trip KM': getMileageMetrics(r).endTripKm,
+      'Total KM': getMileageMetrics(r).totalKm,
+      'Total Fuel (L)': getMileageMetrics(r).fuelQuantity,
+      'Mileage (KM/L)': getMileageMetrics(r).mileage
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -266,16 +284,20 @@ const MileagePage = () => {
                 <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200">
                   <tr>
                     <th className="py-3.5 px-4">Date</th>
-                    <th className="py-3.5 px-4">Vehicle</th>
-                    <th className="py-3.5 px-4">Odometer (km)</th>
-                    <th className="py-3.5 px-4">Quantity (Liters)</th>
-                    <th className="py-3.5 px-4">Cost (₹)</th>
-                    <th className="py-3.5 px-4">KMS Covered</th>
+                    <th className="py-3.5 px-4">Vehicle No.</th>
+                    <th className="py-3.5 px-4">Round Trip</th>
+                    <th className="py-3.5 px-4">Last Fuel KM</th>
+                    <th className="py-3.5 px-4">End Trip KM</th>
+                    <th className="py-3.5 px-4">Total KM</th>
+                    <th className="py-3.5 px-4">Total Fuel</th>
+                    <th className="py-3.5 px-4">Mileage</th>
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {currentRecords.map((record) => (
+                  {currentRecords.map((record) => {
+                    const metrics = getMileageMetrics(record);
+                    return (
                     <tr key={record._id} className="hover:bg-slate-50/80">
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-1.5 font-semibold text-slate-800">
@@ -288,20 +310,24 @@ const MileagePage = () => {
                           {record.vehicleNumber}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-slate-600">
-                        {record.odometerReading}
-                      </td>
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1">
-                          <Droplet className="w-3.5 h-3.5 text-emerald-500" />
-                          <span className="font-bold text-slate-900">{record.fuelQuantity} L</span>
-                        </div>
+                        <div className="font-bold text-slate-900">{record.roundTripFrom || 'N/A'}</div>
+                        <div className="text-[10px] text-slate-500">to {record.roundTripTo || 'N/A'}</div>
                       </td>
-                      <td className="py-3.5 px-4 font-black text-rose-600 text-sm">
-                        ₹{record.fuelCost}
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-600">
+                        {metrics.lastFuelKm}
                       </td>
                       <td className="py-3.5 px-4 font-mono font-bold text-slate-800">
-                        {record.kmsCovered} km
+                        {metrics.endTripKm}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-800">
+                        {metrics.totalKm}
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-slate-900">
+                        {metrics.fuelQuantity} L
+                      </td>
+                      <td className="py-3.5 px-4 font-black text-emerald-700 text-sm">
+                        {metrics.mileage.toFixed(2)}
                       </td>
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <button
@@ -318,7 +344,8 @@ const MileagePage = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -425,17 +452,56 @@ const MileagePage = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Odometer Reading (km) *</label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    placeholder="e.g. 150240"
-                    value={formData.odometerReading}
-                    onChange={(e) => setFormData({ ...formData, odometerReading: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:border-amber-500"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Round Trip From *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Hyderabad"
+                      value={formData.roundTripFrom}
+                      onChange={(e) => setFormData({ ...formData, roundTripFrom: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Round Trip To *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Nellore"
+                      value={formData.roundTripTo}
+                      onChange={(e) => setFormData({ ...formData, roundTripTo: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Last Fuel KM *</label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      placeholder="e.g. 304363"
+                      value={formData.lastFuelKm}
+                      onChange={(e) => setFormData({ ...formData, lastFuelKm: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">End Trip KM *</label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      placeholder="e.g. 305567"
+                      value={formData.endTripKm}
+                      onChange={(e) => setFormData({ ...formData, endTripKm: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -455,34 +521,17 @@ const MileagePage = () => {
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Total Cost (₹) *</label>
-                    <div className="relative">
-                      <IndianRupee className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                      <input
-                        type="number"
-                        min="0"
-                        required
-                        placeholder="e.g. 4500"
-                        value={formData.fuelCost}
-                        onChange={(e) => setFormData({ ...formData, fuelCost: e.target.value })}
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-black text-rose-600 focus:outline-none focus:border-rose-500"
-                      />
-                    </div>
+                  <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+                    <span className="block text-[10px] font-bold text-slate-400 uppercase">Calculated Mileage</span>
+                    <strong className="text-lg text-emerald-700">
+                      {Number(formData.fuelQuantity) > 0 && Number(formData.endTripKm) >= Number(formData.lastFuelKm)
+                        ? ((Number(formData.endTripKm) - Number(formData.lastFuelKm)) / Number(formData.fuelQuantity)).toFixed(2)
+                        : '0.00'} KM/L
+                    </strong>
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">KMS Covered *</label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    placeholder="e.g. 450"
-                    value={formData.kmsCovered}
-                    onChange={(e) => setFormData({ ...formData, kmsCovered: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:border-amber-500"
-                  />
+                <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm font-bold text-amber-900">
+                  Total KM: {Number(formData.endTripKm) >= Number(formData.lastFuelKm) ? Number(formData.endTripKm || 0) - Number(formData.lastFuelKm || 0) : 0} KM
                 </div>
               </form>
             </div>

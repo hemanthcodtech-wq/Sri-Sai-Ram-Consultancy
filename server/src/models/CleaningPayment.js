@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cleaningPaymentSchema = new mongoose.Schema(
   {
     stationName: { type: String, required: true, trim: true },
+    city: { type: String, trim: true, default: '' },
+    helperName: { type: String, trim: true, default: '' },
     month: { type: String, required: true, trim: true },
     amount: { type: Number, required: true, min: 0 },
     paidDate: { type: Date, required: true },

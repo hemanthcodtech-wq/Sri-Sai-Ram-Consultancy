@@ -74,6 +74,32 @@ const customSelectStyles = {
   })
 };
 
+const getWhatsAppNumber = (phone) => {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return '';
+  return digits.length === 10 ? `91${digits}` : digits;
+};
+
+const openDutyWhatsAppMessages = (task, assignments) => {
+  assignments.forEach(({ role, employee }) => {
+    const number = getWhatsAppNumber(employee?.mobileNumber);
+    if (!number) return;
+
+    const route = task.routeName || `${task.pickupLocation || ''} to ${task.dropLocation || ''}`;
+    const message = [
+      `Duty Assignment - ${role}`,
+      `Hello ${employee.name || 'Team Member'},`,
+      `You have been assigned as ${role} for task ${task.tripNumber || 'new task'}.`,
+      `Date: ${task.startDate || task.tripDate || 'Not specified'}`,
+      `Vehicle: ${task.vehicleNumber || 'Not specified'}`,
+      `Route: ${route || 'Not specified'}`,
+      'Please report on time and confirm your duty.',
+    ].join('\n');
+
+    window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  });
+};
+
 const TripsPage = () => {
   const [searchParams] = useSearchParams();
   const [trips, setTrips] = useState([]);
@@ -504,6 +530,12 @@ const TripsPage = () => {
 
     // License and block verification for assigned crew
     const d1Emp = employees.find((e) => String(e._id) === String(formData.driver1.employee));
+    const d2Emp = formData.driver2.employee
+      ? employees.find((e) => String(e._id) === String(formData.driver2.employee))
+      : null;
+    const hEmp = formData.helper.employee
+      ? employees.find((e) => String(e._id) === String(formData.helper.employee))
+      : null;
     if (d1Emp) {
       const check1 = checkEmployeeLicenseForTask(d1Emp, formData.startDate);
       if (check1.blocked) {
@@ -513,7 +545,6 @@ const TripsPage = () => {
     }
 
     if (formData.driver2.employee) {
-      const d2Emp = employees.find((e) => String(e._id) === String(formData.driver2.employee));
       if (d2Emp) {
         const check2 = checkEmployeeLicenseForTask(d2Emp, formData.startDate);
         if (check2.blocked) {
@@ -524,7 +555,6 @@ const TripsPage = () => {
     }
 
     if (formData.helper.employee) {
-      const hEmp = employees.find((e) => String(e._id) === String(formData.helper.employee));
       if (hEmp) {
         const checkH = checkEmployeeLicenseForTask(hEmp, formData.startDate);
         if (checkH.blocked) {
@@ -604,6 +634,13 @@ const TripsPage = () => {
         await api.put(`/trips/${editingTrip._id}`, payload);
       } else {
         await api.post('/trips', payload);
+      }
+      if (!editingTrip) {
+        openDutyWhatsAppMessages(payload, [
+          { role: 'Driver 1', employee: d1Emp },
+          { role: 'Driver 2', employee: formData.driver2.employee ? d2Emp : null },
+          { role: 'Helper', employee: formData.helper.employee ? hEmp : null },
+        ]);
       }
       setIsModalOpen(false);
       fetchTrips();
@@ -747,7 +784,9 @@ const TripsPage = () => {
       const sDateStr = sDateObj ? sDateObj.toLocaleDateString('en-IN') : '';
 
       const total = task.salaryAmount || task.employeePayout || 0;
-      const assignedCrew = crewList.map((member) => `${member.role}: ${member.name}`).join(', ');
+      const driver1 = crewList.find((member) => member.role === 'Driver 1');
+      const driver2 = crewList.find((member) => member.role === 'Driver 2');
+      const helper = crewList.find((member) => member.role === 'Helper');
 
       return {
         'Date': sDateStr,
@@ -755,7 +794,9 @@ const TripsPage = () => {
         'Vehicle Status': task.vehicleStatus || 'RUN',
         'Route': task.routeName || (task.pickupLocation ? `${task.pickupLocation} → ${task.dropLocation || ''}` : 'N/A'),
         'Operator': task.operatorName || task.operator?.name || task.clientName || 'N/A',
-        'Assigned Crew': assignedCrew || 'N/A',
+        'Driver 1': driver1?.name || 'N/A',
+        'Driver 2': driver2?.name || 'N/A',
+        'Helper': helper?.name || 'N/A',
         'Total (₹)': total,
       };
     });
@@ -930,7 +971,9 @@ const TripsPage = () => {
                     <th className="py-3.5 px-4">Vehicle Status</th>
                     <th className="py-3.5 px-4">Route</th>
                     <th className="py-3.5 px-4">Operator</th>
-                    <th className="py-3.5 px-4">Assigned Crew</th>
+                    <th className="py-3.5 px-4">Driver 1</th>
+                    <th className="py-3.5 px-4">Driver 2</th>
+                    <th className="py-3.5 px-4">Helper</th>
                     <th className="py-3.5 px-4">Total</th>
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
@@ -938,6 +981,9 @@ const TripsPage = () => {
                 <tbody className="divide-y divide-slate-100">
                   {currentTrips.map((task) => {
                     const crewList = getTaskCrewList(task);
+                    const driver1 = crewList.find((member) => member.role === 'Driver 1');
+                    const driver2 = crewList.find((member) => member.role === 'Driver 2');
+                    const helper = crewList.find((member) => member.role === 'Helper');
                     const sDateObj = task.startDate ? new Date(task.startDate) : new Date(task.tripDate);
                     const eDateObj = task.endDate ? new Date(task.endDate) : sDateObj;
                     const isMultiDay = sDateObj.toDateString() !== eDateObj.toDateString();
@@ -995,27 +1041,18 @@ const TripsPage = () => {
                           </div>
                         </td>
 
-                        {/* Assigned Crew */}
-                        <td className="py-3.5 px-4 min-w-[200px]">
-                          <div className="space-y-1.5">
-                            {crewList.map((member, idx) => (
-                              <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 px-2 py-1 rounded-lg border border-slate-200/80">
-                                <div className="flex items-center gap-1.5 truncate">
-                                  <span className={`px-1.5 py-0.2 rounded text-[9px] font-black ${
-                                    member.role === 'Driver 1' ? 'bg-amber-100 text-amber-900' :
-                                    member.role === 'Driver 2' ? 'bg-blue-100 text-blue-900' :
-                                    'bg-emerald-100 text-emerald-900'
-                                  }`}>
-                                    {member.role}
-                                  </span>
-                                  <span className="font-bold text-slate-900 truncate">{member.name}</span>
-                                </div>
-                                <span className="text-[10px] font-mono font-bold text-slate-600 shrink-0 ml-1">
-                                  ₹{member.salary} / ₹{member.paid} paid
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                        {/* Assigned Staff */}
+                        <td className="py-3.5 px-4 min-w-[150px]">
+                          <div className="font-bold text-slate-900">{driver1?.name || 'N/A'}</div>
+                          {driver1 && <div className="text-[10px] text-slate-500">₹{driver1.salary} / ₹{driver1.paid} paid</div>}
+                        </td>
+                        <td className="py-3.5 px-4 min-w-[150px]">
+                          <div className="font-bold text-slate-900">{driver2?.name || 'N/A'}</div>
+                          {driver2 && <div className="text-[10px] text-slate-500">₹{driver2.salary} / ₹{driver2.paid} paid</div>}
+                        </td>
+                        <td className="py-3.5 px-4 min-w-[150px]">
+                          <div className="font-bold text-slate-900">{helper?.name || 'N/A'}</div>
+                          {helper && <div className="text-[10px] text-slate-500">₹{helper.salary} / ₹{helper.paid} paid</div>}
                         </td>
 
 

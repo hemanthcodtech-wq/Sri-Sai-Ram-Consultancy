@@ -25,6 +25,11 @@ const employeeSchema = new mongoose.Schema(
     dateOfBirth: {
       type: Date,
     },
+    bloodGroup: {
+      type: String,
+      enum: ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+      default: '',
+    },
     nationality: {
       type: String,
       trim: true,
@@ -76,11 +81,14 @@ const employeeSchema = new mongoose.Schema(
     },
     documents: {
       aadhaarNumber: { type: String, default: '' },
-      aadhaarDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
+      aadhaarDoc: { type: String, default: '' }, // Aadhaar front image URL
+      aadhaarDocBack: { type: String, default: '' }, // Aadhaar back image URL
       panNumber: { type: String, default: '' },
-      panDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
+      panDoc: { type: String, default: '' }, // PAN front image URL
+      panDocBack: { type: String, default: '' }, // PAN back image URL
       licenseNumber: { type: String, default: '' }, // For drivers/captains
-      licenseDoc: { type: String, default: '' }, // Cloudinary URL (PDF or Image)
+      licenseDoc: { type: String, default: '' }, // Licence front image URL
+      licenseDocBack: { type: String, default: '' }, // Licence back image URL
       issuedByState: { type: String, default: '' }, // State that issued the licence
       issuedRtoOffice: { type: String, default: '' }, // RTO office that issued the licence
       licenseIssueDate: { type: Date }, // Issue date of licence (TRANS)

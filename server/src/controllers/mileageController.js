@@ -37,19 +37,30 @@ const getMileageRecords = async (req, res) => {
 // @access  Private (Admin)
 const createMileageRecord = async (req, res) => {
   try {
-    const { vehicleNumber, date, odometerReading, fuelQuantity, fuelCost, kmsCovered } = req.body;
+    const { vehicleNumber, date, roundTripFrom, roundTripTo, lastFuelKm, endTripKm, fuelQuantity, fuelCost = 0 } = req.body;
+    const lastKm = Number(lastFuelKm);
+    const endKm = Number(endTripKm);
+    const fuel = Number(fuelQuantity);
+    const totalKm = Math.max(0, endKm - lastKm);
+    const mileage = fuel > 0 ? Number((totalKm / fuel).toFixed(2)) : 0;
 
-    if (!vehicleNumber || !date || odometerReading === undefined || fuelQuantity === undefined || fuelCost === undefined || kmsCovered === undefined) {
+    if (!vehicleNumber || !date || !roundTripFrom || !roundTripTo || !Number.isFinite(lastKm) || !Number.isFinite(endKm) || endKm < lastKm || !Number.isFinite(fuel) || fuel <= 0) {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
     const record = await Mileage.create({
       vehicleNumber,
       date,
-      odometerReading,
-      fuelQuantity,
-      fuelCost,
-      kmsCovered,
+      roundTripFrom,
+      roundTripTo,
+      lastFuelKm: lastKm,
+      endTripKm: endKm,
+      totalKm,
+      mileage,
+      odometerReading: lastKm,
+      fuelQuantity: fuel,
+      fuelCost: Number(fuelCost) || 0,
+      kmsCovered: totalKm,
     });
 
     res.status(201).json(record);
@@ -64,7 +75,7 @@ const createMileageRecord = async (req, res) => {
 // @access  Private (Admin)
 const updateMileageRecord = async (req, res) => {
   try {
-    const { vehicleNumber, date, odometerReading, fuelQuantity, fuelCost, kmsCovered } = req.body;
+    const { vehicleNumber, date, roundTripFrom, roundTripTo, lastFuelKm, endTripKm, fuelQuantity, fuelCost } = req.body;
 
     const record = await Mileage.findById(req.params.id);
 
@@ -74,10 +85,20 @@ const updateMileageRecord = async (req, res) => {
 
     record.vehicleNumber = vehicleNumber || record.vehicleNumber;
     record.date = date || record.date;
-    record.odometerReading = odometerReading !== undefined ? odometerReading : record.odometerReading;
-    record.fuelQuantity = fuelQuantity !== undefined ? fuelQuantity : record.fuelQuantity;
-    record.fuelCost = fuelCost !== undefined ? fuelCost : record.fuelCost;
-    record.kmsCovered = kmsCovered !== undefined ? kmsCovered : record.kmsCovered;
+    const lastKm = lastFuelKm !== undefined ? Number(lastFuelKm) : Number(record.lastFuelKm ?? record.odometerReading ?? 0);
+    const endKm = endTripKm !== undefined ? Number(endTripKm) : Number(record.endTripKm ?? (lastKm + Number(record.kmsCovered || 0)));
+    const fuel = fuelQuantity !== undefined ? Number(fuelQuantity) : Number(record.fuelQuantity || 0);
+    const totalKm = Math.max(0, endKm - lastKm);
+    record.roundTripFrom = roundTripFrom !== undefined ? roundTripFrom : record.roundTripFrom;
+    record.roundTripTo = roundTripTo !== undefined ? roundTripTo : record.roundTripTo;
+    record.lastFuelKm = lastKm;
+    record.endTripKm = endKm;
+    record.totalKm = totalKm;
+    record.mileage = fuel > 0 ? Number((totalKm / fuel).toFixed(2)) : 0;
+    record.odometerReading = lastKm;
+    record.fuelQuantity = fuel;
+    record.fuelCost = fuelCost !== undefined ? Number(fuelCost) : record.fuelCost;
+    record.kmsCovered = totalKm;
 
     const updatedRecord = await record.save();
 

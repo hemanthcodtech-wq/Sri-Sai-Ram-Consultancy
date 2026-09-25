@@ -12,6 +12,36 @@ const mileageSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    roundTripFrom: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    roundTripTo: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    lastFuelKm: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    endTripKm: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    totalKm: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    mileage: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
     odometerReading: {
       type: Number,
       required: true,

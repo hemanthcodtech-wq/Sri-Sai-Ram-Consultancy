@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Phone, MessageCircle, Menu, X, Bell } from 'lucide-react';
+import { Phone, MessageCircle, Menu, X, Bell, LogIn } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 
 const Navbar = () => {
@@ -73,6 +73,13 @@ const Navbar = () => {
 
           {/* ── Desktop CTA Buttons ── */}
           <div className="hidden lg:flex items-center gap-2.5 shrink-0">
+            <Link
+              to="/admin/login"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-[#081C36] bg-white hover:bg-[#F5F0E8] border border-[#E0D0B8] transition-colors"
+            >
+              <LogIn className="w-3.5 h-3.5 text-[#C8960C]" />
+              Admin Login
+            </Link>
             <a
               href={`tel:${phoneRaw}`}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-[#081C36] bg-[#F5F0E8] hover:bg-[#EDE5D5] border border-[#E0D0B8] transition-colors"
@@ -131,6 +138,14 @@ const Navbar = () => {
           ))}
 
           <div className="pt-3 border-t border-[#F0E0C8] flex flex-col gap-2.5">
+            <Link
+              to="/admin/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-[#081C36] bg-white border border-[#E0D0B8]"
+            >
+              <LogIn className="w-4 h-4 text-[#C8960C]" />
+              Admin Login
+            </Link>
             <a
               href={`tel:${phoneRaw}`}
               className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-[#081C36] bg-[#F5F0E8] border border-[#E0D0B8]"
