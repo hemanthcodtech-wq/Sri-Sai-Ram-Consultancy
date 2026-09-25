@@ -161,7 +161,6 @@ const EarningsPage = () => {
       'Category': emp.category || 'Driver',
       'Tasks Handled': emp.tripsCount || 0,
       'Salary Earned (₹)': emp.salaryTotal || emp.earnings || 0,
-      'Advance Paid (₹)': emp.advanceTotal || 0,
       'Pending Due (₹)': emp.dueTotal || 0,
       'Settled Total (₹)': emp.paidTotal || emp.amountCollected || 0,
       'Status': emp.isBlocked ? 'Blocked' : 'Active',
@@ -386,16 +385,8 @@ const EarningsPage = () => {
                           <span className="font-bold text-slate-900">{formatCurrency(cat.salary || cat.payout)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Advance Given:</span>
-                          <span className="font-bold text-amber-800">{formatCurrency(cat.advance || 0)}</span>
-                        </div>
-                        <div className="flex justify-between">
                           <span className="text-slate-500">Pending Due:</span>
                           <span className="font-bold text-rose-600">{formatCurrency(cat.due || cat.pendingRevenue || 0)}</span>
-                        </div>
-                        <div className="flex justify-between pt-1 border-t border-slate-200 font-extrabold text-sm">
-                          <span className="text-slate-900">Agency Profit:</span>
-                          <span className="text-emerald-600">{formatCurrency(cat.commission)}</span>
                         </div>
                       </div>
                     </div>
@@ -409,7 +400,7 @@ const EarningsPage = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-extrabold text-slate-900">Staff Financial Earnings &amp; Dues Ledger</h3>
-                  <p className="text-xs text-slate-500">Complete breakdown of salary obligations, advance paid, pending dues, and settled payments.</p>
+                  <p className="text-xs text-slate-500">Complete breakdown of salary obligations, pending dues, and settled payments.</p>
                 </div>
                 <div className="text-xs text-slate-500 font-semibold">
                   Showing {filteredEmployees.length} staff records
@@ -424,7 +415,6 @@ const EarningsPage = () => {
                       <th className="py-3 px-4">Category</th>
                       <th className="py-3 px-4">Tasks Handled</th>
                       <th className="py-3 px-4">Salary Earned</th>
-                      <th className="py-3 px-4">Advance Paid</th>
                       <th className="py-3 px-4">Pending Due</th>
                       <th className="py-3 px-4">Settled Total</th>
                       <th className="py-3 px-4 text-right">Action</th>
@@ -433,7 +423,7 @@ const EarningsPage = () => {
                   <tbody className="divide-y divide-slate-100">
                     {filteredEmployees.length === 0 ? (
                       <tr>
-                        <td colSpan="8" className="py-8 text-center text-slate-400">
+                        <td colSpan="7" className="py-8 text-center text-slate-400">
                           No financial ledger entries match this criteria.
                         </td>
                       </tr>
@@ -473,9 +463,6 @@ const EarningsPage = () => {
                           </td>
                           <td className="py-3 px-4 font-extrabold text-slate-900">
                             {formatCurrency(emp.salaryTotal || emp.earnings)}
-                          </td>
-                          <td className="py-3 px-4 font-extrabold text-amber-800">
-                            {formatCurrency(emp.advanceTotal || 0)}
                           </td>
                           <td className="py-3 px-4 font-extrabold text-rose-600">
                             {formatCurrency(emp.dueTotal || 0)}

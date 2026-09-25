@@ -997,9 +997,7 @@ const TripsPage = () => {
 
                     const isPaid = task.paymentStatus === 'Paid';
                     const isCompleted = task.tripStatus === 'Completed';
-                    const due = isPaid ? 0 : (task.dueAmount !== undefined ? task.dueAmount : Math.max(0, (task.salaryAmount || task.employeePayout || 0) - (task.advanceAmount || 0)));
                     const totalSalary = task.salaryAmount || task.employeePayout || 0;
-                    const paid = Math.max(0, totalSalary - due);
 
                     return (
                       <tr key={task._id} className="hover:bg-slate-50/80 transition-colors">
@@ -1066,23 +1064,7 @@ const TripsPage = () => {
 
                         {/* Total */}
                         <td className="py-3.5 px-4">
-                          <div className="flex items-baseline gap-1">
-                            <span className="font-black text-slate-900 text-sm">₹{totalSalary}</span>
-                            <span className="text-[10px] text-slate-400 font-medium">(Total Crew)</span>
-                          </div>
-                          <div className="text-[11px] font-bold text-emerald-700 mt-1">Paid: ₹{paid}</div>
-                          <div className="mt-1">
-                            {isPaid ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                Due: ₹0 (Settled)
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                                Due: ₹{due}
-                              </span>
-                            )}
-                          </div>
+                          <span className="font-black text-slate-900 text-sm">₹{totalSalary}</span>
                         </td>
 
                         {/* Actions */}
@@ -1467,7 +1449,7 @@ const TripsPage = () => {
                     </div>
 
                     {/* Bottom Status & Remaining Due */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 items-center">
+                    <div className="hidden grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 items-center">
                       <div>
                         <label className="block text-xs font-bold text-slate-800 mb-1">
                           Payment Status *
@@ -1543,9 +1525,7 @@ const TripsPage = () => {
                       Select Driver 2 Employee
                     </label>
                     <Select
-                      options={employees
-                        .filter((emp) => String(emp._id) !== String(formData.driver1.employee))
-                        .map(emp => {
+                      options={employees.map(emp => {
                           const lic = checkEmployeeLicenseForTask(emp, formData.startDate);
                           return {
                             value: emp._id,
@@ -1612,7 +1592,7 @@ const TripsPage = () => {
                       </div>
 
                       {/* Bottom Status & Remaining Due */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 items-center">
+                      <div className="hidden grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 items-center">
                         <div>
                           <label className="block text-xs font-bold text-slate-800 mb-1">
                             Payment Status *
@@ -1629,28 +1609,6 @@ const TripsPage = () => {
                           >
                             <option value="Pending">Pending (Due Active)</option>
                             <option value="Paid">Paid (Settled)</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold text-slate-800 mb-1">
-                            Settlement Mode (When Paid)
-                          </label>
-                          <select
-                            value={formData.driver2.salaryPaymentMode}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                driver2: { ...formData.driver2, salaryPaymentMode: e.target.value },
-                              })
-                            }
-                            className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-900 bg-white focus:outline-none focus:border-blue-500"
-                          >
-                            <option value="Online">Online / UPI</option>
-                            <option value="Cash">Cash</option>
-                            <option value="UPI">UPI</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Cheque">Cheque</option>
                           </select>
                         </div>
 
@@ -1762,7 +1720,7 @@ const TripsPage = () => {
                       </div>
 
                       {/* Bottom Status & Remaining Due */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 items-center">
+                      <div className="hidden grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 items-center">
                         <div>
                           <label className="block text-xs font-bold text-slate-800 mb-1">
                             Payment Status *

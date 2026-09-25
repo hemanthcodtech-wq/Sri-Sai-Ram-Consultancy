@@ -320,7 +320,7 @@ const deleteEmployee = async (req, res) => {
 const payEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-    const { amount, date, mode, notes } = req.body;
+    const { amount, date, paymentType, mode, notes } = req.body;
     const paymentAmount = Number(amount);
 
     if (isNaN(paymentAmount) || paymentAmount <= 0) {
@@ -338,6 +338,7 @@ const payEmployee = async (req, res) => {
     employee.paymentHistory.push({
       amount: paymentAmount,
       date: date || new Date(),
+      paymentType: paymentType || 'Bata',
       mode: mode || 'Cash',
       notes: notes || '',
     });

@@ -44,7 +44,7 @@ const getDateStatus = (dateStr) => {
   const twoDaysFromNow = new Date(now);
   twoDaysFromNow.setDate(now.getDate() + 2);
   
-  if (vDate < now) return 'expired';
+  if (vDate <= now) return 'expired';
   if (vDate <= twoDaysFromNow) return 'warning';
   return 'ok';
 };
@@ -71,7 +71,7 @@ const getExpirationStatus = (vehicle) => {
   dates.forEach(d => {
     if (d.value) {
       const vDate = new Date(d.value);
-      if (vDate < now) {
+      if (vDate <= now) {
         isExpired = true;
         expiringDetails.push(`${d.label} Expired`);
       } else if (vDate <= twoDaysFromNow) {

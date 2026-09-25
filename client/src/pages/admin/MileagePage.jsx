@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Plus, Search, Edit3, Trash2, Fuel, Droplet, IndianRupee, List, Download, X, Calendar, MapPin, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Search, Edit3, Trash2, Fuel, Droplet, IndianRupee, List, Download, X, Calendar, MapPin, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, ChevronDown } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
 import * as XLSX from 'xlsx';
@@ -13,15 +13,89 @@ const getMileageMetrics = (record) => {
   return { lastFuelKm, endTripKm, totalKm, fuelQuantity, mileage };
 };
 
-const getTaskRoute = (task) => ({
-  from: task.route?.fromCity || task.pickupLocation || '',
-  to: task.route?.toCity || task.dropLocation || '',
-});
+const RouteSelect = ({ routes, value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState(null);
+  const containerRef = useRef(null);
+  const buttonRef = useRef(null);
+  const selectedRoute = routes.find((route) => String(route._id) === String(value));
+
+  const updateMenuPosition = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    setMenuPosition({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+  };
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const closeOnOutsideClick = (event) => {
+      if (!containerRef.current?.contains(event.target)) setIsOpen(false);
+    };
+    const repositionMenu = () => updateMenuPosition();
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    window.addEventListener('resize', repositionMenu);
+    window.addEventListener('scroll', repositionMenu, true);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      window.removeEventListener('resize', repositionMenu);
+      window.removeEventListener('scroll', repositionMenu, true);
+    };
+  }, [isOpen]);
+
+  const toggleMenu = () => {
+    if (!isOpen) updateMenuPosition();
+    setIsOpen((open) => !open);
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={toggleMenu}
+        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm text-left focus:outline-none focus:border-amber-500 bg-slate-50 flex items-center justify-between gap-3"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span className={selectedRoute ? 'text-slate-900' : 'text-slate-400'}>
+          {selectedRoute
+            ? `${selectedRoute.serviceId ? `${selectedRoute.serviceId} - ` : ''}${selectedRoute.fromCity} → ${selectedRoute.toCity}`
+            : 'Select route'}
+        </span>
+        <ChevronDown className="w-4 h-4 shrink-0 text-slate-500" />
+      </button>
+
+      {isOpen && menuPosition && (
+        <div
+          className="fixed z-[120] max-h-60 overflow-y-auto rounded-xl border border-slate-300 bg-white py-1 shadow-xl"
+          style={{ top: menuPosition.top, left: menuPosition.left, width: menuPosition.width }}
+          role="listbox"
+        >
+          {routes.map((route) => (
+            <button
+              key={route._id}
+              type="button"
+              role="option"
+              aria-selected={String(route._id) === String(value)}
+              onClick={() => {
+                onChange(String(route._id));
+                setIsOpen(false);
+              }}
+              className={`block w-full px-3.5 py-2 text-left text-sm hover:bg-amber-50 ${String(route._id) === String(value) ? 'bg-amber-50 font-bold text-slate-900' : 'text-slate-700'}`}
+            >
+              {route.serviceId ? `${route.serviceId} - ` : ''}{route.fromCity} → {route.toCity}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const MileagePage = () => {
   const [records, setRecords] = useState([]);
   const [vehicles, setVehicles] = useState([]);
-  const [tasks, setTasks] = useState([]);
+  const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Search & Filters
@@ -39,6 +113,7 @@ const MileagePage = () => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     date: new Date().toISOString().split('T')[0],
+    routeId: '',
     roundTripFrom: '',
     roundTripTo: '',
     lastFuelKm: '',
@@ -54,17 +129,17 @@ const MileagePage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Fetch both mileage records and active vehicles
-      const [mileageRes, vehiclesRes, tasksRes] = await Promise.all([
+      // Fetch mileage records, active vehicles, and available routes.
+      const [mileageRes, vehiclesRes, routesRes] = await Promise.all([
         api.get('/mileage', { params: { startDate, endDate } }),
         api.get('/vehicles'),
-        api.get('/trips')
+        api.get('/routes?status=Active')
       ]);
       setRecords(mileageRes.data);
-      setTasks(tasksRes.data.success ? tasksRes.data.data : tasksRes.data);
       // Only show active vehicles in the dropdown
       const vehiclesList = vehiclesRes.data.success ? vehiclesRes.data.data : vehiclesRes.data;
       setVehicles(vehiclesList.filter(v => v.status === 'Active'));
+      setRoutes(routesRes.data.success ? routesRes.data.data : routesRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
       alert('Failed to load mileage records.');
@@ -73,43 +148,34 @@ const MileagePage = () => {
     }
   };
 
-  const getAssignedTaskRoute = (vehicleNumber, date) => {
-    const vehicleTasks = tasks
-      .filter((task) => task.vehicleNumber === vehicleNumber)
-      .sort((first, second) => new Date(second.tripDate || second.startDate) - new Date(first.tripDate || first.startDate));
-    const matchingTask = vehicleTasks.find((task) => {
-      const taskDate = new Date(task.tripDate || task.startDate).toISOString().slice(0, 10);
-      return taskDate === date;
-    }) || vehicleTasks[0];
-
-    return matchingTask ? getTaskRoute(matchingTask) : { from: '', to: '' };
-  };
-
   const handleVehicleChange = (vehicleNumber) => {
-    const route = getAssignedTaskRoute(vehicleNumber, formData.date);
-    setFormData((previous) => ({
-      ...previous,
-      vehicleNumber,
-      roundTripFrom: route.from,
-      roundTripTo: route.to,
-    }));
+    setFormData((previous) => ({ ...previous, vehicleNumber }));
   };
 
   const handleDateChange = (date) => {
-    const route = getAssignedTaskRoute(formData.vehicleNumber, date);
+    setFormData((previous) => ({ ...previous, date }));
+  };
+
+  const handleRouteChange = (routeId) => {
+    const selectedRoute = routes.find((route) => String(route._id) === String(routeId));
     setFormData((previous) => ({
       ...previous,
-      date,
-      ...(route.from || route.to ? { roundTripFrom: route.from, roundTripTo: route.to } : {}),
+      routeId,
+      roundTripFrom: selectedRoute?.fromCity || '',
+      roundTripTo: selectedRoute?.toCity || '',
     }));
   };
 
   const handleOpenModal = (record = null) => {
     if (record) {
       setEditingId(record._id);
+      const matchingRoute = routes.find(
+        (route) => route.fromCity === record.roundTripFrom && route.toCity === record.roundTripTo
+      );
       setFormData({
         vehicleNumber: record.vehicleNumber,
         date: new Date(record.date).toISOString().split('T')[0],
+        routeId: matchingRoute?._id || '',
         roundTripFrom: record.roundTripFrom || '',
         roundTripTo: record.roundTripTo || '',
         lastFuelKm: getMileageMetrics(record).lastFuelKm,
@@ -122,6 +188,7 @@ const MileagePage = () => {
       setFormData({
         vehicleNumber: '',
         date: new Date().toISOString().split('T')[0],
+        routeId: '',
         roundTripFrom: '',
         roundTripTo: '',
         lastFuelKm: '',
@@ -135,11 +202,16 @@ const MileagePage = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!formData.routeId) {
+      alert('Please select a route.');
+      return;
+    }
+    const { routeId, ...payload } = formData;
     try {
       if (editingId) {
-        await api.put(`/mileage/${editingId}`, formData);
+        await api.put(`/mileage/${editingId}`, payload);
       } else {
-        await api.post('/mileage', formData);
+        await api.post('/mileage', payload);
       }
       setIsModalOpen(false);
       fetchData();
@@ -169,8 +241,7 @@ const MileagePage = () => {
     const exportData = filteredRecords.map(r => ({
       'Date': new Date(r.date).toLocaleDateString('en-IN'),
       'Vehicle No': r.vehicleNumber,
-      'Round Trip From': r.roundTripFrom || '',
-      'Round Trip To': r.roundTripTo || '',
+      'Route': r.roundTripFrom && r.roundTripTo ? `${r.roundTripFrom} → ${r.roundTripTo}` : '',
       'Last Fuel KM': getMileageMetrics(r).lastFuelKm,
       'End Trip KM': getMileageMetrics(r).endTripKm,
       'Total KM': getMileageMetrics(r).totalKm,
@@ -491,29 +562,13 @@ const MileagePage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Round Trip From * <span className="text-[10px] text-amber-700">(From assigned task)</span></label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Select a vehicle with an assigned task"
-                      value={formData.roundTripFrom}
-                      onChange={(e) => setFormData({ ...formData, roundTripFrom: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Round Trip To * <span className="text-[10px] text-amber-700">(From assigned task)</span></label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Select a vehicle with an assigned task"
-                      value={formData.roundTripTo}
-                      onChange={(e) => setFormData({ ...formData, roundTripTo: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Route *</label>
+                  <RouteSelect
+                    routes={routes}
+                    value={formData.routeId}
+                    onChange={handleRouteChange}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -20,7 +20,7 @@ const EmployeeProfilePage = () => {
 
   // Payment Modal State
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [paymentForm, setPaymentForm] = useState({ amount: '', date: new Date().toISOString().slice(0, 10), mode: 'Cash', notes: '' });
+  const [paymentForm, setPaymentForm] = useState({ amount: '', date: new Date().toISOString().slice(0, 10), paymentType: 'Bata', mode: 'Cash', notes: '' });
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
 
   // Pagination State (For Biodata tasks)
@@ -67,7 +67,7 @@ const EmployeeProfilePage = () => {
       if (res.data.success) {
         alert('Payment recorded and tasks updated successfully!');
         setIsPaymentModalOpen(false);
-        setPaymentForm({ amount: '', date: new Date().toISOString().slice(0, 10), mode: 'Cash', notes: '' });
+        setPaymentForm({ amount: '', date: new Date().toISOString().slice(0, 10), paymentType: 'Bata', mode: 'Cash', notes: '' });
         fetchProfile(); // Refresh data
       }
     } catch (err) {
@@ -424,6 +424,7 @@ const EmployeeProfilePage = () => {
                         <th className="py-2 px-3 border-r border-slate-200">#</th>
                         <th className="py-2 px-3 border-r border-slate-200">Date</th>
                         <th className="py-2 px-3 border-r border-slate-200">Amount Paid</th>
+                        <th className="py-2 px-3 border-r border-slate-200">Type</th>
                         <th className="py-2 px-3 border-r border-slate-200">Mode</th>
                         <th className="py-2 px-3">Notes</th>
                       </tr>
@@ -434,7 +435,8 @@ const EmployeeProfilePage = () => {
                           <td className="py-2 px-3 border-r border-slate-100 text-slate-400">{i + 1}</td>
                           <td className="py-2 px-3 border-r border-slate-100">{new Date(p.date).toLocaleDateString()}</td>
                           <td className="py-2 px-3 border-r border-slate-100 font-bold text-emerald-700">₹{p.amount}</td>
-                          <td className="py-2 px-3 border-r border-slate-100">{p.mode || 'Cash'}</td>
+                          <td className="py-2 px-3 border-r border-slate-100">{p.paymentType || p.mode || 'Bata'}</td>
+                          <td className="py-2 px-3 border-r border-slate-100">{p.paymentType ? (p.mode || 'Cash') : '-'}</td>
                           <td className="py-2 px-3 text-slate-500">{p.notes || '-'}</td>
                         </tr>
                       ))}
@@ -685,18 +687,30 @@ const EmployeeProfilePage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Payment Mode</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Payment Type</label>
                     <select
-                      value={paymentForm.mode}
-                      onChange={(e) => setPaymentForm({...paymentForm, mode: e.target.value})}
+                      value={paymentForm.paymentType}
+                      onChange={(e) => setPaymentForm({...paymentForm, paymentType: e.target.value})}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold"
                     >
-                      <option value="Cash">Cash</option>
-                      <option value="Online">Online</option>
-                      <option value="UPI">UPI</option>
-                      <option value="Bank Transfer">Bank Transfer</option>
+                      <option value="Bata">Bata</option>
+                      <option value="Salary">Salary</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Payment Mode</label>
+                  <select
+                    value={paymentForm.mode}
+                    onChange={(e) => setPaymentForm({...paymentForm, mode: e.target.value})}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold"
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="Online">Online</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                  </select>
                 </div>
 
                 <div>

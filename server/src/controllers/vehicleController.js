@@ -1,11 +1,50 @@
 const Vehicle = require('../models/Vehicle');
 const store = require('../config/store');
 
+const expiryFields = [
+  'fitnessValidUpto',
+  'taxValidUpto',
+  'insuranceValidUpto',
+  'puccValidUpto',
+  'permitValidUpto',
+  'aitpValidUpto',
+];
+
+const hasExpiredDocument = (vehicle, now = new Date()) => expiryFields.some((field) => {
+  if (!vehicle[field]) return false;
+  const expiryDate = new Date(vehicle[field]);
+  return !Number.isNaN(expiryDate.getTime()) && expiryDate <= now;
+});
+
+const deactivateExpiredVehicles = async () => {
+  const now = new Date();
+
+  if (store.isMongo()) {
+    await Vehicle.updateMany(
+      {
+        status: 'Active',
+        $or: expiryFields.map((field) => ({ [field]: { $lte: now } })),
+      },
+      { $set: { status: 'Inactive' } }
+    );
+    return;
+  }
+
+  if (!store.data.vehicles) return;
+  store.data.vehicles.forEach((vehicle) => {
+    if (vehicle.status === 'Active' && hasExpiredDocument(vehicle, now)) {
+      vehicle.status = 'Inactive';
+      vehicle.updatedAt = now;
+    }
+  });
+};
+
 // @desc  Get all vehicles (optionally filtered by status)
 // @route GET /api/vehicles
 // @access Protected
 const getVehicles = async (req, res) => {
   try {
+    await deactivateExpiredVehicles();
     const { status } = req.query;
 
     if (store.isMongo()) {

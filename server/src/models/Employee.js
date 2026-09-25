@@ -148,7 +148,8 @@ const employeeSchema = new mongoose.Schema(
       {
         amount: { type: Number, required: true },
         date: { type: Date, default: Date.now },
-        mode: { type: String, enum: ['Cash', 'Online', 'UPI', 'Bank Transfer'], default: 'Cash' },
+        paymentType: { type: String, enum: ['Bata', 'Salary'], default: 'Bata' },
+        mode: { type: String, enum: ['Cash', 'Online', 'UPI', 'Bank Transfer', 'Bata', 'Salary'], default: 'Cash' },
         notes: { type: String, default: '' },
       },
     ],
