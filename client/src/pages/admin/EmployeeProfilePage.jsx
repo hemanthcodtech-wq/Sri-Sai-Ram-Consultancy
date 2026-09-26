@@ -100,10 +100,36 @@ const EmployeeProfilePage = () => {
   }
 
   // Calculate pagination slices
+  const getEmployeeTripAmounts = (trip, employeeId) => {
+    let due = trip.dueAmount || 0;
+    let salary = trip.salaryAmount || trip.employeePayout || 0;
+    const employeeIdString = String(employeeId);
+
+    if (trip.driver1?.employee && String(trip.driver1.employee) === employeeIdString) {
+      due = trip.driver1.dueAmount || 0;
+      salary = trip.driver1.salaryAmount || 0;
+    } else if (trip.driver2?.employee && String(trip.driver2.employee) === employeeIdString) {
+      due = trip.driver2.dueAmount || 0;
+      salary = trip.driver2.salaryAmount || 0;
+    } else if (trip.helper?.employee && String(trip.helper.employee) === employeeIdString) {
+      due = trip.helper.dueAmount || 0;
+      salary = trip.helper.salaryAmount || 0;
+    }
+
+    return { salary, due, paid: salary - due };
+  };
+  const getTripTimestamp = (value) => {
+    const timestamp = new Date(value || 0).getTime();
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  };
+  const sortedTrips = [...trips].sort((a, b) =>
+    getTripTimestamp(b.tripDate) - getTripTimestamp(a.tripDate) ||
+    getTripTimestamp(b.createdAt) - getTripTimestamp(a.createdAt)
+  );
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentTrips = trips.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.max(1, Math.ceil(trips.length / itemsPerPage));
+  const currentTrips = sortedTrips.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.max(1, Math.ceil(sortedTrips.length / itemsPerPage));
 
   const formatPrintDate = (value) => (value ? new Date(value).toLocaleDateString('en-IN') : 'Not Provided');
   const printValue = (value) => value || 'Not Provided';
@@ -264,7 +290,7 @@ const EmployeeProfilePage = () => {
         }
       `}</style>
 
-      <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="space-y-6 max-w-5xl mx-auto w-full min-w-0">
         {/* Header (No print) */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4 no-print">
           <div className="flex items-center gap-3">
@@ -330,7 +356,7 @@ const EmployeeProfilePage = () => {
           {activeTab === 'biodata' ? (
             <div className="space-y-6">
               {/* Biodata Info */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8 text-sm">
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Full Name:</span> <span className="font-semibold text-slate-900">{employee.name}</span></div>
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Role:</span> <span className="font-semibold text-slate-900">{employee.category}</span></div>
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Contact Number:</span> <span className="font-semibold text-slate-900">{employee.mobileNumber}</span></div>
@@ -339,22 +365,22 @@ const EmployeeProfilePage = () => {
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Date of Birth:</span> <span className="font-semibold text-slate-900">{employee.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString() : '-'}</span></div>
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Blood Group:</span> <span className="font-semibold text-slate-900">{employee.bloodGroup || '-'}</span></div>
                 <div className="flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Nationality:</span> <span className="font-semibold text-slate-900">{employee.nationality || '-'}</span></div>
-                <div className="col-span-2 flex items-baseline gap-2"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Residential Address:</span> <span className="font-semibold text-slate-900">{employee.address?.fullAddress || employee.address?.street || '-'}</span></div>
+                <div className="sm:col-span-2 flex items-baseline gap-2 min-w-0"><span className="font-bold text-slate-500 text-xs uppercase shrink-0">Residential Address:</span> <span className="font-semibold text-slate-900 break-words">{employee.address?.fullAddress || employee.address?.street || '-'}</span></div>
               </div>
 
               {/* Summary Cards */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+                <div className="min-w-0 rounded-xl border border-amber-200 bg-amber-50 p-4">
                   <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Total Salary Earned</p>
                   <p className="text-2xl font-black text-amber-900">₹{stats?.totalSalary || 0}</p>
                   <p className="text-xs text-amber-600 mt-1">Billed Staff Fees</p>
                 </div>
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                <div className="min-w-0 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
                   <p className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">Total Paid</p>
                   <p className="text-2xl font-black text-emerald-900">₹{Math.max(0, (stats?.totalSalary || 0) - (stats?.totalDue || 0))}</p>
                   <p className="text-xs text-emerald-600 mt-1">Salary − Remaining Due</p>
                 </div>
-                <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+                <div className="min-w-0 rounded-xl border border-rose-200 bg-rose-50 p-4">
                   <p className="text-xs font-bold text-rose-700 uppercase tracking-wide mb-1">Remaining Due</p>
                   <p className="text-2xl font-black text-rose-900">₹{stats?.totalDue || 0}</p>
                   <p className="text-xs text-rose-600 mt-1">Pending Payment</p>
@@ -364,47 +390,66 @@ const EmployeeProfilePage = () => {
               {/* Tasks Table */}
               <div className="mt-4">
                 <h3 className="text-base font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Records of Trips</h3>
-                <table className="w-full text-left text-xs text-slate-700 border border-slate-200">
-                  <thead className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
-                    <tr>
-                      <th className="py-2 px-3 border-r border-slate-200">Date</th>
-                      <th className="py-2 px-3 border-r border-slate-200">Task Details</th>
-                      <th className="py-2 px-3 border-r border-slate-200">Salary Amount</th>
-                      <th className="py-2 px-3 border-r border-slate-200">Paid Amount</th>
-                      <th className="py-2 px-3">Remaining Due</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentTrips.map(trip => {
-                      let roleDue = trip.dueAmount || 0;
-                      let roleSal = trip.salaryAmount || trip.employeePayout || 0;
-                      const strId = String(employee._id);
-                      if (trip.driver1?.employee && String(trip.driver1.employee) === strId) {
-                        roleDue = trip.driver1.dueAmount || 0; roleSal = trip.driver1.salaryAmount || 0;
-                      } else if (trip.driver2?.employee && String(trip.driver2.employee) === strId) {
-                        roleDue = trip.driver2.dueAmount || 0; roleSal = trip.driver2.salaryAmount || 0;
-                      } else if (trip.helper?.employee && String(trip.helper.employee) === strId) {
-                        roleDue = trip.helper.dueAmount || 0; roleSal = trip.helper.salaryAmount || 0;
-                      }
-                      const rolePaid = roleSal - roleDue;
-
-                      return (
-                        <tr key={trip._id} className="border-b border-slate-100">
-                          <td className="py-2 px-3 border-r border-slate-100">{new Date(trip.tripDate).toLocaleDateString()}</td>
-                          <td className="py-2 px-3 border-r border-slate-100">{trip.routeName || `${trip.pickupLocation} to ${trip.dropLocation}`}</td>
-                          <td className="py-2 px-3 border-r border-slate-100 font-bold">₹{roleSal}</td>
-                          <td className="py-2 px-3 border-r border-slate-100 font-bold text-emerald-700">₹{rolePaid > 0 ? rolePaid : 0}</td>
-                          <td className="py-2 px-3 font-bold text-rose-600">₹{roleDue}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                <div className="space-y-3 sm:hidden">
+                  {currentTrips.map((trip) => {
+                    const { salary, paid, due } = getEmployeeTripAmounts(trip, employee._id);
+                    return (
+                      <article key={trip._id} className="rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-900">{new Date(trip.tripDate).toLocaleDateString()}</p>
+                            <p className="mt-1 break-words">{trip.routeName || `${trip.pickupLocation} to ${trip.dropLocation}`}</p>
+                          </div>
+                          <span className="shrink-0 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">Trip</span>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+                          <div><p className="text-[10px] font-bold uppercase text-slate-500">Salary</p><p className="mt-0.5 font-bold text-slate-900">₹{salary}</p></div>
+                          <div><p className="text-[10px] font-bold uppercase text-slate-500">Paid</p><p className="mt-0.5 font-bold text-emerald-700">₹{paid > 0 ? paid : 0}</p></div>
+                          <div><p className="text-[10px] font-bold uppercase text-slate-500">Remaining Due</p><p className="mt-0.5 font-bold text-rose-600">₹{due}</p></div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+                <div className="hidden overflow-x-auto sm:block">
+                  <table className="w-full min-w-[720px] table-fixed text-left text-xs text-slate-700 border border-slate-200">
+                    <colgroup>
+                      <col className="w-[15%]" />
+                      <col className="w-[35%]" />
+                      <col className="w-[17%]" />
+                      <col className="w-[16%]" />
+                      <col className="w-[17%]" />
+                    </colgroup>
+                    <thead className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
+                      <tr>
+                        <th className="py-2 px-3 border-r border-slate-200">Date</th>
+                        <th className="py-2 px-3 border-r border-slate-200">Task Details</th>
+                        <th className="py-2 px-3 border-r border-slate-200">Salary Amount</th>
+                        <th className="py-2 px-3 border-r border-slate-200">Paid Amount</th>
+                        <th className="py-2 px-3">Remaining Due</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentTrips.map((trip) => {
+                        const { salary, paid, due } = getEmployeeTripAmounts(trip, employee._id);
+                        return (
+                          <tr key={trip._id} className="border-b border-slate-100">
+                            <td className="py-2 px-3 border-r border-slate-100">{new Date(trip.tripDate).toLocaleDateString()}</td>
+                            <td className="py-2 px-3 border-r border-slate-100 break-words">{trip.routeName || `${trip.pickupLocation} to ${trip.dropLocation}`}</td>
+                            <td className="py-2 px-3 border-r border-slate-100 font-bold">₹{salary}</td>
+                            <td className="py-2 px-3 border-r border-slate-100 font-bold text-emerald-700">₹{paid > 0 ? paid : 0}</td>
+                            <td className="py-2 px-3 font-bold text-rose-600">₹{due}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
                 {/* Pagination */}
-                {trips.length > itemsPerPage && (
+                {sortedTrips.length > itemsPerPage && (
                   <div className="flex items-center justify-between mt-3 no-print">
-                    <p className="text-xs text-slate-500">Showing {((currentPage - 1) * itemsPerPage) + 1}–{Math.min(currentPage * itemsPerPage, trips.length)} of {trips.length}</p>
+                    <p className="text-xs text-slate-500">Showing {((currentPage - 1) * itemsPerPage) + 1}–{Math.min(currentPage * itemsPerPage, sortedTrips.length)} of {sortedTrips.length}</p>
                     <div className="flex items-center gap-2">
                       <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold disabled:opacity-40">Prev</button>
                       <span className="text-xs font-bold text-slate-700">{currentPage} / {totalPages}</span>
