@@ -35,6 +35,8 @@ const extraOrigins = (process.env.CLIENT_URL || '')
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
+  'https://srisairamconsultancy.com',
+  'https://www.srisairamconsultancy.com',
   ...extraOrigins,
 ];
 

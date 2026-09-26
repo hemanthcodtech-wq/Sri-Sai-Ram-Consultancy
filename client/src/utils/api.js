@@ -10,7 +10,7 @@ const api = axios.create({
 // Add a request interceptor to automatically attach JWT token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('ssrc_token');
+    const token = sessionStorage.getItem('ssrc_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,8 +27,8 @@ api.interceptors.response.use(
       const isLoginRequest = error.config?.url?.includes('/auth/login');
       // Only redirect if it's an authenticated route request that failed authentication
       if (!isLoginRequest && window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
-        localStorage.removeItem('ssrc_token');
-        localStorage.removeItem('ssrc_user');
+        sessionStorage.removeItem('ssrc_token');
+        sessionStorage.removeItem('ssrc_user');
         window.location.href = '/admin/login';
       }
     }

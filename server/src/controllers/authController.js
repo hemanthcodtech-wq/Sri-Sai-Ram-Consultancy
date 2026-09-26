@@ -7,7 +7,7 @@ const generateToken = (id, email, role) => {
   return jwt.sign(
     { id, email, role },
     process.env.JWT_SECRET || 'ssrc_super_secret_jwt_key_2026_secure',
-    { expiresIn: '30d' }
+    { expiresIn: '1h' }
   );
 };
 

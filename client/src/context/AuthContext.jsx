@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
 
 const AuthContext = createContext(null);
@@ -6,27 +6,36 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('ssrc_user');
+      const saved = sessionStorage.getItem('ssrc_user');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       console.warn('Failed to parse cached user:', e);
       return null;
     }
   });
-  const [token, setToken] = useState(() => localStorage.getItem('ssrc_token'));
+  const [token, setToken] = useState(() => sessionStorage.getItem('ssrc_token'));
   const [loading, setLoading] = useState(true);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    setToken(null);
+    sessionStorage.removeItem('ssrc_token');
+    sessionStorage.removeItem('ssrc_user');
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
     const checkAuth = async () => {
-      const storedToken = localStorage.getItem('ssrc_token');
+      localStorage.removeItem('ssrc_token');
+      localStorage.removeItem('ssrc_user');
+      const storedToken = sessionStorage.getItem('ssrc_token');
       if (storedToken) {
         try {
           const res = await api.get('/auth/me');
           if (isMounted && res.data.success) {
             setUser(res.data.user);
-            localStorage.setItem('ssrc_user', JSON.stringify(res.data.user));
+            sessionStorage.setItem('ssrc_user', JSON.stringify(res.data.user));
           }
         } catch (err) {
           console.error('Session check error:', err);
@@ -45,16 +54,36 @@ export const AuthProvider = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [logout]);
+
+  useEffect(() => {
+    if (!token) return undefined;
+
+    let timeoutId;
+    try {
+      const encodedPayload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(window.atob(encodedPayload));
+      const remaining = payload.exp * 1000 - Date.now();
+      if (!Number.isFinite(remaining) || remaining <= 0) {
+        timeoutId = window.setTimeout(logout, 0);
+      } else {
+        timeoutId = window.setTimeout(logout, remaining);
+      }
+    } catch {
+      timeoutId = window.setTimeout(logout, 0);
+    }
+
+    return () => window.clearTimeout(timeoutId);
+  }, [token, logout]);
 
   const login = async (email, password) => {
     try {
       const res = await api.post('/auth/login', { email, password });
       if (res.data.success) {
         const { user: authUser, token: authToken } = res.data;
-        // Save to localStorage immediately
-        localStorage.setItem('ssrc_token', authToken);
-        localStorage.setItem('ssrc_user', JSON.stringify(authUser));
+        // Save to sessionStorage immediately
+        sessionStorage.setItem('ssrc_token', authToken);
+        sessionStorage.setItem('ssrc_user', JSON.stringify(authUser));
         setUser(authUser);
         setToken(authToken);
         return { success: true, user: authUser };
@@ -66,13 +95,6 @@ export const AuthProvider = ({ children }) => {
         message: err.response?.data?.message || 'Invalid email or password',
       };
     }
-  };
-
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('ssrc_token');
-    localStorage.removeItem('ssrc_user');
   };
 
   return (

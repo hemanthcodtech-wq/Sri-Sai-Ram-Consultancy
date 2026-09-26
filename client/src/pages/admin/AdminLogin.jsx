@@ -18,7 +18,7 @@ const AdminLogin = () => {
   const from = location.state?.from?.pathname || '/admin/dashboard';
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('ssrc_token');
+    const storedToken = sessionStorage.getItem('ssrc_token');
     if ((user || token) && storedToken) {
       navigate('/admin/dashboard', { replace: true });
     }
