@@ -9,7 +9,7 @@ const routeSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['Full Sleeper', 'Seating/Sleeper'],
+      enum: ['Full Sleeper', 'Seating/Sleeper', 'Seater'],
       default: 'Full Sleeper',
     },
     fromCity: {

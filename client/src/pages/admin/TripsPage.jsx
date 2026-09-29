@@ -84,7 +84,8 @@ const formatRouteOptionLabel = (route) => {
   const corridor = `${route.fromCity || ''} → ${route.toCity || ''}`.trim();
   const serviceId = route.serviceId ? `${route.serviceId} - ` : '';
   const inactiveLabel = route.status === 'Inactive' ? ' [Inactive]' : '';
-  return `${serviceId}${corridor}${inactiveLabel}`;
+  const vehicleType = route.type ? ` (${route.type})` : '';
+  return `${serviceId}${corridor}${vehicleType}${inactiveLabel}`;
 };
 
 const openDutyWhatsAppMessages = (task, assignments) => {
@@ -1332,12 +1333,12 @@ const TripsPage = () => {
                     <Select
                       options={organizers.map(org => ({
                         value: org._id,
-                        label: `${org.name} ${org.company ? `(${org.company})` : ''} - ${org.phone}`
+                        label: `${org.company || org.name}`
                       }))}
                       value={formData.operator ? {
                         value: formData.operator,
                         label: organizers.find(org => org._id === formData.operator)
-                          ? `${organizers.find(org => org._id === formData.operator).name} ${organizers.find(org => org._id === formData.operator).company ? `(${organizers.find(org => org._id === formData.operator).company})` : ''} - ${organizers.find(org => org._id === formData.operator).phone}`
+                          ? `${organizers.find(org => org._id === formData.operator).company || organizers.find(org => org._id === formData.operator).name}`
                           : 'Selected Operator'
                       } : null}
                       onChange={(selected) => handleOperatorChange(selected ? selected.value : '')}

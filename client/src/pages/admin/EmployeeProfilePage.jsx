@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   User, Phone, MapPin, FileText, Calendar, IndianRupee, Car, Truck, Compass, 
@@ -55,8 +55,124 @@ const EmployeeProfilePage = () => {
     window.print();
   };
 
-  const handlePaymentSubmit = async (e) => {
-    e.preventDefault();
+  const handlePrintPaymentReceipt = (paymentDetails) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert("Please allow popups to print the receipt.");
+      return;
+    }
+
+    const { amount, date, paymentType, mode, notes } = paymentDetails;
+    const formattedDate = new Date(date).toLocaleDateString('en-IN');
+    const timestamp = new Date().toLocaleString('en-IN');
+
+    const receiptHtml = `
+      <html>
+        <head>
+          <title>Payment Receipt - ${employee.name}</title>
+          <style>
+            body { font-family: sans-serif; padding: 20px; color: #111827; }
+            .receipt-container { display: flex; flex-direction: column; gap: 40px; }
+            .receipt-half { border: 1px dashed #9ca3af; padding: 20px; border-radius: 8px; position: relative; }
+            .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #111827; padding-bottom: 10px; }
+            .header img { height: 40px; object-fit: contain; }
+            .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; text-align: center; flex: 1; }
+            .header-spacer { width: 40px; }
+            .copy-label { position: absolute; top: 20px; right: 20px; font-weight: bold; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px; border: 1px solid #d1d5db; }
+            .details { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+            .details th, .details td { padding: 8px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+            .details th { width: 40%; color: #6b7280; font-size: 14px; }
+            .details td { font-weight: bold; font-size: 14px; }
+            .signatures { display: flex; justify-content: space-between; margin-top: 40px; }
+            .signature-box { text-align: center; width: 40%; }
+            .signature-line { border-bottom: 1px solid #111827; margin-bottom: 5px; height: 40px; }
+            .signature-text { font-size: 12px; font-weight: bold; color: #4b5563; }
+            @media print {
+              @page { margin: 0; size: auto; }
+              body { padding: 30px; }
+              .receipt-half { break-inside: avoid; border-color: #000; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="receipt-container">
+            <!-- Original Copy -->
+            <div class="receipt-half">
+              <div class="copy-label">ORIGINAL COPY</div>
+              <div class="header">
+                <img src="/logo.png" alt="Logo" />
+                <h1>Payment Receipt</h1>
+                <div class="header-spacer"></div>
+              </div>
+              <table class="details">
+                <tr><th>Employee Name:</th><td>${employee.name}</td></tr>
+                <tr><th>Employee ID:</th><td>${employee.empId || 'N/A'}</td></tr>
+                <tr><th>Payment Type:</th><td>${paymentType}</td></tr>
+                <tr><th>Payment Mode:</th><td>${mode}</td></tr>
+                <tr><th>Date of Payment:</th><td>${formattedDate}</td></tr>
+                <tr><th>Amount Paid:</th><td>Rs. ${Number(amount).toLocaleString('en-IN')}</td></tr>
+                <tr><th>Notes:</th><td>${notes || 'None'}</td></tr>
+                <tr><th>Generated On:</th><td>${formattedDate}</td></tr>
+              </table>
+              <div class="signatures">
+                <div class="signature-box">
+                  <div class="signature-line"></div>
+                  <div class="signature-text">Employee Signature</div>
+                </div>
+                <div class="signature-box">
+                  <div class="signature-line"></div>
+                  <div class="signature-text">Authorized Signatory</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Employee Copy -->
+            <div class="receipt-half">
+              <div class="copy-label">EMPLOYEE COPY</div>
+              <div class="header">
+                <img src="/logo.png" alt="Logo" />
+                <h1>Payment Receipt</h1>
+                <div class="header-spacer"></div>
+              </div>
+              <table class="details">
+                <tr><th>Employee Name:</th><td>${employee.name}</td></tr>
+                <tr><th>Employee ID:</th><td>${employee.empId || 'N/A'}</td></tr>
+                <tr><th>Payment Type:</th><td>${paymentType}</td></tr>
+                <tr><th>Payment Mode:</th><td>${mode}</td></tr>
+                <tr><th>Date of Payment:</th><td>${formattedDate}</td></tr>
+                <tr><th>Amount Paid:</th><td>Rs. ${Number(amount).toLocaleString('en-IN')}</td></tr>
+                <tr><th>Notes:</th><td>${notes || 'None'}</td></tr>
+                <tr><th>Generated On:</th><td>${formattedDate}</td></tr>
+              </table>
+              <div class="signatures">
+                <div class="signature-box">
+                  <div class="signature-line"></div>
+                  <div class="signature-text">Employee Signature</div>
+                </div>
+                <div class="signature-box">
+                  <div class="signature-line"></div>
+                  <div class="signature-text">Authorized Signatory</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(receiptHtml);
+    printWindow.document.close();
+  };
+
+  const handlePaymentSubmit = async (e, printReceipt = false) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (!paymentForm.amount || Number(paymentForm.amount) <= 0) {
       alert('Please enter a valid amount');
       return;
@@ -65,6 +181,9 @@ const EmployeeProfilePage = () => {
     try {
       const res = await api.post(`/employees/${id}/pay`, paymentForm);
       if (res.data.success) {
+        if (printReceipt) {
+          handlePrintPaymentReceipt(paymentForm);
+        }
         alert('Payment recorded and tasks updated successfully!');
         setIsPaymentModalOpen(false);
         setPaymentForm({ amount: '', date: new Date().toISOString().slice(0, 10), paymentType: 'Bata', mode: 'Cash', notes: '' });
@@ -471,7 +590,8 @@ const EmployeeProfilePage = () => {
                         <th className="py-2 px-3 border-r border-slate-200">Amount Paid</th>
                         <th className="py-2 px-3 border-r border-slate-200">Type</th>
                         <th className="py-2 px-3 border-r border-slate-200">Mode</th>
-                        <th className="py-2 px-3">Notes</th>
+                        <th className="py-2 px-3 border-r border-slate-200">Notes</th>
+                        <th className="py-2 px-3 no-print">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -482,7 +602,22 @@ const EmployeeProfilePage = () => {
                           <td className="py-2 px-3 border-r border-slate-100 font-bold text-emerald-700">₹{p.amount}</td>
                           <td className="py-2 px-3 border-r border-slate-100">{p.paymentType || p.mode || 'Bata'}</td>
                           <td className="py-2 px-3 border-r border-slate-100">{p.paymentType ? (p.mode || 'Cash') : '-'}</td>
-                          <td className="py-2 px-3 text-slate-500">{p.notes || '-'}</td>
+                          <td className="py-2 px-3 border-r border-slate-100 text-slate-500">{p.notes || '-'}</td>
+                          <td className="py-2 px-3 no-print">
+                            <button
+                              onClick={() => handlePrintPaymentReceipt({
+                                amount: p.amount,
+                                date: p.date,
+                                paymentType: p.paymentType || p.mode || 'Bata',
+                                mode: p.paymentType ? (p.mode || 'Cash') : '-',
+                                notes: p.notes
+                              })}
+                              title="Print Receipt"
+                              className="p-1 rounded bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-700 transition-colors"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -769,10 +904,14 @@ const EmployeeProfilePage = () => {
                   />
                 </div>
 
-                <div className="pt-4 flex items-center justify-end gap-3">
+                <div className="pt-4 flex flex-wrap items-center justify-end gap-3">
                   <button type="button" onClick={() => setIsPaymentModalOpen(false)} className="px-5 py-2.5 text-slate-600 font-bold text-sm">Cancel</button>
-                  <button type="submit" disabled={isSubmittingPayment} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-sm disabled:opacity-50">
+                  <button type="button" onClick={(e) => handlePaymentSubmit(e, false)} disabled={isSubmittingPayment} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm rounded-xl shadow-sm disabled:opacity-50">
                     {isSubmittingPayment ? 'Processing...' : 'Confirm Payment'}
+                  </button>
+                  <button type="button" onClick={(e) => handlePaymentSubmit(e, true)} disabled={isSubmittingPayment} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-sm disabled:opacity-50 flex items-center gap-2">
+                    <Printer className="w-4 h-4" />
+                    <span>{isSubmittingPayment ? 'Processing...' : 'Confirm & Print Receipt'}</span>
                   </button>
                 </div>
               </form>

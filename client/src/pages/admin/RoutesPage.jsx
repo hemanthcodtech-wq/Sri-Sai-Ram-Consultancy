@@ -602,6 +602,7 @@ const RoutesPage = () => {
                   >
                     <option value="Full Sleeper">Full Sleeper</option>
                     <option value="Seating/Sleeper">Seating/Sleeper</option>
+                    <option value="Seater">Seater</option>
                   </select>
                 </div>
 

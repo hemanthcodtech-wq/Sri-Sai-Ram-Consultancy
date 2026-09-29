@@ -380,9 +380,7 @@ const CaptainManagementPage = () => {
                 <div className="flex items-center justify-between border-b border-amber-100 pb-3 mb-4"><h3 className="flex items-center gap-2 text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wide"><IndianRupee className="w-4 h-4 text-amber-600" />3. Captain Financials</h3><span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black">Salary Record</span></div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div><label className="block text-[11px] font-bold text-slate-700 mb-1">Task Amount (Rs.) *</label><input type="number" min="0" required value={formData.salaryAmount} onChange={(event) => setFormData({ ...formData, salaryAmount: event.target.value })} placeholder="e.g. 1500" className="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm font-bold" /></div>
-                  <div><label className="block text-[11px] font-bold text-slate-700 mb-1">Task Status *</label><select value={formData.tripStatus} onChange={(event) => setFormData({ ...formData, tripStatus: event.target.value })} className="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm font-bold"><option value="Scheduled">Scheduled</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option></select></div>
                 </div>
-                <div className="mt-4"><label className="block text-[11px] font-bold text-slate-700 mb-1">Remarks</label><input value={formData.remarks} onChange={(event) => setFormData({ ...formData, remarks: event.target.value })} placeholder="Optional task remarks" className="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm" /></div>
               </section>
             </form>
 

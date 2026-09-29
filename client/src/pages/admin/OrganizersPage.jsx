@@ -52,6 +52,7 @@ const OrganizersPage = () => {
     month: '',
     year: '',
     amount: '',
+    paymentMode: 'Cash',
     dateReceived: new Date().toISOString().split('T')[0],
     notes: ''
   });
@@ -166,6 +167,7 @@ const OrganizersPage = () => {
       month: new Date().toLocaleString('default', { month: 'short' }),
       year: new Date().getFullYear().toString(),
       amount: '',
+      paymentMode: 'Cash',
       dateReceived: new Date().toISOString().split('T')[0],
       notes: ''
     });
@@ -184,6 +186,7 @@ const OrganizersPage = () => {
       const newIncome = {
         month: `${incomeFormData.month.trim()} ${incomeFormData.year.trim()}`,
         amount: Number(incomeFormData.amount),
+        paymentMode: incomeFormData.paymentMode,
         dateReceived: new Date(incomeFormData.dateReceived),
         notes: incomeFormData.notes.trim()
       };
@@ -210,6 +213,7 @@ const OrganizersPage = () => {
         month: new Date().toLocaleString('default', { month: 'short' }),
         year: new Date().getFullYear().toString(),
         amount: '',
+        paymentMode: 'Cash',
         dateReceived: new Date().toISOString().split('T')[0],
         notes: ''
       });
@@ -258,6 +262,7 @@ const OrganizersPage = () => {
       month: m,
       year: y,
       amount: inc.amount || '',
+      paymentMode: inc.paymentMode || 'Cash',
       dateReceived: inc.dateReceived ? new Date(inc.dateReceived).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       notes: inc.notes || ''
     });
@@ -557,6 +562,7 @@ const OrganizersPage = () => {
                     <th className="py-3.5 px-4">Phone Number</th>
                     <th className="py-3.5 px-4">Company / Location</th>
                     <th className="py-3.5 px-4">Amount Received</th>
+                    <th className="py-3.5 px-4">Payment Mode</th>
                     <th className="py-3.5 px-4">Status</th>
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
@@ -621,6 +627,12 @@ const OrganizersPage = () => {
                             <span className="text-[11px] text-slate-400 font-semibold italic px-1">No payments yet</span>
                           )}
                         </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-600 font-semibold text-xs">
+                        {org.monthlyIncome && org.monthlyIncome.length > 0 
+                          ? org.monthlyIncome[org.monthlyIncome.length - 1].paymentMode || 'Cash'
+                          : '—'}
                       </td>
 
                       <td className="py-3.5 px-4 whitespace-nowrap">
@@ -915,7 +927,7 @@ const OrganizersPage = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-900">
-                    Monthly Income: {selectedOrganizerForIncome.name}
+                    Monthly Income: {selectedOrganizerForIncome.company || selectedOrganizerForIncome.name}
                   </h3>
                   <p className="text-xs text-slate-500">Track monthly payments received from this organizer.</p>
                 </div>
@@ -937,7 +949,7 @@ const OrganizersPage = () => {
                 <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
                   {editingIncomeIndex >= 0 ? 'Update Payment' : 'Log New Payment'}
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 mb-1">Period (Month & Year) *</label>
                     <div className="flex gap-2">
@@ -973,6 +985,19 @@ const OrganizersPage = () => {
                       onChange={(e) => setIncomeFormData({ ...incomeFormData, amount: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-bold bg-white focus:outline-none focus:border-emerald-500"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">Payment Mode *</label>
+                    <select
+                      required
+                      value={incomeFormData.paymentMode}
+                      onChange={(e) => setIncomeFormData({ ...incomeFormData, paymentMode: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-bold bg-white focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="Cash">Cash</option>
+                      <option value="Bank">Bank</option>
+                      <option value="UPI">UPI</option>
+                    </select>
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 mb-1">Date Received *</label>
@@ -1022,6 +1047,7 @@ const OrganizersPage = () => {
                         <tr>
                           <th className="py-2.5 px-3">Month</th>
                           <th className="py-2.5 px-3">Date</th>
+                          <th className="py-2.5 px-3">Mode</th>
                           <th className="py-2.5 px-3">Amount</th>
                           <th className="py-2.5 px-3">Notes</th>
                           <th className="py-2.5 px-3 text-right">Action</th>
@@ -1032,6 +1058,7 @@ const OrganizersPage = () => {
                           <tr key={idx} className="hover:bg-slate-50">
                             <td className="py-2.5 px-3 font-bold text-slate-800">{inc.month}</td>
                             <td className="py-2.5 px-3 text-slate-500">{new Date(inc.dateReceived).toLocaleDateString('en-IN')}</td>
+                            <td className="py-2.5 px-3 text-slate-600 font-medium">{inc.paymentMode || 'Cash'}</td>
                             <td className="py-2.5 px-3 font-black text-emerald-600">₹{Number(inc.amount).toLocaleString('en-IN')}</td>
                             <td className="py-2.5 px-3 text-slate-500 truncate max-w-[150px]" title={inc.notes}>{inc.notes || '—'}</td>
                             <td className="py-2.5 px-3 text-right">
