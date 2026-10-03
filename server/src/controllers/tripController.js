@@ -12,6 +12,61 @@ const getTripPaidAmount = (trip) => {
   );
 };
 
+const saveTripWithUniqueNumber = async (trip) => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      return await trip.save();
+    } catch (error) {
+      if (error.code !== 11000) throw error;
+      if (attempt === 4) throw new Error('Could not generate a unique task number. Please retry.');
+      trip.tripNumber = undefined;
+    }
+  }
+};
+
+const recordTripSettlement = async (trip, paymentMode) => {
+  const crew = ['driver1', 'driver2', 'helper']
+    .map((role) => trip[role])
+    .filter((member) => member?.employee)
+    .map((member) => ({
+      employeeId: member.employee._id || member.employee,
+      amount: Number(member.dueAmount ?? Math.max(0, Number(member.salaryAmount || 0) - Number(member.advanceAmount || 0))),
+      mode: paymentMode || member.salaryPaymentMode || 'Cash',
+    }));
+
+  if (crew.length === 0 && trip.assignedEmployee) {
+    crew.push({
+      employeeId: trip.assignedEmployee._id || trip.assignedEmployee,
+      amount: Number(trip.dueAmount ?? Math.max(0, Number(trip.salaryAmount || trip.employeePayout || 0) - Number(trip.advanceAmount || 0))),
+      mode: paymentMode || trip.salaryPaymentMode || 'Cash',
+    });
+  }
+
+  for (const settlement of crew) {
+    if (settlement.amount <= 0) continue;
+    const record = {
+      amount: settlement.amount,
+      date: new Date(),
+      paymentType: 'Salary',
+      mode: settlement.mode,
+      notes: `Task ${trip.tripNumber || trip._id} settlement`,
+    };
+
+    if (store.isMongo()) {
+      await Employee.updateOne(
+        { _id: settlement.employeeId },
+        { $push: { paymentHistory: record } }
+      );
+    } else {
+      const employee = store.data.employees.find((item) => String(item._id) === String(settlement.employeeId));
+      if (employee) {
+        employee.paymentHistory ||= [];
+        employee.paymentHistory.push(record);
+      }
+    }
+  }
+};
+
 const getTrips = async (req, res) => {
   try {
     const {
@@ -72,7 +127,7 @@ const getTrips = async (req, res) => {
         .populate('driver2.employee', 'name category mobileNumber photo employeeId isBlocked blockReason')
         .populate('helper.employee', 'name category mobileNumber photo employeeId isBlocked blockReason')
         .populate('operator', 'name phone company')
-        .populate('route', 'fromCity toCity routeName')
+        .populate('route', 'serviceId fromCity toCity routeName')
         .sort({ tripDate: -1, createdAt: -1 });
 
       const totalAmount = trips.reduce((sum, t) => sum + (t.tripAmount || 0), 0);
@@ -355,7 +410,7 @@ const createTrip = async (req, res) => {
         tripDate: sDate,
       });
 
-      const saved = await trip.save();
+      const saved = await saveTripWithUniqueNumber(trip);
       return res.status(201).json({ success: true, data: saved });
     }
 
@@ -415,11 +470,15 @@ const createTrip = async (req, res) => {
     const finalDue = finalPaymentStatus === 'Paid' ? 0 : Math.max(0, finalSalary - finalAdvance);
     const commissionAmount = Math.max(0, Number(tripAmount || 0) - finalSalary);
 
-    const count = store.data.trips.length + 1;
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const prefix = `TRP-${dateStr}-`;
+    const highestNumber = store.data.trips.reduce((highest, trip) => {
+      if (!trip.tripNumber?.startsWith(prefix)) return highest;
+      return Math.max(highest, Number(trip.tripNumber.slice(prefix.length)) || 0);
+    }, 0);
     const newTrip = {
       _id: `trp-${Date.now()}`,
-      tripNumber: `TRP-${dateStr}-${String(count).padStart(4, '0')}`,
+      tripNumber: `${prefix}${String(highestNumber + 1).padStart(4, '0')}`,
       ...req.body,
       assignedEmployee: primaryEmp ? primaryEmp._id : crewData.driver1?.employee,
       assignedEmployeeName: primaryEmp ? primaryEmp.name : crewData.driver1?.employeeName || 'Staff',
@@ -454,7 +513,32 @@ const createTrip = async (req, res) => {
 const updateTrip = async (req, res) => {
   try {
     const { id } = req.params;
-    const payload = { ...req.body };
+    const currentTrip = store.isMongo()
+      ? await Trip.findById(id)
+      : store.data.trips.find((trip) => String(trip._id) === String(id));
+    if (!currentTrip) return res.status(404).json({ success: false, message: 'Trip not found' });
+
+    const previousTrip = currentTrip.toObject ? currentTrip.toObject() : { ...currentTrip };
+    const payload = { ...previousTrip, ...req.body };
+    delete payload._id;
+    delete payload.__v;
+
+    for (const role of ['driver1', 'driver2', 'helper']) {
+      const roleUpdates = req.body[role] || {};
+      const dottedKeys = Object.keys(req.body).filter((key) => key.startsWith(`${role}.`));
+      if (!previousTrip[role] && !req.body[role] && dottedKeys.length === 0) continue;
+
+      const currentRole = previousTrip[role]?.toObject
+        ? previousTrip[role].toObject()
+        : previousTrip[role] || {};
+      payload[role] = { ...currentRole, ...roleUpdates };
+      for (const key of dottedKeys) {
+        payload[role][key.slice(role.length + 1)] = req.body[key];
+        delete payload[key];
+      }
+    }
+
+    const transitionedToPaid = previousTrip.paymentStatus !== 'Paid' && payload.paymentStatus === 'Paid';
 
     let sDate = payload.startDate ? new Date(payload.startDate) : payload.tripDate ? new Date(payload.tripDate) : null;
     let eDate = payload.endDate ? new Date(payload.endDate) : null;
@@ -475,17 +559,29 @@ const updateTrip = async (req, res) => {
     if (payload.driver1) {
       payload.driver1.salaryAmount = Number(payload.driver1.salaryAmount || 0);
       payload.driver1.advanceAmount = Number(payload.driver1.advanceAmount || 0);
-      payload.driver1.dueAmount = payload.driver1.paymentStatus === 'Paid' ? 0 : Math.max(0, payload.driver1.salaryAmount - payload.driver1.advanceAmount);
+      payload.driver1.dueAmount = payload.driver1.paymentStatus === 'Paid'
+        ? 0
+        : payload.driver1.paymentStatus === 'Partial'
+          ? Number(payload.driver1.dueAmount || 0)
+          : Math.max(0, payload.driver1.salaryAmount - payload.driver1.advanceAmount);
     }
     if (payload.driver2) {
       payload.driver2.salaryAmount = Number(payload.driver2.salaryAmount || 0);
       payload.driver2.advanceAmount = Number(payload.driver2.advanceAmount || 0);
-      payload.driver2.dueAmount = payload.driver2.paymentStatus === 'Paid' ? 0 : Math.max(0, payload.driver2.salaryAmount - payload.driver2.advanceAmount);
+      payload.driver2.dueAmount = payload.driver2.paymentStatus === 'Paid'
+        ? 0
+        : payload.driver2.paymentStatus === 'Partial'
+          ? Number(payload.driver2.dueAmount || 0)
+          : Math.max(0, payload.driver2.salaryAmount - payload.driver2.advanceAmount);
     }
     if (payload.helper) {
       payload.helper.salaryAmount = Number(payload.helper.salaryAmount || 0);
       payload.helper.advanceAmount = Number(payload.helper.advanceAmount || 0);
-      payload.helper.dueAmount = payload.helper.paymentStatus === 'Paid' ? 0 : Math.max(0, payload.helper.salaryAmount - payload.helper.advanceAmount);
+      payload.helper.dueAmount = payload.helper.paymentStatus === 'Paid'
+        ? 0
+        : payload.helper.paymentStatus === 'Partial'
+          ? Number(payload.helper.dueAmount || 0)
+          : Math.max(0, payload.helper.salaryAmount - payload.helper.advanceAmount);
     }
 
     const totalCrewSalary = (Number(payload.driver1?.salaryAmount || 0) + Number(payload.driver2?.salaryAmount || 0) + Number(payload.helper?.salaryAmount || 0));
@@ -505,7 +601,9 @@ const updateTrip = async (req, res) => {
     if (payload.paymentStatus === 'Paid') {
       payload.dueAmount = 0;
     } else {
-      payload.dueAmount = Math.max(0, finalSalary - finalAdvance);
+      payload.dueAmount = payload.paymentStatus === 'Partial'
+        ? Number(payload.dueAmount || 0)
+        : Math.max(0, finalSalary - finalAdvance);
     }
 
     if (payload.tripAmount !== undefined && finalSalary !== undefined) {
@@ -551,6 +649,7 @@ const updateTrip = async (req, res) => {
         .populate('driver2.employee', 'name category mobileNumber isBlocked')
         .populate('helper.employee', 'name category mobileNumber isBlocked');
       if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' });
+      if (transitionedToPaid) await recordTripSettlement(previousTrip, payload.salaryPaymentMode);
       return res.json({ success: true, data: trip });
     }
 
@@ -588,6 +687,7 @@ const updateTrip = async (req, res) => {
     }
 
     store.data.trips[index] = updatedObj;
+    if (transitionedToPaid) await recordTripSettlement(previousTrip, payload.salaryPaymentMode);
     res.json({ success: true, data: updatedObj });
   } catch (error) {
     console.error('updateTrip error:', error);

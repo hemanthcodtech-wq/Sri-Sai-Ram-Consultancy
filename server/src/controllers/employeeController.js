@@ -36,6 +36,14 @@ const getEmpTripStats = (trip, empId) => {
   return { salary: sal, advance: adv, due, paid };
 };
 
+const normalizeEmployeeName = (value) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+const normalizePhoneNumber = (value) => {
+  let digits = String(value || '').replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+  return digits;
+};
+
 const getEmployees = async (req, res) => {
   try {
     const { search, category, status } = req.query;
@@ -214,6 +222,31 @@ const createEmployee = async (req, res) => {
     }
     if (!mobileNumber || !mobileNumber.trim()) {
       return res.status(400).json({ success: false, message: 'Primary mobile number is required' });
+    }
+
+    const candidateName = normalizeEmployeeName(name);
+    const candidatePhoneNumbers = [mobileNumber, req.body.alternateNumber]
+      .map(normalizePhoneNumber)
+      .filter(Boolean);
+    if (new Set(candidatePhoneNumbers).size !== candidatePhoneNumbers.length) {
+      return res.status(409).json({ success: false, message: 'Primary and alternate phone numbers must be different' });
+    }
+
+    const existingEmployees = store.isMongo()
+      ? await Employee.find({}, 'name mobileNumber alternateNumber').lean()
+      : store.data.employees;
+    if (existingEmployees.some((employee) => normalizeEmployeeName(employee.name) === candidateName)) {
+      return res.status(409).json({ success: false, message: 'An employee with this name already exists' });
+    }
+
+    const duplicatePhone = existingEmployees.some((employee) => {
+      const existingPhoneNumbers = [employee.mobileNumber, employee.alternateNumber]
+        .map(normalizePhoneNumber)
+        .filter(Boolean);
+      return candidatePhoneNumbers.some((number) => existingPhoneNumbers.includes(number));
+    });
+    if (duplicatePhone) {
+      return res.status(409).json({ success: false, message: 'A phone number is already assigned to another employee' });
     }
 
     const payload = {
@@ -409,6 +442,87 @@ const payEmployee = async (req, res) => {
   }
 };
 
+const deleteEmployeePayment = async (req, res) => {
+  try {
+    const { id, paymentId } = req.params;
+    const employee = store.isMongo()
+      ? await Employee.findById(id)
+      : store.data.employees.find((item) => String(item._id) === String(id));
+    if (!employee) return res.status(404).json({ success: false, message: 'Employee not found' });
+
+    if (store.isMongo()) {
+      const payment = employee.paymentHistory.id(paymentId);
+      if (!payment) return res.status(404).json({ success: false, message: 'Payment record not found' });
+      payment.deleteOne();
+      await employee.save();
+    } else {
+      const paymentIndex = (employee.paymentHistory || []).findIndex((payment) => String(payment._id) === String(paymentId));
+      if (paymentIndex === -1) return res.status(404).json({ success: false, message: 'Payment record not found' });
+      employee.paymentHistory.splice(paymentIndex, 1);
+    }
+
+    return res.json({ success: true, message: 'Payment record deleted successfully' });
+  } catch (error) {
+    console.error('deleteEmployeePayment error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const deleteEmployeeTaskSettlement = async (req, res) => {
+  try {
+    const { id, tripId } = req.params;
+    const employee = store.isMongo()
+      ? await Employee.findById(id)
+      : store.data.employees.find((item) => String(item._id) === String(id));
+    if (!employee) return res.status(404).json({ success: false, message: 'Employee not found' });
+
+    const trip = store.isMongo()
+      ? await Trip.findById(tripId)
+      : store.data.trips.find((item) => String(item._id) === String(tripId));
+    if (!trip) return res.status(404).json({ success: false, message: 'Task not found' });
+
+    const employeeId = String(employee._id);
+    const crewRole = ['driver1', 'driver2', 'helper'].find(
+      (role) => trip[role]?.employee && String(trip[role].employee._id || trip[role].employee) === employeeId
+    );
+
+    if (crewRole) {
+      const member = trip[crewRole];
+      const salary = Number(member.salaryAmount || 0);
+      const advance = Number(member.advanceAmount || 0);
+      member.dueAmount = Math.max(0, salary - advance);
+      member.paidAmount = advance;
+      member.paymentStatus = member.dueAmount === 0 ? 'Paid' : 'Pending';
+
+      const crew = ['driver1', 'driver2', 'helper'].filter((role) => trip[role]?.employee);
+      const totalSalary = crew.reduce((sum, role) => sum + Number(trip[role].salaryAmount || 0), 0);
+      const totalAdvance = crew.reduce((sum, role) => sum + Number(trip[role].advanceAmount || 0), 0);
+      const totalDue = crew.reduce((sum, role) => sum + Number(trip[role].dueAmount || 0), 0);
+      trip.dueAmount = totalDue;
+      trip.paidAmount = Math.max(0, totalSalary - totalDue);
+      trip.paymentStatus = totalDue === 0
+        ? 'Paid'
+        : totalDue >= totalSalary - totalAdvance
+          ? 'Pending'
+          : 'Partial';
+    } else if (String(trip.assignedEmployee?._id || trip.assignedEmployee) === employeeId) {
+      const salary = Number(trip.salaryAmount || trip.employeePayout || 0);
+      const advance = Number(trip.advanceAmount || 0);
+      trip.dueAmount = Math.max(0, salary - advance);
+      trip.paidAmount = advance;
+      trip.paymentStatus = trip.dueAmount === 0 ? 'Paid' : 'Pending';
+    } else {
+      return res.status(404).json({ success: false, message: 'Task is not assigned to this employee' });
+    }
+
+    if (store.isMongo()) await trip.save();
+    return res.json({ success: true, message: 'Task settlement deleted successfully' });
+  } catch (error) {
+    console.error('deleteEmployeeTaskSettlement error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getEmployees,
   getEmployeeById,
@@ -416,4 +530,6 @@ module.exports = {
   updateEmployee,
   deleteEmployee,
   payEmployee,
+  deleteEmployeePayment,
+  deleteEmployeeTaskSettlement,
 };

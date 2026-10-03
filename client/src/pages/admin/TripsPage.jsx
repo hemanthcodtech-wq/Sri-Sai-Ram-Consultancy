@@ -88,6 +88,8 @@ const formatRouteOptionLabel = (route) => {
   return `${serviceId}${corridor}${vehicleType}${inactiveLabel}`;
 };
 
+const normalizeRouteValue = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
 const openDutyWhatsAppMessages = (task, assignments) => {
   assignments.forEach(({ role, employee }) => {
     const number = getWhatsAppNumber(employee?.mobileNumber);
@@ -133,6 +135,27 @@ const TripsPage = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
+
+  const getOperatorDisplayName = (task) => {
+    const operatorId = task.operator?._id || task.operator;
+    const organizer = organizers.find((item) => String(item._id) === String(operatorId));
+    return task.operator?.company || organizer?.company || task.clientName || task.operatorName || task.operator?.name || 'General Operator';
+  };
+
+  const getTaskRouteDetails = (task) => {
+    const routeId = task.route?._id || task.route;
+    const routeName = task.routeName || task.route?.routeName || (task.pickupLocation ? `${task.pickupLocation} → ${task.dropLocation || ''}` : 'N/A');
+    const linkedRoute = routes.find((route) => String(route._id) === String(routeId)) || routes.find((route) => (
+      (normalizeRouteValue(route.fromCity) === normalizeRouteValue(task.pickupLocation) &&
+        normalizeRouteValue(route.toCity) === normalizeRouteValue(task.dropLocation)) ||
+      normalizeRouteValue(route.routeName) === normalizeRouteValue(routeName)
+    ));
+
+    return {
+      routeName,
+      serviceId: task.route?.serviceId || linkedRoute?.serviceId || '',
+    };
+  };
 
   const initialCrewState = {
     tripDate: new Date().toISOString().slice(0, 10),
@@ -376,7 +399,7 @@ const TripsPage = () => {
         route: trip.route?._id || trip.route || '',
         routeName: trip.routeName || '',
         operator: trip.operator?._id || trip.operator || '',
-        operatorName: trip.operatorName || (trip.operator?.name || ''),
+        operatorName: trip.operator?.company || trip.operatorName || trip.operator?.name || '',
         clientName: trip.clientName || '',
         clientPhone: trip.clientPhone || '',
         pickupLocation: trip.pickupLocation || '',
@@ -464,7 +487,7 @@ const TripsPage = () => {
       setFormData((prev) => ({
         ...prev,
         operator: operatorId,
-        operatorName: selected.name,
+        operatorName: selected.company || selected.name,
         clientName: prev.clientName || selected.company || selected.name,
         clientPhone: prev.clientPhone || selected.phone,
       }));
@@ -693,12 +716,14 @@ const TripsPage = () => {
   };
 
   const handleDeleteTrip = async (id, tripNumber) => {
-    if (window.confirm(`Are you sure you want to delete task ${tripNumber}?`)) {
+    if (window.confirm(`Are you sure you want to delete task ${tripNumber}? Its salary, paid, and due totals will be recalculated.`)) {
       try {
         await api.delete(`/trips/${id}`);
         fetchTrips();
+        fetchDependencies();
       } catch (err) {
         console.error('Error deleting task:', err);
+        alert(err.response?.data?.message || 'Failed to delete task. Please try again.');
       }
     }
   };
@@ -795,13 +820,15 @@ const TripsPage = () => {
       const driver1 = crewList.find((member) => member.role === 'Driver 1');
       const driver2 = crewList.find((member) => member.role === 'Driver 2');
       const helper = crewList.find((member) => member.role === 'Helper');
+      const { routeName, serviceId } = getTaskRouteDetails(task);
 
       return {
         'Date': sDateStr,
         'Vehicle Number': task.vehicleNumber || 'N/A',
         'Vehicle Status': task.vehicleStatus || 'RUN',
-        'Route': task.routeName || (task.pickupLocation ? `${task.pickupLocation} → ${task.dropLocation || ''}` : 'N/A'),
-        'Operator': task.operatorName || task.operator?.name || task.clientName || 'N/A',
+        'Route': routeName,
+        'Service Number': serviceId || 'N/A',
+        'Operator': getOperatorDisplayName(task),
         'Driver 1': driver1?.name || 'N/A',
         'Driver 2': driver2?.name || 'N/A',
         'Helper': helper?.name || 'N/A',
@@ -989,6 +1016,7 @@ const TripsPage = () => {
                 <tbody className="divide-y divide-slate-100">
                   {currentTrips.map((task) => {
                     const crewList = getTaskCrewList(task);
+                    const routeDetails = getTaskRouteDetails(task);
                     const driver1 = crewList.find((member) => member.role === 'Driver 1');
                     const driver2 = crewList.find((member) => member.role === 'Driver 2');
                     const helper = crewList.find((member) => member.role === 'Helper');
@@ -1036,14 +1064,19 @@ const TripsPage = () => {
                         </td>
 
                         {/* Route */}
-                        <td className="py-3.5 px-4 min-w-[190px] font-bold text-slate-800">
-                          {task.routeName || (task.pickupLocation ? `${task.pickupLocation} → ${task.dropLocation || 'City'}` : 'Not Selected')}
+                        <td className="py-3.5 px-4 min-w-[190px] text-slate-800">
+                          <div className="font-bold">{routeDetails.routeName === 'N/A' ? 'Not Selected' : routeDetails.routeName}</div>
+                          {routeDetails.serviceId && (
+                            <div className="mt-1 inline-block rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                              Service No. {routeDetails.serviceId}
+                            </div>
+                          )}
                         </td>
 
                         {/* Operator */}
                         <td className="py-3.5 px-4 min-w-[140px]">
                           <div className="font-bold text-slate-900">
-                            {task.operatorName || task.operator?.name || task.clientName || 'General Operator'}
+                            {getOperatorDisplayName(task)}
                           </div>
                         </td>
 
@@ -1106,10 +1139,12 @@ const TripsPage = () => {
 
                             <button
                               onClick={() => handleDeleteTrip(task._id, task.tripNumber)}
-                              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 cursor-pointer"
+                              className="inline-flex items-center gap-1 p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 cursor-pointer"
                               title="Delete Task"
+                              aria-label="Delete task"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
                             </button>
                           </div>
                         </td>
@@ -1651,6 +1686,7 @@ const TripsPage = () => {
                       options={employees
                         .filter(
                           (emp) =>
+                            emp.category === 'Helper' &&
                             String(emp._id) !== String(formData.driver1.employee) &&
                             String(emp._id) !== String(formData.driver2.employee)
                         )

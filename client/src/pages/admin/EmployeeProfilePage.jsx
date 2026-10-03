@@ -4,7 +4,7 @@ import {
   User, Phone, MapPin, FileText, Calendar, IndianRupee, Car, Truck, Compass, 
   ArrowLeft, CheckCircle2, Clock, Printer, ChevronLeft, ChevronRight,
   CreditCard, Eye, BadgeCheck, Building, UserCheck, AlertTriangle, Sparkles,
-  ShieldAlert, Ban, Check, X, Edit3
+  ShieldAlert, Ban, Check, X, Edit3, Trash2
 } from 'lucide-react';
 import api from '../../utils/api';
 import logoImg from '../../assets/logo.png';
@@ -22,6 +22,7 @@ const EmployeeProfilePage = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ amount: '', date: new Date().toISOString().slice(0, 10), paymentType: 'Bata', mode: 'Cash', notes: '' });
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+  const [deletingPaymentId, setDeletingPaymentId] = useState(null);
 
   // Pagination State (For Biodata tasks)
   const [currentPage, setCurrentPage] = useState(1);
@@ -197,6 +198,26 @@ const EmployeeProfilePage = () => {
     }
   };
 
+  const handleDeletePayment = async (payment) => {
+    if (!payment._id && !payment.tripId) return;
+    if (!window.confirm(`Delete the payment record for ₹${payment.amount}?`)) return;
+
+    const paymentKey = payment._id || payment.tripId;
+    setDeletingPaymentId(paymentKey);
+    try {
+      const endpoint = payment._id
+        ? `/employees/${id}/payments/${payment._id}`
+        : `/employees/${id}/task-settlements/${payment.tripId}`;
+      await api.delete(endpoint);
+      await fetchProfile();
+    } catch (err) {
+      console.error('Error deleting payment record:', err);
+      alert(err.response?.data?.message || 'Failed to delete payment record. Please try again.');
+    } finally {
+      setDeletingPaymentId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-16 flex flex-col items-center justify-center gap-3">
@@ -237,6 +258,20 @@ const EmployeeProfilePage = () => {
 
     return { salary, due, paid: salary - due };
   };
+  const paymentRecords = (employee.paymentHistory || []).length > 0
+    ? employee.paymentHistory
+    : trips.flatMap((trip) => {
+      const { due, paid } = getEmployeeTripAmounts(trip, employee._id);
+      if (paid <= 0 || due > 0) return [];
+        return [{
+          amount: paid,
+          date: trip.updatedAt || trip.tripDate,
+          tripId: trip._id,
+          paymentType: 'Task Salary',
+          mode: trip.salaryPaymentMode || 'Online',
+          notes: `Task ${trip.tripNumber || ''} settlement`.trim(),
+        }];
+      });
   const getTripTimestamp = (value) => {
     const timestamp = new Date(value || 0).getTime();
     return Number.isNaN(timestamp) ? 0 : timestamp;
@@ -579,10 +614,10 @@ const EmployeeProfilePage = () => {
               </div>
 
               {/* Payment Records */}
-              {(employee.paymentHistory || []).length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-base font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Records of Payments</h3>
-                  <table className="w-full text-left text-xs text-slate-700 border border-slate-200">
+              <div className="mt-6">
+                <h3 className="text-base font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Records of Payments</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[720px] text-left text-xs text-slate-700 border border-slate-200">
                     <thead className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
                       <tr>
                         <th className="py-2 px-3 border-r border-slate-200">#</th>
@@ -595,8 +630,8 @@ const EmployeeProfilePage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(employee.paymentHistory || []).map((p, i) => (
-                        <tr key={i} className="border-b border-slate-100">
+                      {paymentRecords.length > 0 ? paymentRecords.map((p, i) => (
+                        <tr key={p._id || `${p.date}-${i}`} className="border-b border-slate-100">
                           <td className="py-2 px-3 border-r border-slate-100 text-slate-400">{i + 1}</td>
                           <td className="py-2 px-3 border-r border-slate-100">{new Date(p.date).toLocaleDateString()}</td>
                           <td className="py-2 px-3 border-r border-slate-100 font-bold text-emerald-700">₹{p.amount}</td>
@@ -604,26 +639,44 @@ const EmployeeProfilePage = () => {
                           <td className="py-2 px-3 border-r border-slate-100">{p.paymentType ? (p.mode || 'Cash') : '-'}</td>
                           <td className="py-2 px-3 border-r border-slate-100 text-slate-500">{p.notes || '-'}</td>
                           <td className="py-2 px-3 no-print">
-                            <button
-                              onClick={() => handlePrintPaymentReceipt({
-                                amount: p.amount,
-                                date: p.date,
-                                paymentType: p.paymentType || p.mode || 'Bata',
-                                mode: p.paymentType ? (p.mode || 'Cash') : '-',
-                                notes: p.notes
-                              })}
-                              title="Print Receipt"
-                              className="p-1 rounded bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-700 transition-colors"
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handlePrintPaymentReceipt({
+                                  amount: p.amount,
+                                  date: p.date,
+                                  paymentType: p.paymentType || p.mode || 'Bata',
+                                  mode: p.paymentType ? (p.mode || 'Cash') : '-',
+                                  notes: p.notes
+                                })}
+                                title="Print Receipt"
+                                aria-label="Print payment receipt"
+                                className="p-1 rounded bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-700 transition-colors"
+                              >
+                                <Printer className="w-3.5 h-3.5" />
+                              </button>
+                              {(p._id || p.tripId) && (
+                                <button
+                                  onClick={() => handleDeletePayment(p)}
+                                  disabled={deletingPaymentId === (p._id || p.tripId)}
+                                  title="Delete Payment Record"
+                                  aria-label="Delete payment record"
+                                  className="p-1 rounded bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
-                      ))}
+                      )) : (
+                        <tr>
+                          <td colSpan="7" className="py-4 px-3 text-center text-slate-500">No payment records found.</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
-              )}
+              </div>
 
               <PrintSignatures />
             </div>

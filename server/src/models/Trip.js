@@ -185,9 +185,16 @@ const tripSchema = new mongoose.Schema(
 // Auto-generate tripNumber and calculate commission
 tripSchema.pre('save', async function () {
   if (!this.tripNumber) {
-    const count = await mongoose.model('Trip').countDocuments();
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    this.tripNumber = `TRP-${dateStr}-${String(count + 1).padStart(4, '0')}`;
+    const prefix = `TRP-${dateStr}-`;
+    const existingTrips = await mongoose.model('Trip')
+      .find({ tripNumber: { $regex: `^${prefix}\\d+$` } })
+      .select('tripNumber')
+      .lean();
+    const highestNumber = existingTrips.reduce((highest, trip) => (
+      Math.max(highest, Number(trip.tripNumber.slice(prefix.length)) || 0)
+    ), 0);
+    this.tripNumber = `${prefix}${String(highestNumber + 1).padStart(4, '0')}`;
   }
   if (!this.startDate) {
     this.startDate = this.tripDate || new Date();
