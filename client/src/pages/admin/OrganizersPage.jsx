@@ -408,11 +408,11 @@ const OrganizersPage = () => {
     const exportData = organizers.map((org, idx) => {
       const totalIncome = (org.monthlyIncome || []).reduce((sum, inc) => sum + Number(inc.amount || 0), 0);
       return {
+        'Company / Agency': org.company || 'N/A',
         'S.No': idx + 1,
         'Organizer / Partner Name': org.name || '',
         'Phone Number': org.phone || '',
         'Email Address': org.email || 'N/A',
-        'Company / Agency': org.company || 'N/A',
         'Address / Location': org.address || 'N/A',
         'Total Income Received': `₹${totalIncome.toLocaleString('en-IN')}`,
         'Status': org.status || 'Active',

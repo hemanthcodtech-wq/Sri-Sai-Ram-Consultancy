@@ -262,7 +262,7 @@ const DashboardPage = () => {
                   {formatCurrency(stats?.summary?.totalPayout)}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">
-                  Disbursed to staff candidates
+                  Total staff payout obligation
                 </div>
               </div>
 
@@ -274,11 +274,11 @@ const DashboardPage = () => {
                     <DollarSign className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-emerald-600 mt-3">
+                <div className={`text-2xl sm:text-3xl font-black mt-3 ${(stats?.summary?.totalCommission ?? 0) < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                   {formatCurrency(stats?.summary?.totalCommission)}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">
-                  Company earnings margin
+                  Revenue after staff payouts
                 </div>
               </div>
 
@@ -294,7 +294,7 @@ const DashboardPage = () => {
                   {formatCurrency(stats?.summary?.pendingRevenue)}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">
-                  Uncollected client invoices
+                  Unpaid staff salary balance
                 </div>
               </div>
 
@@ -341,7 +341,7 @@ const DashboardPage = () => {
                       </div>
                       <div>
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Profit</span>
-                        <div className="text-sm font-bold text-emerald-600">{formatCurrency(cat.commission)}</div>
+                        <div className={`text-sm font-bold ${cat.commission < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatCurrency(cat.commission)}</div>
                       </div>
                     </div>
 

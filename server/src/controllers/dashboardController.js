@@ -69,7 +69,7 @@ const getDashboardStats = async (req, res) => {
         const due = Number(t.dueAmount || 0);
         return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
       }, 0);
-      const totalCommission = allTrips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
+      const totalCommission = totalRevenue - totalSalary;
 
       // Payment Mode breakdown
       const advanceCash = allTrips.filter(t => t.advancePaymentMode === 'Cash').reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
@@ -103,7 +103,7 @@ const getDashboardStats = async (req, res) => {
           const due = Number(t.dueAmount || 0);
           return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
         }, 0);
-        const catCommission = catTrips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
+        const catCommission = catRevenue - catSalary;
 
         return {
           category: cat,
@@ -235,7 +235,7 @@ const getDashboardStats = async (req, res) => {
       const due = Number(t.dueAmount || 0);
       return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
     }, 0);
-    const totalCommission = trips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
+    const totalCommission = totalRevenue - totalSalary;
 
     const advanceCash = trips.filter(t => t.advancePaymentMode === 'Cash').reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
     const advanceOnline = trips.filter(t => t.advancePaymentMode !== 'Cash' && t.advancePaymentMode !== 'None').reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
@@ -268,7 +268,7 @@ const getDashboardStats = async (req, res) => {
         const due = Number(t.dueAmount || 0);
         return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
       }, 0);
-      const catCommission = catTrips.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
+      const catCommission = catRevenue - catSalary;
 
       return {
         category: cat,
