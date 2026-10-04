@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  TrendingUp, 
   Users, 
   Car, 
   Truck, 
   Compass, 
-  DollarSign, 
   Calendar, 
   ArrowUpRight, 
   Clock, 
@@ -231,25 +229,8 @@ const DashboardPage = () => {
           </div>
         ) : (
           <>
-            {/* 4 Main Summary KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              
-              {/* Total Revenue */}
-              <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FFF9EE] to-[#FFF5DC] rounded-3xl p-6 text-slate-900 shadow-sm border-2 border-[#E6CD98] relative overflow-hidden">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-[#A66E00] uppercase tracking-wider">Total Revenue</span>
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-[#C8960C] flex items-center justify-center font-bold">
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-[#081C36] mt-3">
-                  {formatCurrency(stats?.summary?.totalRevenue)}
-                </div>
-                <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 font-medium">
-                  <span>From {stats?.summary?.totalTripsCount || 0} logged tasks</span>
-                </div>
-              </div>
-
+            {/* Summary KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-5">
               {/* Total Employee Payouts */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
                 <div className="flex items-center justify-between">
@@ -263,22 +244,6 @@ const DashboardPage = () => {
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">
                   Total staff payout obligation
-                </div>
-              </div>
-
-              {/* Company Net Commission */}
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Net Commission</span>
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <DollarSign className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className={`text-2xl sm:text-3xl font-black mt-3 ${(stats?.summary?.totalCommission ?? 0) < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                  {formatCurrency(stats?.summary?.totalCommission)}
-                </div>
-                <div className="text-[11px] text-slate-500 mt-1">
-                  Revenue after staff payouts
                 </div>
               </div>
 
@@ -330,18 +295,10 @@ const DashboardPage = () => {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 p-3.5 rounded-2xl bg-slate-50 text-center">
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Revenue</span>
-                        <div className="text-sm font-bold text-slate-900">{formatCurrency(cat.revenue)}</div>
-                      </div>
+                    <div className="grid grid-cols-1 gap-2 p-3.5 rounded-2xl bg-slate-50 text-center">
                       <div>
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Payout</span>
                         <div className="text-sm font-bold text-slate-900">{formatCurrency(cat.payout)}</div>
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Profit</span>
-                        <div className={`text-sm font-bold ${cat.commission < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatCurrency(cat.commission)}</div>
                       </div>
                     </div>
 

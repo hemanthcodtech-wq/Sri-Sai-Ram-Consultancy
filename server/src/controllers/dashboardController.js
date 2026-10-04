@@ -57,7 +57,6 @@ const getDashboardStats = async (req, res) => {
       }
 
       const allTrips = await Trip.find(dateFilter);
-      const totalRevenue = allTrips.reduce((sum, t) => sum + (t.tripAmount || 0), 0);
       const totalSalary = allTrips.reduce((sum, t) => sum + (t.salaryAmount || t.employeePayout || 0), 0);
       const totalAdvance = allTrips.reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
       const totalDue = allTrips.reduce((sum, t) => {
@@ -69,8 +68,6 @@ const getDashboardStats = async (req, res) => {
         const due = Number(t.dueAmount || 0);
         return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
       }, 0);
-      const totalCommission = totalRevenue - totalSalary;
-
       // Payment Mode breakdown
       const advanceCash = allTrips.filter(t => t.advancePaymentMode === 'Cash').reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
       const advanceOnline = allTrips.filter(t => t.advancePaymentMode !== 'Cash' && t.advancePaymentMode !== 'None').reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
@@ -91,7 +88,6 @@ const getDashboardStats = async (req, res) => {
       const categories = ['Driver', 'Helper', 'Captain'];
       const categoryBreakdown = categories.map((cat) => {
         const catTrips = allTrips.filter((t) => t.category === cat);
-        const catRevenue = catTrips.reduce((sum, t) => sum + (t.tripAmount || 0), 0);
         const catSalary = catTrips.reduce((sum, t) => sum + (t.salaryAmount || t.employeePayout || 0), 0);
         const catAdvance = catTrips.reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
         const catDue = catTrips.reduce((sum, t) => {
@@ -103,19 +99,15 @@ const getDashboardStats = async (req, res) => {
           const due = Number(t.dueAmount || 0);
           return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
         }, 0);
-        const catCommission = catRevenue - catSalary;
-
         return {
           category: cat,
           tripsCount: catTrips.length,
-          revenue: catRevenue,
           salary: catSalary,
           advance: catAdvance,
           due: catDue,
           paidRevenue: catPaid,
           pendingRevenue: catDue,
           payout: catSalary,
-          commission: catCommission,
         };
       });
 
@@ -139,7 +131,6 @@ const getDashboardStats = async (req, res) => {
           const advanceTotal = empTrips.reduce((sum, t) => sum + getEmpTripStats(t, emp._id).advance, 0);
           const dueTotal = empTrips.reduce((sum, t) => sum + getEmpTripStats(t, emp._id).due, 0);
           const paidTotal = empTrips.reduce((sum, t) => sum + getEmpTripStats(t, emp._id).paid, 0);
-          const revenueGenerated = empTrips.reduce((sum, t) => sum + (t.tripAmount || 0), 0);
 
           return {
             _id: emp._id,
@@ -156,7 +147,6 @@ const getDashboardStats = async (req, res) => {
             advanceTotal,
             dueTotal,
             paidTotal,
-            revenueGenerated,
             amountCollected: paidTotal,
           };
         })
@@ -177,13 +167,11 @@ const getDashboardStats = async (req, res) => {
         success: true,
         data: {
           summary: {
-            totalRevenue,
             totalSalary,
             totalAdvance,
             totalDue,
             totalPaid,
             totalPayout: totalSalary,
-            totalCommission,
             paidRevenue,
             pendingRevenue,
             advanceCash,
@@ -223,7 +211,6 @@ const getDashboardStats = async (req, res) => {
       trips = trips.filter((t) => new Date(t.tripDate) >= startOfYear);
     }
 
-    const totalRevenue = trips.reduce((sum, t) => sum + (t.tripAmount || 0), 0);
     const totalSalary = trips.reduce((sum, t) => sum + (t.salaryAmount || t.employeePayout || 0), 0);
     const totalAdvance = trips.reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
     const totalDue = trips.reduce((sum, t) => {
@@ -235,8 +222,6 @@ const getDashboardStats = async (req, res) => {
       const due = Number(t.dueAmount || 0);
       return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
     }, 0);
-    const totalCommission = totalRevenue - totalSalary;
-
     const advanceCash = trips.filter(t => t.advancePaymentMode === 'Cash').reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
     const advanceOnline = trips.filter(t => t.advancePaymentMode !== 'Cash' && t.advancePaymentMode !== 'None').reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
     const salaryCash = trips.filter(t => t.salaryPaymentMode === 'Cash').reduce((sum, t) => sum + (t.salaryAmount || t.employeePayout || 0), 0);
@@ -256,7 +241,6 @@ const getDashboardStats = async (req, res) => {
     const categories = ['Driver', 'Helper', 'Captain'];
     const categoryBreakdown = categories.map((cat) => {
       const catTrips = trips.filter((t) => t.category === cat);
-      const catRevenue = catTrips.reduce((sum, t) => sum + (t.tripAmount || 0), 0);
       const catSalary = catTrips.reduce((sum, t) => sum + (t.salaryAmount || t.employeePayout || 0), 0);
       const catAdvance = catTrips.reduce((sum, t) => sum + (t.advanceAmount || 0), 0);
       const catDue = catTrips.reduce((sum, t) => {
@@ -268,19 +252,15 @@ const getDashboardStats = async (req, res) => {
         const due = Number(t.dueAmount || 0);
         return sum + Math.max(Number(t.paidAmount || 0), Number(t.advanceAmount || 0), Math.max(0, salary - due));
       }, 0);
-      const catCommission = catRevenue - catSalary;
-
       return {
         category: cat,
         tripsCount: catTrips.length,
-        revenue: catRevenue,
         salary: catSalary,
         advance: catAdvance,
         due: catDue,
         paidRevenue: catPaid,
         pendingRevenue: catDue,
         payout: catSalary,
-        commission: catCommission,
       };
     });
 
@@ -296,7 +276,6 @@ const getDashboardStats = async (req, res) => {
       const advanceTotal = empTrips.reduce((sum, t) => sum + getEmpTripStats(t, emp._id).advance, 0);
       const dueTotal = empTrips.reduce((sum, t) => sum + getEmpTripStats(t, emp._id).due, 0);
       const paidTotal = empTrips.reduce((sum, t) => sum + getEmpTripStats(t, emp._id).paid, 0);
-      const revenueGenerated = empTrips.reduce((sum, t) => sum + (t.tripAmount || 0), 0);
 
       return {
         _id: emp._id,
@@ -313,7 +292,6 @@ const getDashboardStats = async (req, res) => {
         advanceTotal,
         dueTotal,
         paidTotal,
-        revenueGenerated,
         amountCollected: paidTotal,
       };
     });
@@ -327,13 +305,11 @@ const getDashboardStats = async (req, res) => {
       success: true,
       data: {
         summary: {
-          totalRevenue,
           totalSalary,
           totalAdvance,
           totalDue,
           totalPaid,
           totalPayout: totalSalary,
-          totalCommission,
           paidRevenue,
           pendingRevenue,
           advanceCash,
