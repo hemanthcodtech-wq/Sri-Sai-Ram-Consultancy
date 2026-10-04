@@ -37,6 +37,26 @@ const getEmpTripStats = (trip, empId) => {
   return { salary: sal, advance: adv, due, paid };
 };
 
+const getRecentPayments = (employees) => employees
+  .flatMap((employee) => (employee.paymentHistory || []).map((payment, index) => ({
+    _id: `${employee._id}-${payment._id || index}`,
+    employeeId: employee._id,
+    employeeName: employee.name,
+    employeeCode: employee.employeeId,
+    category: employee.category,
+    amount: Number(payment.amount || 0),
+    date: payment.date || payment.createdAt || employee.updatedAt,
+    paymentType: payment.paymentType || 'Salary',
+    mode: payment.mode || 'Cash',
+    notes: payment.notes || '',
+  })))
+  .sort((a, b) => {
+    const dateA = new Date(a.date || 0).getTime();
+    const dateB = new Date(b.date || 0).getTime();
+    return (Number.isNaN(dateB) ? 0 : dateB) - (Number.isNaN(dateA) ? 0 : dateA);
+  })
+  .slice(0, 8);
+
 const getDashboardStats = async (req, res) => {
   try {
     const { timeRange } = req.query; // 'today', 'week', 'month', 'year', 'all'
@@ -112,6 +132,7 @@ const getDashboardStats = async (req, res) => {
       });
 
       const employees = await Employee.find();
+      const recentPayments = getRecentPayments(employees);
       const topEmployees = await Promise.all(
         employees.map(async (emp) => {
           const empTrips = await Trip.find({
@@ -189,6 +210,7 @@ const getDashboardStats = async (req, res) => {
           categoryBreakdown,
           topEmployees,
           recentTrips,
+          recentPayments,
         },
       });
     }
@@ -297,6 +319,7 @@ const getDashboardStats = async (req, res) => {
     });
     topEmployees.sort((a, b) => b.earnings - a.earnings);
 
+    const recentPayments = getRecentPayments(store.data.employees);
     const recentTrips = store.data.trips.slice(0, 8);
     const newInquiriesCount = store.data.inquiries.filter((i) => i.status === 'New').length;
     const totalInquiriesCount = store.data.inquiries.length;
@@ -327,6 +350,7 @@ const getDashboardStats = async (req, res) => {
         categoryBreakdown,
         topEmployees: topEmployees.slice(0, 8),
         recentTrips,
+        recentPayments,
       },
     });
   } catch (error) {

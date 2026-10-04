@@ -15,6 +15,7 @@ import {
   UserPlus,
   ClipboardList,
   ShieldCheck,
+  IndianRupee,
   X
 } from 'lucide-react';
 import api from '../../utils/api';
@@ -314,11 +315,11 @@ const DashboardPage = () => {
               })}
             </div>
 
-            {/* 2-Column: Top Performing Employees & Recent Tasks */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Top employees, recent tasks, and payment history */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
               {/* Top Employees with Auto-Calculated Earnings */}
-              <div className="lg:col-span-6 bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
+              <div className="lg:col-span-4 bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                   <div>
                     <h3 className="font-extrabold text-slate-900 text-lg">Top Staff by Earnings</h3>
@@ -374,7 +375,7 @@ const DashboardPage = () => {
               </div>
 
               {/* Recent Tasks Dispatch Log */}
-              <div className="lg:col-span-6 bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
+              <div className="lg:col-span-4 bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                   <div>
                     <h3 className="font-extrabold text-slate-900 text-lg">Recent Task Dispatches</h3>
@@ -422,6 +423,52 @@ const DashboardPage = () => {
                           </span>
                         </div>
                       </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Recent Employee Payment History */}
+              <div className="lg:col-span-4 bg-white rounded-3xl p-6 shadow-sm border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-lg">Recent Payment History</h3>
+                    <p className="text-xs text-slate-500">Latest payments made to staff</p>
+                  </div>
+                  <IndianRupee className="w-5 h-5 text-emerald-600" />
+                </div>
+
+                <div className="space-y-3">
+                  {!stats?.recentPayments?.length ? (
+                    <p className="text-xs text-slate-400 py-4 text-center">No payment history yet.</p>
+                  ) : (
+                    stats.recentPayments.map((payment) => (
+                      <Link
+                        key={payment._id}
+                        to={`/admin/employees/${payment.employeeId}`}
+                        className="block p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="truncate font-bold text-sm text-slate-900">{payment.employeeName}</div>
+                            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
+                              {payment.employeeCode && <span>{payment.employeeCode}</span>}
+                              {payment.employeeCode && <span>·</span>}
+                              <span>{payment.paymentType}</span>
+                              <span>·</span>
+                              <span>{payment.mode}</span>
+                              {payment.category && <><span>·</span><span>{payment.category}</span></>}
+                            </div>
+                            {payment.notes && <p className="mt-1 truncate text-[10px] text-slate-400">{payment.notes}</p>}
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <div className="font-black text-sm text-emerald-700">{formatCurrency(payment.amount)}</div>
+                            <div className="mt-0.5 text-[10px] text-slate-400">
+                              {payment.date ? new Date(payment.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Date unavailable'}
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
                     ))
                   )}
                 </div>
