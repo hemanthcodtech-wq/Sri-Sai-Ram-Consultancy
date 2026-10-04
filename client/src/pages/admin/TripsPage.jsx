@@ -895,6 +895,12 @@ const TripsPage = () => {
         {summary && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <span className="text-[10px] text-amber-600 font-bold uppercase block">Total Revenue</span>
+              <div className="text-xl font-black text-slate-900 mt-0.5">₹{Number(summary.totalAmount || 0).toLocaleString('en-IN')}</div>
+              <span className="text-[10px] text-slate-500 font-medium">Client billings</span>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
               <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Staff Salary</span>
               <div className="text-xl font-black text-slate-900 mt-0.5">₹{summary.totalSalary || summary.totalPayout || 0}</div>
               <span className="text-[10px] text-slate-500 font-medium">Billed to Crew Members</span>

@@ -558,9 +558,9 @@ const OrganizersPage = () => {
               <table className="w-full text-left text-xs text-slate-700">
                 <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200">
                   <tr>
+                    <th className="py-3.5 px-4">Company / Location</th>
                     <th className="py-3.5 px-4">Organizer Details</th>
                     <th className="py-3.5 px-4">Phone Number</th>
-                    <th className="py-3.5 px-4">Company / Location</th>
                     <th className="py-3.5 px-4">Amount Received</th>
                     <th className="py-3.5 px-4">Payment Mode</th>
                     <th className="py-3.5 px-4">Status</th>
@@ -570,6 +570,15 @@ const OrganizersPage = () => {
                 <tbody className="divide-y divide-slate-100">
                   {currentOrganizers.map((org) => (
                     <tr key={org._id} className="hover:bg-amber-50/20 transition-colors group">
+                      <td className="py-3.5 px-4">
+                        <div className="font-semibold text-slate-800">{org.company || 'Direct Individual'}</div>
+                        {org.address && (
+                          <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 truncate max-w-[200px]">
+                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>{org.address}</span>
+                          </div>
+                        )}
+                      </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-200 text-slate-950 flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
@@ -598,16 +607,6 @@ const OrganizersPage = () => {
                           <Phone className="w-3.5 h-3.5 text-emerald-600" />
                           <span>{org.phone}</span>
                         </a>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-800">{org.company || 'Direct Individual'}</div>
-                        {org.address && (
-                          <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 truncate max-w-[200px]">
-                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span>{org.address}</span>
-                          </div>
-                        )}
                       </td>
 
                       <td className="py-3.5 px-4 max-w-xs">
