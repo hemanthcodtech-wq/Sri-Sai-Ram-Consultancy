@@ -1,6 +1,9 @@
 const Trip = require('../models/Trip');
 const Employee = require('../models/Employee');
+const Route = require('../models/RouteModel');
 const store = require('../config/store');
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const getTripPaidAmount = (trip) => {
   const salary = Number(trip.salaryAmount || trip.employeePayout || 0);
@@ -77,20 +80,38 @@ const getTrips = async (req, res) => {
       employeeId,
       startDate,
       endDate,
+      routeFrom,
+      routeTo,
     } = req.query;
 
     if (store.isMongo()) {
       let query = {};
+      const andFilters = [];
       if (category && category !== 'All') query.category = category;
       if (paymentStatus && paymentStatus !== 'All') query.paymentStatus = paymentStatus;
       if (tripStatus && tripStatus !== 'All') query.tripStatus = tripStatus;
       if (employeeId && employeeId !== 'All') {
-        query.$or = [
+        andFilters.push({ $or: [
           { assignedEmployee: employeeId },
           { 'driver1.employee': employeeId },
           { 'driver2.employee': employeeId },
           { 'helper.employee': employeeId },
-        ];
+        ] });
+      }
+
+      for (const [city, direction, locationField] of [
+        [routeFrom, 'fromCity', 'pickupLocation'],
+        [routeTo, 'toCity', 'dropLocation'],
+      ]) {
+        if (!city) continue;
+        const cityRegex = new RegExp(`^${escapeRegex(city.trim())}$`, 'i');
+        const matchingRouteIds = await Route.find({ [direction]: cityRegex }).distinct('_id');
+        andFilters.push({
+          $or: [
+            { route: { $in: matchingRouteIds } },
+            { [locationField]: cityRegex },
+          ],
+        });
       }
 
       if (startDate || endDate) {
@@ -105,7 +126,7 @@ const getTrips = async (req, res) => {
 
       if (search) {
         const sRegex = { $regex: search, $options: 'i' };
-        query.$or = [
+        andFilters.push({ $or: [
           { tripNumber: sRegex },
           { vehicleNumber: sRegex },
           { routeName: sRegex },
@@ -118,8 +139,9 @@ const getTrips = async (req, res) => {
           { 'driver1.employeeName': sRegex },
           { 'driver2.employeeName': sRegex },
           { 'helper.employeeName': sRegex },
-        ];
+        ] });
       }
+      if (andFilters.length > 0) query.$and = andFilters;
 
       const trips = await Trip.find(query)
         .populate('assignedEmployee', 'name category mobileNumber photo employeeId isBlocked blockReason')
@@ -177,6 +199,18 @@ const getTrips = async (req, res) => {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
       filtered = filtered.filter((t) => new Date(t.tripDate) <= end);
+    }
+    if (routeFrom || routeTo) {
+      filtered = filtered.filter((trip) => {
+        const routeId = trip.route?._id || trip.route;
+        const route = trip.route && typeof trip.route === 'object'
+          ? trip.route
+          : store.data.routes.find((item) => String(item._id) === String(routeId));
+        const fromCity = route?.fromCity || trip.pickupLocation || '';
+        const toCity = route?.toCity || trip.dropLocation || '';
+        return (!routeFrom || fromCity.trim().toLowerCase() === routeFrom.trim().toLowerCase())
+          && (!routeTo || toCity.trim().toLowerCase() === routeTo.trim().toLowerCase());
+      });
     }
     if (search) {
       const s = search.toLowerCase();
@@ -713,4 +747,3 @@ const deleteTrip = async (req, res) => {
 };
 
 module.exports = { getTrips, getTripById, createTrip, updateTrip, deleteTrip };
-

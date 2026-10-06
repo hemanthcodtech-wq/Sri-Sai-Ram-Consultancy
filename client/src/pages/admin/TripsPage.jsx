@@ -127,6 +127,8 @@ const TripsPage = () => {
   const [tripStatus, setTripStatus] = useState('All');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [routeFrom, setRouteFrom] = useState('');
+  const [routeTo, setRouteTo] = useState('');
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -325,6 +327,8 @@ const TripsPage = () => {
           tripStatus,
           startDate,
           endDate,
+          routeFrom,
+          routeTo,
         },
       });
       if (res.data.success) {
@@ -361,11 +365,11 @@ const TripsPage = () => {
 
   useEffect(() => {
     fetchTrips();
-  }, [search, category, paymentStatus, tripStatus, startDate, endDate]);
+  }, [search, category, paymentStatus, tripStatus, startDate, endDate, routeFrom, routeTo]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, category, paymentStatus, tripStatus, startDate, endDate, itemsPerPage]);
+  }, [search, category, paymentStatus, tripStatus, startDate, endDate, routeFrom, routeTo, itemsPerPage]);
 
   const handleOpenModal = (trip = null) => {
     if (trip) {
@@ -840,6 +844,8 @@ const TripsPage = () => {
       category !== 'All' ? category : '',
       tripStatus !== 'All' ? tripStatus : '',
       paymentStatus !== 'All' ? paymentStatus : '',
+      routeFrom ? `From-${routeFrom}` : '',
+      routeTo ? `To-${routeTo}` : '',
     ].filter(Boolean).join('_') || 'All';
 
     exportToExcel(exportData, `SSRC_Tasks_${activeFilterTag}`, 'Tasks_Report');
@@ -918,7 +924,7 @@ const TripsPage = () => {
 
         {/* Multi-Filter Search Bar */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-7 gap-3">
             
             {/* Search Input */}
             <div className="relative">
@@ -954,6 +960,30 @@ const TripsPage = () => {
               <option value="Paid">Paid (Due = 0)</option>
               <option value="Pending">Pending Due</option>
               <option value="Partial">Partial</option>
+            </select>
+
+            {/* Route From Filter */}
+            <select
+              value={routeFrom}
+              onChange={(e) => setRouteFrom(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-500"
+            >
+              <option value="">All Route Origins</option>
+              {[...new Set(routes.map((route) => route.fromCity).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b))
+                .map((city) => <option key={city} value={city}>From: {city}</option>)}
+            </select>
+
+            {/* Route To Filter */}
+            <select
+              value={routeTo}
+              onChange={(e) => setRouteTo(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-500"
+            >
+              <option value="">All Destinations</option>
+              {[...new Set(routes.map((route) => route.toCity).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b))
+                .map((city) => <option key={city} value={city}>To: {city}</option>)}
             </select>
 
             {/* Start Date */}

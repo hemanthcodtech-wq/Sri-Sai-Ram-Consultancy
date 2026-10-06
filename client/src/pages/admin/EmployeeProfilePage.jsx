@@ -241,21 +241,29 @@ const EmployeeProfilePage = () => {
 
   // Calculate pagination slices
   const getEmployeeTripAmounts = (trip, employeeId) => {
-    let due = trip.dueAmount || 0;
-    let salary = trip.salaryAmount || trip.employeePayout || 0;
     const employeeIdString = String(employeeId);
+    const matchingCrew = ['driver1', 'driver2', 'helper']
+      .map((role) => trip[role])
+      .filter((member) => member?.employee
+        && String(member.employee._id || member.employee) === employeeIdString);
 
-    if (trip.driver1?.employee && String(trip.driver1.employee) === employeeIdString) {
-      due = trip.driver1.dueAmount || 0;
-      salary = trip.driver1.salaryAmount || 0;
-    } else if (trip.driver2?.employee && String(trip.driver2.employee) === employeeIdString) {
-      due = trip.driver2.dueAmount || 0;
-      salary = trip.driver2.salaryAmount || 0;
-    } else if (trip.helper?.employee && String(trip.helper.employee) === employeeIdString) {
-      due = trip.helper.dueAmount || 0;
-      salary = trip.helper.salaryAmount || 0;
+    if (matchingCrew.length > 0) {
+      const salary = matchingCrew.reduce((total, member) => total + Number(member.salaryAmount || 0), 0);
+      const due = matchingCrew.reduce((total, member) => {
+        if (trip.paymentStatus === 'Paid' || member.paymentStatus === 'Paid') return total;
+        return total + Number(member.dueAmount !== undefined
+          ? member.dueAmount
+          : Math.max(0, Number(member.salaryAmount || 0) - Number(member.advanceAmount || 0)));
+      }, 0);
+      return { salary, due, paid: Math.max(0, salary - due) };
     }
 
+    const salary = Number(trip.salaryAmount || trip.employeePayout || 0);
+    const due = trip.paymentStatus === 'Paid'
+      ? 0
+      : Number(trip.dueAmount !== undefined
+        ? trip.dueAmount
+        : Math.max(0, salary - Number(trip.advanceAmount || 0)));
     return { salary, due, paid: salary - due };
   };
   const paymentRecords = (employee.paymentHistory || []).length > 0
