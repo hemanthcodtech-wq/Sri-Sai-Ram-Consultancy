@@ -561,6 +561,7 @@ const EmployeeProfilePage = () => {
                           <div className="min-w-0">
                             <p className="font-bold text-slate-900">{new Date(trip.tripDate).toLocaleDateString()}</p>
                             <p className="mt-1 break-words">{trip.routeName || `${trip.pickupLocation} to ${trip.dropLocation}`}</p>
+                            <p className="mt-1 text-slate-500">Vehicle: <span className="font-semibold text-slate-700">{trip.vehicleNumber || '-'}</span></p>
                           </div>
                           <span className="shrink-0 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">Trip</span>
                         </div>
@@ -574,18 +575,20 @@ const EmployeeProfilePage = () => {
                   })}
                 </div>
                 <div className="hidden overflow-x-auto sm:block">
-                  <table className="w-full min-w-[720px] table-fixed text-left text-xs text-slate-700 border border-slate-200">
+                  <table className="w-full min-w-[850px] table-fixed text-left text-xs text-slate-700 border border-slate-200">
                     <colgroup>
+                      <col className="w-[13%]" />
+                      <col className="w-[29%]" />
+                      <col className="w-[14%]" />
                       <col className="w-[15%]" />
-                      <col className="w-[35%]" />
-                      <col className="w-[17%]" />
-                      <col className="w-[16%]" />
-                      <col className="w-[17%]" />
+                      <col className="w-[14%]" />
+                      <col className="w-[15%]" />
                     </colgroup>
                     <thead className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
                       <tr>
                         <th className="py-2 px-3 border-r border-slate-200">Date</th>
                         <th className="py-2 px-3 border-r border-slate-200">Task Details</th>
+                        <th className="py-2 px-3 border-r border-slate-200">Vehicle No.</th>
                         <th className="py-2 px-3 border-r border-slate-200">Salary Amount</th>
                         <th className="py-2 px-3 border-r border-slate-200">Paid Amount</th>
                         <th className="py-2 px-3">Remaining Due</th>
@@ -598,6 +601,7 @@ const EmployeeProfilePage = () => {
                           <tr key={trip._id} className="border-b border-slate-100">
                             <td className="py-2 px-3 border-r border-slate-100">{new Date(trip.tripDate).toLocaleDateString()}</td>
                             <td className="py-2 px-3 border-r border-slate-100 break-words">{trip.routeName || `${trip.pickupLocation} to ${trip.dropLocation}`}</td>
+                            <td className="py-2 px-3 border-r border-slate-100 font-semibold">{trip.vehicleNumber || '-'}</td>
                             <td className="py-2 px-3 border-r border-slate-100 font-bold">₹{salary}</td>
                             <td className="py-2 px-3 border-r border-slate-100 font-bold text-emerald-700">₹{paid > 0 ? paid : 0}</td>
                             <td className="py-2 px-3 font-bold text-rose-600">₹{due}</td>

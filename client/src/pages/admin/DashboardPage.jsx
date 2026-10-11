@@ -16,16 +16,63 @@ import {
   ClipboardList,
   ShieldCheck,
   IndianRupee,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import api from '../../utils/api';
 import SEOHead from '../../components/public/SEOHead';
 import logoImg from '../../assets/logo.png';
 
+const DASHBOARD_ITEMS_PER_PAGE = 5;
+
+const DashboardPagination = ({ page, totalItems, onPageChange }) => {
+  const totalPages = Math.ceil(totalItems / DASHBOARD_ITEMS_PER_PAGE);
+
+  if (totalPages <= 1) return null;
+
+  const startItem = ((page - 1) * DASHBOARD_ITEMS_PER_PAGE) + 1;
+  const endItem = Math.min(page * DASHBOARD_ITEMS_PER_PAGE, totalItems);
+
+  return (
+    <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+      <span className="text-[11px] text-slate-500">
+        {startItem}–{endItem} of {totalItems}
+      </span>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 1}
+          aria-label="Previous page"
+          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <span className="text-[11px] font-bold text-slate-600">
+          {page} / {totalPages}
+        </span>
+        <button
+          type="button"
+          onClick={() => onPageChange(page + 1)}
+          disabled={page === totalPages}
+          aria-label="Next page"
+          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const DashboardPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('all'); // 'today', 'week', 'month', 'year', 'all'
+  const [topEmployeesPage, setTopEmployeesPage] = useState(1);
+  const [recentTripsPage, setRecentTripsPage] = useState(1);
+  const [recentPaymentsPage, setRecentPaymentsPage] = useState(1);
   const navigate = useNavigate();
 
   // Quick Add Employee Modal State directly in Dashboard
@@ -65,8 +112,33 @@ const DashboardPage = () => {
   };
 
   useEffect(() => {
+    setTopEmployeesPage(1);
+    setRecentTripsPage(1);
+    setRecentPaymentsPage(1);
     fetchStats();
   }, [timeRange]);
+
+  const topEmployees = stats?.topEmployees || [];
+  const recentTrips = stats?.recentTrips || [];
+  const recentPayments = stats?.recentPayments || [];
+  const topEmployeesTotalPages = Math.max(1, Math.ceil(topEmployees.length / DASHBOARD_ITEMS_PER_PAGE));
+  const recentTripsTotalPages = Math.max(1, Math.ceil(recentTrips.length / DASHBOARD_ITEMS_PER_PAGE));
+  const recentPaymentsTotalPages = Math.max(1, Math.ceil(recentPayments.length / DASHBOARD_ITEMS_PER_PAGE));
+  const currentTopEmployeesPage = Math.min(topEmployeesPage, topEmployeesTotalPages);
+  const currentRecentTripsPage = Math.min(recentTripsPage, recentTripsTotalPages);
+  const currentRecentPaymentsPage = Math.min(recentPaymentsPage, recentPaymentsTotalPages);
+  const visibleTopEmployees = topEmployees.slice(
+    (currentTopEmployeesPage - 1) * DASHBOARD_ITEMS_PER_PAGE,
+    currentTopEmployeesPage * DASHBOARD_ITEMS_PER_PAGE
+  );
+  const visibleRecentTrips = recentTrips.slice(
+    (currentRecentTripsPage - 1) * DASHBOARD_ITEMS_PER_PAGE,
+    currentRecentTripsPage * DASHBOARD_ITEMS_PER_PAGE
+  );
+  const visibleRecentPayments = recentPayments.slice(
+    (currentRecentPaymentsPage - 1) * DASHBOARD_ITEMS_PER_PAGE,
+    currentRecentPaymentsPage * DASHBOARD_ITEMS_PER_PAGE
+  );
 
   const handleQuickAddEmployee = async (e) => {
     e.preventDefault();
@@ -335,10 +407,10 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {stats?.topEmployees?.length === 0 ? (
+                  {topEmployees.length === 0 ? (
                     <p className="text-xs text-slate-400 py-4 text-center">No employee earnings data yet.</p>
                   ) : (
-                    stats?.topEmployees?.map((emp) => (
+                    visibleTopEmployees.map((emp) => (
                       <Link
                         key={emp._id}
                         to={`/admin/employees/${emp._id}`}
@@ -372,6 +444,11 @@ const DashboardPage = () => {
                     ))
                   )}
                 </div>
+                <DashboardPagination
+                  page={currentTopEmployeesPage}
+                  totalItems={topEmployees.length}
+                  onPageChange={setTopEmployeesPage}
+                />
               </div>
 
               {/* Recent Tasks Dispatch Log */}
@@ -391,10 +468,10 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {stats?.recentTrips?.length === 0 ? (
+                  {recentTrips.length === 0 ? (
                     <p className="text-xs text-slate-400 py-4 text-center">No task entries yet.</p>
                   ) : (
-                    stats?.recentTrips?.map((task) => (
+                    visibleRecentTrips.map((task) => (
                       <div
                         key={task._id}
                         className="p-3 rounded-2xl border border-slate-100 flex items-center justify-between text-xs"
@@ -426,6 +503,11 @@ const DashboardPage = () => {
                     ))
                   )}
                 </div>
+                <DashboardPagination
+                  page={currentRecentTripsPage}
+                  totalItems={recentTrips.length}
+                  onPageChange={setRecentTripsPage}
+                />
               </div>
 
               {/* Recent Employee Payment History */}
@@ -439,10 +521,10 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {!stats?.recentPayments?.length ? (
+                  {!recentPayments.length ? (
                     <p className="text-xs text-slate-400 py-4 text-center">No payment history yet.</p>
                   ) : (
-                    stats.recentPayments.map((payment) => (
+                    visibleRecentPayments.map((payment) => (
                       <Link
                         key={payment._id}
                         to={`/admin/employees/${payment.employeeId}`}
@@ -472,6 +554,11 @@ const DashboardPage = () => {
                     ))
                   )}
                 </div>
+                <DashboardPagination
+                  page={currentRecentPaymentsPage}
+                  totalItems={recentPayments.length}
+                  onPageChange={setRecentPaymentsPage}
+                />
               </div>
 
             </div>
