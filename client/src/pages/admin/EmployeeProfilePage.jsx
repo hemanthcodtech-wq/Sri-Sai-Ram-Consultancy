@@ -14,9 +14,12 @@ const EmployeeProfilePage = () => {
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
   const [trips, setTrips] = useState([]);
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('biodata'); // 'biodata' or 'profile'
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   // Payment Modal State
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -35,7 +38,6 @@ const EmployeeProfilePage = () => {
       if (res.data.success) {
         setEmployee(res.data.data.employee);
         setTrips(res.data.data.trips);
-        setStats(res.data.data.stats);
       }
     } catch (err) {
       console.error('Error fetching employee profile:', err);
@@ -50,7 +52,7 @@ const EmployeeProfilePage = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage]);
+  }, [itemsPerPage, selectedMonth]);
 
   const handlePrint = () => {
     window.print();
@@ -280,11 +282,37 @@ const EmployeeProfilePage = () => {
           notes: `Task ${trip.tripNumber || ''} settlement`.trim(),
         }];
       });
+  const getMonthKey = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  };
+  const monthOptions = [...new Set([
+    selectedMonth,
+    ...trips.map((trip) => getMonthKey(trip.tripDate)),
+    ...paymentRecords.map((payment) => getMonthKey(payment.date)),
+  ].filter(Boolean))].sort((a, b) => b.localeCompare(a));
+  const selectedMonthLabel = new Intl.DateTimeFormat('en-IN', {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(`${selectedMonth}-01T00:00:00`));
+  const monthlyTrips = trips.filter((trip) => getMonthKey(trip.tripDate) === selectedMonth);
+  const monthlyPayments = paymentRecords.filter((payment) => getMonthKey(payment.date) === selectedMonth);
+  const monthlySalary = monthlyTrips.reduce(
+    (total, trip) => total + getEmployeeTripAmounts(trip, employee._id).salary,
+    0
+  );
+  const monthlyDue = monthlyTrips.reduce(
+    (total, trip) => total + getEmployeeTripAmounts(trip, employee._id).due,
+    0
+  );
+  const monthlyPaid = Math.max(0, monthlySalary - monthlyDue);
   const getTripTimestamp = (value) => {
     const timestamp = new Date(value || 0).getTime();
     return Number.isNaN(timestamp) ? 0 : timestamp;
   };
-  const sortedTrips = [...trips].sort((a, b) =>
+  const sortedTrips = monthlyTrips.sort((a, b) =>
     getTripTimestamp(b.tripDate) - getTripTimestamp(a.tripDate) ||
     getTripTimestamp(b.createdAt) - getTripTimestamp(a.createdAt)
   );
@@ -531,27 +559,47 @@ const EmployeeProfilePage = () => {
               </div>
 
               {/* Summary Cards */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-sm font-bold text-slate-900">Monthly Salary Summary</h3>
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                  <span>Select Month</span>
+                  <select
+                    value={selectedMonth}
+                    onChange={(event) => setSelectedMonth(event.target.value)}
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:border-amber-400"
+                  >
+                    {monthOptions.map((month) => (
+                      <option key={month} value={month}>
+                        {new Intl.DateTimeFormat('en-IN', {
+                          month: 'long',
+                          year: 'numeric',
+                        }).format(new Date(`${month}-01T00:00:00`))}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
                 <div className="min-w-0 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                  <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Total Salary Earned</p>
-                  <p className="text-2xl font-black text-amber-900">₹{stats?.totalSalary || 0}</p>
-                  <p className="text-xs text-amber-600 mt-1">Billed Staff Fees</p>
+                  <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Salary Earned</p>
+                  <p className="text-2xl font-black text-amber-900">₹{monthlySalary}</p>
+                  <p className="text-xs text-amber-600 mt-1">{selectedMonthLabel}</p>
                 </div>
                 <div className="min-w-0 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
                   <p className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">Total Paid</p>
-                  <p className="text-2xl font-black text-emerald-900">₹{Math.max(0, (stats?.totalSalary || 0) - (stats?.totalDue || 0))}</p>
-                  <p className="text-xs text-emerald-600 mt-1">Salary − Remaining Due</p>
+                  <p className="text-2xl font-black text-emerald-900">₹{monthlyPaid}</p>
+                  <p className="text-xs text-emerald-600 mt-1">Paid against {selectedMonthLabel} trips</p>
                 </div>
                 <div className="min-w-0 rounded-xl border border-rose-200 bg-rose-50 p-4">
                   <p className="text-xs font-bold text-rose-700 uppercase tracking-wide mb-1">Remaining Due</p>
-                  <p className="text-2xl font-black text-rose-900">₹{stats?.totalDue || 0}</p>
-                  <p className="text-xs text-rose-600 mt-1">Pending Payment</p>
+                  <p className="text-2xl font-black text-rose-900">₹{monthlyDue}</p>
+                  <p className="text-xs text-rose-600 mt-1">Due for {selectedMonthLabel}</p>
                 </div>
               </div>
 
               {/* Tasks Table */}
               <div className="mt-4">
-                <h3 className="text-base font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Records of Trips</h3>
+                <h3 className="text-base font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Records of Trips - {selectedMonthLabel}</h3>
                 <div className="space-y-3 sm:hidden">
                   {currentTrips.map((trip) => {
                     const { salary, paid, due } = getEmployeeTripAmounts(trip, employee._id);
@@ -573,6 +621,9 @@ const EmployeeProfilePage = () => {
                       </article>
                     );
                   })}
+                  {currentTrips.length === 0 && (
+                    <p className="rounded-lg border border-slate-200 p-4 text-center text-xs text-slate-500">No trips found for {selectedMonthLabel}.</p>
+                  )}
                 </div>
                 <div className="hidden overflow-x-auto sm:block">
                   <table className="w-full min-w-[850px] table-fixed text-left text-xs text-slate-700 border border-slate-200">
@@ -595,7 +646,7 @@ const EmployeeProfilePage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {currentTrips.map((trip) => {
+                      {currentTrips.length > 0 ? currentTrips.map((trip) => {
                         const { salary, paid, due } = getEmployeeTripAmounts(trip, employee._id);
                         return (
                           <tr key={trip._id} className="border-b border-slate-100">
@@ -607,7 +658,11 @@ const EmployeeProfilePage = () => {
                             <td className="py-2 px-3 font-bold text-rose-600">₹{due}</td>
                           </tr>
                         );
-                      })}
+                      }) : (
+                        <tr>
+                          <td colSpan="6" className="py-4 px-3 text-center text-slate-500">No trips found for {selectedMonthLabel}.</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -627,7 +682,7 @@ const EmployeeProfilePage = () => {
 
               {/* Payment Records */}
               <div className="mt-6">
-                <h3 className="text-base font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Records of Payments</h3>
+                <h3 className="text-base font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Records of Payments - {selectedMonthLabel}</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[720px] text-left text-xs text-slate-700 border border-slate-200">
                     <thead className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
@@ -642,7 +697,7 @@ const EmployeeProfilePage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {paymentRecords.length > 0 ? paymentRecords.map((p, i) => (
+                      {monthlyPayments.length > 0 ? monthlyPayments.map((p, i) => (
                         <tr key={p._id || `${p.date}-${i}`} className="border-b border-slate-100">
                           <td className="py-2 px-3 border-r border-slate-100 text-slate-400">{i + 1}</td>
                           <td className="py-2 px-3 border-r border-slate-100">{new Date(p.date).toLocaleDateString()}</td>
@@ -682,7 +737,7 @@ const EmployeeProfilePage = () => {
                         </tr>
                       )) : (
                         <tr>
-                          <td colSpan="7" className="py-4 px-3 text-center text-slate-500">No payment records found.</td>
+                          <td colSpan="7" className="py-4 px-3 text-center text-slate-500">No payment records found for {selectedMonthLabel}.</td>
                         </tr>
                       )}
                     </tbody>
